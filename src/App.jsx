@@ -1,9 +1,10 @@
 import './App.css'
+import NavLink from './components/utils/NavLink'
 
 function App() {
   return (
     <>
-      <h1>Hello, Fire Manager!</h1>
+      <NavLink>Início</NavLink>
     </>
   )
 }
