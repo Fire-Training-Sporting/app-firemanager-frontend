@@ -1,16 +1,57 @@
-# React + Vite
+# FireManager Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Front-end da aplicação FireManager, construída com React + Vite.
 
-Currently, two official plugins are available:
+## 🧩 Estrutura do projeto
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- `src/`
+  - `main.jsx`: ponto de entrada da aplicação
+  - `App.jsx`: componente raiz
+  - `components/`: componentes React reutilizáveis
+  - `components/pages/`: páginas da aplicação
+  - `components/utils/`: utilitários e componentes de suporte (ex: `header, buttons, inputs`)
+- `public/`: ativos estáticos (imagens, favicon, etc.)
+- `index.html`: template HTML principal
+- `package.json`: dependências e scripts
+- `vite.config.js`: configuração do Vite
 
-## React Compiler
+## 🚀 Pré-requisitos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 18+ (ou versão compatível com o ecossistema atual)
+- npm
 
-## Expanding the ESLint configuration
+## ⚙️ Instalação
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. Clonar repositório
+
+```bash
+git clone https://github.com/<seu-usuario>/app-firemanager-frontend.git
+cd app-firemanager-frontend
+```
+
+2. Instalar dependências
+
+```
+npm install
+```
+
+## ▶️ Scripts disponíveis
+
+- `npm run dev`: inicia servidor de desenvolvimento (HMR)
+- `npm run build`: gera build de produção (`dist/`)
+- `npm run preview`: pré-visualiza a build de produção localmente
+- `npm run lint`: executa lint (ESLint)
+
+## 🧪 Como executar
+
+```bash
+npm run dev
+```
+
+Acesse `http://localhost:5173` (ou porta exibida no terminal).
+
+## 🔍 Convenções principais
+
+- Arquivos de componentes em `src/components`
+- Páginas em `src/components/pages`
+- Estilos global em `src/index.css` e `src/App.css`
