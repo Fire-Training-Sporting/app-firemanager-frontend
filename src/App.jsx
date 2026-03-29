@@ -1,10 +1,10 @@
 import './App.css'
-import NavLink from './components/utils/NavLink'
+import Header from './components/utils/Header'
 
 function App() {
   return (
     <>
-      <NavLink>Início</NavLink>
+      <Header />
     </>
   )
 }
