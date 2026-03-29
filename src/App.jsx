@@ -1,9 +1,10 @@
 import './App.css'
+import Header from './components/utils/Header'
 
 function App() {
   return (
     <>
-      <h1>Hello, Fire Manager!</h1>
+      <Header />
     </>
   )
 }
