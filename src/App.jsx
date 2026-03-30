@@ -1,10 +1,10 @@
 import './App.css'
-import Header from './components/utils/Header'
+import TelaFuncionarios from './components/pages/TelaFuncionarios'
 
 function App() {
   return (
     <>
-      <Header />
+      <TelaFuncionarios/> 
     </>
   )
 }
