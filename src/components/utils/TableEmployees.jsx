@@ -1,11 +1,15 @@
-import React from "react";
+import { useEffect, useState } from "react";
 
 function TableEmployees() {
-    const employees = [
-    { id: 1, nome: "João Silva", email: "joao@example.com", perfil: "Admin", acao: "Editar" },
-    { id: 2, nome: "Maria Oliveira", email: "maria@example.com", perfil: "Editor", acao: "Editar" },
-    { id: 3, nome: "Carlos Santos", email: "carlos@example.com", perfil: "Visualizador", acao: "Editar" },
-  ];
+  const [employees, setEmployees] = useState([]);
+
+  useEffect(() => {
+    // Exemplo de fetch para uma API fictícia
+    fetch("https://api.exemplo.com/employees")
+      .then((response) => response.json())
+      .then((data) => setEmployees(data))
+      .catch((error) => console.error("Erro ao buscar funcionários:", error));
+  }, []);
 
   return (
     <div className="p-4">
@@ -16,7 +20,8 @@ function TableEmployees() {
             <th className="border border-gray-300 p-2">Nome</th>
             <th className="border border-gray-300 p-2">Email</th>
             <th className="border border-gray-300 p-2">Perfil</th>
-            <th className="border border-gray-300 p-2">Ação</th>
+            <th className="border border-gray-300 p-2">Editar</th>
+            <th className="border border-gray-300 p-2">Excluir</th>
           </tr>
         </thead>
         <tbody>
@@ -26,7 +31,10 @@ function TableEmployees() {
               <td className="border border-gray-300 p-2">{employee.email}</td>
               <td className="border border-gray-300 p-2">{employee.perfil}</td>
               <td className="border border-gray-300 p-2">
-                <button className="bg-blue-500 text-white px-2 py-1 rounded">{employee.acao}</button>
+                <button className="bg-blue-500 text-white px-2 py-1 rounded">Editar</button>
+              </td>
+              <td className="border border-gray-300 p-2">
+                <button className="bg-red-500 text-white px-2 py-1 rounded">Excluir</button>
               </td>
             </tr>
           ))}
