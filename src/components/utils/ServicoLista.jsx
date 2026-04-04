@@ -28,10 +28,10 @@ export default function ServicoLista() {
                     </div>
                 </section>
 
-                <section className="flex justify-around mt-4">
-                    <div className="bg-stone-800 py-2 w-83 justify-center flex text-white font-bold text-xl rounded">Serviço</div>
-                    <div className="bg-stone-800 py-2 w-83 justify-center flex text-white font-bold text-xl rounded">Ação</div>
-                    <div className="bg-stone-800 py-2 w-83 justify-center flex text-white font-bold text-xl rounded">Descontinuar</div>
+                <section className="flex justify-around mt-4 gap-4 px-2">
+                    <div className="bg-stone-800 py-2 flex-1 justify-center flex text-white font-bold text-xl rounded">Serviço</div>
+                    <div className="bg-stone-800 py-2 flex-1 justify-center flex text-white font-bold text-xl rounded">Ação</div>
+                    <div className="bg-stone-800 py-2 flex-1 justify-center flex text-white font-bold text-xl rounded">Descontinuar</div>
                 </section>
 
                 <section className="flex flex-col justify-around mt-3">
