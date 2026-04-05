@@ -24,7 +24,6 @@ function TableEmployees() {
     <div className="bg-white p-12">
       <p className="text-4xl font-bold mb-6 ml-0.5">Funcionários</p>
       <div className="bg-[#5a5a5a] p-6 rounded-2xl text-white">
-        {/* Topo */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <span className="text-3xl font-semibold">Filtrar:</span>
@@ -41,7 +40,6 @@ function TableEmployees() {
           </button>
         </div>
 
-        {/* Cabeçalho */}
         <div className="grid grid-cols-[1.6fr_2.4fr_1.5fr_100px_100px] gap-2 mb-4">
           <div className="text-xl bg-[#3f3f3f] p-3 rounded-lg text-center font-semibold">Nome</div>
           <div className="text-xl bg-[#3f3f3f] p-3 rounded-lg text-center font-semibold">Email</div>
@@ -50,7 +48,6 @@ function TableEmployees() {
           <div className="text-xl bg-[#3f3f3f] p-3 rounded-lg text-center font-semibold">Excluir</div>
         </div>
 
-        {/* Linhas */}
         <div className="flex flex-col gap-3">
           {employees.map((emp, index) => {
             const bg = index % 2 === 0 ? "bg-orange-300" : "bg-orange-500";
