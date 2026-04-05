@@ -1,7 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Header from "./Header";
+import FormField from "./FormField";
+import Button from "./Button";
 
-function ModalEmployeeRegistration({ isOpen, onClose, onSave }) {
+const PERFIL_OPTIONS = [
+  { value: "", label: "Selecione" },
+  { value: "Administrador", label: "Administrador" },
+  { value: "Escritório", label: "Escritório" },
+  { value: "Quadra", label: "Quadra" }
+];
+
+function ModalEmployeeRegistration({ isOpen, onClose, onSave, title = "Cadastrar Funcionário" }) {
   const [form, setForm] = useState({
     nome: "",
     email: "",
@@ -20,9 +29,9 @@ function ModalEmployeeRegistration({ isOpen, onClose, onSave }) {
     };
   }, [isOpen]);
 
-  const handleChange = (field) => (e) => {
-    setForm({ ...form, [field]: e.target.value });
-  };
+  const handleChange = useCallback((field) => (e) => {
+    setForm((prevForm) => ({ ...prevForm, [field]: e.target.value }));
+  }, []);
 
   const handleSave = () => {
     onSave(form);
@@ -45,62 +54,43 @@ function ModalEmployeeRegistration({ isOpen, onClose, onSave }) {
             ×
           </button>
 
-          <h2 className="text-3xl font-bold mb-6">Cadastrar Funcionário</h2>
+          <h2 className="text-3xl font-bold mb-6">{title}</h2>
 
-          <label className="block mb-4 bg-black rounded-xl">
-            <span className="text-xl font-semibold">Nome</span>
-            <input
-              value={form.nome}
-              onChange={handleChange("nome")}
-              className="mt-1 w-full rounded-xl border border-black bg-white px-4 py-3 text-black"
-              placeholder="Nome"
-            />
-          </label>
+          <FormField
+            label="Nome"
+            value={form.nome}
+            onChange={handleChange("nome")}
+          />
 
-          <label className="block mb-4 bg-black rounded-xl">
-            <span className="text-xl font-semibold">Email</span>
-            <input
-              type="email"
-              value={form.email}
-              onChange={handleChange("email")}
-              className="mt-1 w-full rounded-xl border border-black bg-white px-4 py-3 text-black"
-              placeholder="Email"
-            />
-          </label>
+          <FormField
+            label="Email"
+            type="email"
+            value={form.email}
+            onChange={handleChange("email")}
+          />
 
-          <label className="block mb-4 bg-black rounded-xl">
-            <span className="text-xl font-semibold">Telefone</span>
-            <input
-              type="tel"
-              value={form.telefone}
-              onChange={handleChange("telefone")}
-              className="mt-1 w-full rounded-xl border border-black bg-white px-4 py-3 text-black"
-              placeholder="Telefone"
-            />
-          </label>
+          <FormField
+            label="Telefone"
+            type="tel"
+            value={form.telefone}
+            onChange={handleChange("telefone")}
+          />
 
-          <label className="block mb-4 bg-black rounded-xl">
-            <span className="text-xl font-semibold">Perfil</span>
-            <select
-              value={form.perfil}
-              onChange={handleChange("perfil")}
-              className="mt-1 w-full rounded-xl border border-black bg-white px-4 py-3 text-black"
-            >
-              <option value="">Selecione</option>
-              <option value="Administrador">Administrador</option>
-              <option value="Escritório">Escritório</option>
-              <option value="Quadra">Quadra</option>
-            </select>
-          </label>
+          <FormField
+            label="Perfil"
+            type="select"
+            value={form.perfil}
+            onChange={handleChange("perfil")}
+            options={PERFIL_OPTIONS}
+          />
 
           <div className="flex gap-3">
-            <button
-              type="button"
+            <Button
               onClick={handleSave}
-              className="flex-1 rounded-xl bg-green-600 px-4 py-3 font-semibold hover:bg-green-700"
+              className="flex-1 bg-green-600 hover:bg-green-700"
             >
               Cadastrar Funcionário
-            </button>
+            </Button>
           </div>
         </div>
       </div>
