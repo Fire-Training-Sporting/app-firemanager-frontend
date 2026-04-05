@@ -3,7 +3,7 @@ import React from "react";
 function FormField({ label, type = "text", value, onChange, options = [] }) {
   return (
     <label className="block mb-4 bg-black rounded-xl">
-      <span className="text-xl font-semibold">{label}</span>
+      {label && <span className="text-xl font-semibold">{label}</span>}
       {type === "select" ? (
         <select
           value={value}

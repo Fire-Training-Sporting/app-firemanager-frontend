@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import Header from "./Header";
-import FormField from "./FormField";
-import Button from "./Button";
+import Header from "../Header";
+import FormField from "../FormField";
+import Button from "../Button";
 
 const PERFIL_OPTIONS = [
   { value: "", label: "Selecione" },
