@@ -6,13 +6,9 @@ export default function Alunos(){
         <>
             <Header />
             <main className='w-full h-136 flex items-center justify-center'>
-                <div className='max-w-6xl h-130 bg-stone-600 p-8 pt-4 rounded-xl'>
-                    <div className='mb-4'>
-                        <h1 className='text-3xl text-white font-bold mb-2'>Alunos</h1>
-                    </div>
-                    <div className='bg-white rounded-lg shadow-md border overflow-hidden'>
-                        <AlunosTable />
-                    </div>
+                <div className='w-full h-130 bg-white pt-2 pb-2 pl-12 pr-12 rounded-xl'>
+                    <p className='text-4xl font-bold mb-6 ml-0.5'>Alunos</p>
+                    <AlunosTable />
                 </div>
             </main>
         </>

@@ -1,10 +1,10 @@
 import './App.css'
-import TelaFuncionarios from './components/pages/TelaFuncionarios'
+import Alunos from './components/pages/Alunos'
 
 function App() {
   return (
     <>
-      <TelaFuncionarios/> 
+      <Alunos />
     </>
   )
 }

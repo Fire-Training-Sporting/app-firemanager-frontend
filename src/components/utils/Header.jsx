@@ -1,7 +1,7 @@
 import NavLink from "./NavLink";
 import fireIcon from "../../assets/fireIcon.png";
 
-export default function Header({children}){
+export default function Header(){
     return (
         <header className="">
             <div className="h-fit bg-stone-700 flex justify-between items-center pl-8 pr-8 pb-4 pt-4">
