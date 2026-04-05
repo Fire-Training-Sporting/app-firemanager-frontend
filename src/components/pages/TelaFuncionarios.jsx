@@ -4,7 +4,7 @@ import TableEmployees from '../utils/TableEmployees'
 function TelaFuncionarios() {
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <TableEmployees />
     </>
   )

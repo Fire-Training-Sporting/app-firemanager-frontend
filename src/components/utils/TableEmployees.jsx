@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ModalEmployeeRegistration from "./ModalEmployeeRegistration";
 
 const mockEmployees = [
   { id: 1, nome: "Bruno Caique", email: "brunocaique@email.com", perfil: "Quadra" },
@@ -11,7 +12,13 @@ const mockEmployees = [
 ];
 
 function TableEmployees() {
-  const [employees] = useState(mockEmployees);
+  const [employees, setEmployees] = useState(mockEmployees);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleSave = (newEmployee) => {
+    setEmployees([...employees, { id: employees.length + 1, ...newEmployee }]);
+    setIsModalOpen(false);
+  };
 
   return (
     <div className="bg-white p-12">
@@ -26,7 +33,10 @@ function TableEmployees() {
             </button>
           </div>
 
-          <button className="text-xl bg-blue-600 px-4 py-2 rounded-lg font-semibold">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="text-xl bg-blue-600 px-4 py-2 rounded-lg font-semibold"
+          >
             + Cadastrar funcionário
           </button>
         </div>
@@ -71,6 +81,11 @@ function TableEmployees() {
           })}
         </div>
       </div>
+      <ModalEmployeeRegistration
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+      />
     </div>
   );
 }
