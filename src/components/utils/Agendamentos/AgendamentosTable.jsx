@@ -65,7 +65,7 @@ function AgendamentosTable() {
   };
 
   return (
-    <div className={`${colors.bg.white} p-12`}>
+    <div className={`${colors.bg.white} p-12 min-h-screen`}>
       <p className="text-4xl font-bold mb-6 ml-0.5">Agendamentos</p>
       <div className={`${colors.bg.gray} p-6 rounded-2xl text-white`}>
         <div className="flex justify-between items-center mb-6">
