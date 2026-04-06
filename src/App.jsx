@@ -1,4 +1,5 @@
 import './App.css'
+import { Servico } from './components/pages/Servico'
 import Header from './components/utils/Header'
 import { TelaDashboard } from './components/pages/TelaDashboard'
 
@@ -16,6 +17,7 @@ function App() {
       <TelaAgendamentos />
       {/* <Alunos /> */}
       {/* <Servico /> */}
+
     </>
   )
 }

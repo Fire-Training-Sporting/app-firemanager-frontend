@@ -47,6 +47,7 @@ export default function Header({children}){
                 <NavLink>Agendamentos</NavLink>
                 <NavLink>Alunos</NavLink>
                 <NavLink>Funcionários</NavLink>
+                <NavLink>Serviços</NavLink>
                 <NavLink>Dashboard</NavLink>
             </nav>
         </header>
