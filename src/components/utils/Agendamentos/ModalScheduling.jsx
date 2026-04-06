@@ -3,6 +3,37 @@ import Header from "../Header";
 import FormField from "../FormField";
 import Button from "../Button";
 
+const colors = {
+  bg: {
+    gray: "bg-[#4F4F4F]",
+    darkGray: "bg-[#363636]",
+    orange: "bg-[#F99A4D]",
+    darkOrange: "bg-[#F8821E]",
+    white: "bg-[#F3F4F8]",
+    green: "bg-[#17A34A]",
+    red: "bg-[#DC2625]",
+    blue: "bg-[#2563EA]",
+    yellow: "bg-[#E9B308]",
+  },
+  text: {
+    red: "text-[#DC2625]",
+    blue: "text-[#2563EA]",
+    green: "text-[#17A34A]",
+    gray: "text-[#4F4F4F]",
+  },
+  hoverBg: {
+    red: "hover:bg-[#B91C1C]",      
+    blue: "hover:bg-[#1E40AF]",     
+    green: "hover:bg-[#166534]",    
+    orange: "hover:bg-[#EA580C]",   
+    gray: "hover:bg-[#2E2E2E]",     
+    yellow: "hover:bg-[#CA8A04]",   
+  },
+  hoverText: {
+    red: "hover:text-[#B91C1C]",
+  }
+};
+
 const SERVICO_OPTIONS = [
   { value: "", label: "Selecione" },
   { value: "Tênis", label: "Tênis" },
@@ -49,59 +80,29 @@ function ModalScheduling({ isOpen, onClose, onSave, title = "Criar agendamento" 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+    <div className={`fixed inset-0 z-50 ${colors.bg.white} overflow-y-auto`}>
       <Header />
 
       <div className="flex justify-center p-6">
-        <div className="relative w-[500px] bg-[#4a4a4a] rounded-xl p-6 shadow-2xl space-y-4 text-white">
+        <div className={`relative w-[500px] ${colors.bg.gray} rounded-xl p-6 shadow-2xl space-y-4 text-white`}>
 
-          {/* Fechar */}
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 text-red-500 text-4xl font-bold hover:text-red-600"
+            className={`absolute right-4 top-4 ${colors.text.red} text-4xl font-bold ${colors.hoverText.red}`}
           >
             ×
           </button>
 
-          {/* Título */}
           <h2 className="text-3xl font-bold">{title}</h2>
 
-          {/* GRID */}
           <div className="grid grid-cols-2 gap-3">
-            <FormField
-              label="Data"
-              type="date"
-              value={form.data}
-              onChange={handleChange("data")}
-            />
-
-            <FormField
-              label="Início"
-              type="time"
-              value={form.horarioInicio}
-              onChange={handleChange("horarioInicio")}
-            />
-
-            <FormField
-              label="Término"
-              type="time"
-              value={form.horarioFim}
-              onChange={handleChange("horarioFim")}
-            />
-
-            <FormField
-              label="Local"
-              value={form.local}
-              onChange={handleChange("local")}
-            />
+            <FormField label="Data" type="date" value={form.data} onChange={handleChange("data")} />
+            <FormField label="Início" type="time" value={form.horarioInicio} onChange={handleChange("horarioInicio")} />
+            <FormField label="Término" type="time" value={form.horarioFim} onChange={handleChange("horarioFim")} />
+            <FormField label="Local" value={form.local} onChange={handleChange("local")} />
           </div>
 
-          {/* FULL */}
-          <FormField
-            label="Aluno"
-            value={form.aluno}
-            onChange={handleChange("aluno")}
-          />
+          <FormField label="Aluno" value={form.aluno} onChange={handleChange("aluno")} />
 
           <FormField
             label="Serviço"
@@ -111,32 +112,19 @@ function ModalScheduling({ isOpen, onClose, onSave, title = "Criar agendamento" 
             options={SERVICO_OPTIONS}
           />
 
-          {/* SALDO */}
           <div className="bg-gray-300 text-black px-4 py-2 rounded-lg font-semibold">
             Saldo do serviço: 4
           </div>
 
-          {/* FUNCIONÁRIO */}
           <div className="grid grid-cols-2 gap-3">
-            <FormField
-              label="Funcionário"
-              value={form.funcionario}
-              onChange={handleChange("funcionario")}
-            />
-
-            <FormField
-              label="Função"
-              value={form.funcao}
-              onChange={handleChange("funcao")}
-            />
+            <FormField label="Funcionário" value={form.funcionario} onChange={handleChange("funcionario")} />
+            <FormField label="Função" value={form.funcao} onChange={handleChange("funcao")} />
           </div>
 
-          {/* BOTÃO AZUL */}
-          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg">
+          <Button className={`w-full ${colors.bg.blue} ${colors.hoverBg.blue} text-white font-semibold py-3 rounded-lg`}>
             Adicionar funcionário
           </Button>
 
-          {/* OBSERVAÇÃO */}
           <FormField
             label="Observação"
             type="textarea"
@@ -144,10 +132,9 @@ function ModalScheduling({ isOpen, onClose, onSave, title = "Criar agendamento" 
             onChange={handleChange("observacao")}
           />
 
-          {/* BOTÃO FINAL */}
           <Button
             onClick={handleSave}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg"
+            className={`w-full ${colors.bg.green} ${colors.hoverBg.green} text-white font-semibold py-3 rounded-lg`}
           >
             Criar agendamento
           </Button>
