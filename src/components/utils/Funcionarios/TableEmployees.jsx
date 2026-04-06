@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ModalEmployeeRegistration from "./ModalEmployeeRegistration";
+import ModalEmployeeEdit from "./ModalEmployeeEdit";
 
 const mockEmployees = [
   { id: 1, nome: "Bruno Caique", email: "brunocaique@email.com", perfil: "Quadra" },
@@ -30,12 +31,12 @@ const colors = {
     gray: "text-[#4F4F4F]",
   },
   hoverBg: {
-    red: "hover:bg-[#B91C1C]",      
-    blue: "hover:bg-[#1E40AF]",     
-    green: "hover:bg-[#166534]",    
-    orange: "hover:bg-[#EA580C]",   
-    gray: "hover:bg-[#2E2E2E]",     
-    yellow: "hover:bg-[#CA8A04]",   
+    red: "hover:bg-[#B91C1C]",
+    blue: "hover:bg-[#1E40AF]",
+    green: "hover:bg-[#166534]",
+    orange: "hover:bg-[#EA580C]",
+    gray: "hover:bg-[#2E2E2E]",
+    yellow: "hover:bg-[#CA8A04]",
   },
   hoverText: {
     red: "hover:text-[#B91C1C]",
@@ -49,6 +50,14 @@ function TableEmployees() {
   const handleSave = (newEmployee) => {
     setEmployees([...employees, { id: employees.length + 1, ...newEmployee }]);
     setIsModalOpen(false);
+  };
+
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const handleUpdate = (updatedEmployee) => {
+    setEmployees(employees.map(emp => emp.id === updatedEmployee.id ? updatedEmployee : emp));
+    setIsEditModalOpen(false);
   };
 
   return (
@@ -95,7 +104,13 @@ function TableEmployees() {
                   {emp.perfil}
                 </div>
                 <div className={`text-xl p-0 rounded-lg`}>
-                  <button className={`w-full h-13 ${colors.bg.green} ${colors.hoverBg.green} rounded-lg text-white font-semibold`}>
+                  <button
+                    onClick={() => {
+                      setSelectedEmployee(emp);
+                      setIsEditModalOpen(true);
+                    }}
+                    className={`w-full h-13 ${colors.bg.green} ${colors.hoverBg.green} rounded-lg text-white font-semibold`}
+                  >
                     Editar
                   </button>
                 </div>
@@ -113,6 +128,12 @@ function TableEmployees() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
+      />
+      <ModalEmployeeEdit
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onUpdate={handleUpdate}
+        employee={selectedEmployee}
       />
     </div>
   );
