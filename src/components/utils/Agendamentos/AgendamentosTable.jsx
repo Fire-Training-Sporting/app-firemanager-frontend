@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ModalScheduling from "./ModalScheduling";
+import AgendamentosRow from "./AgendamentosRow";
 
 const colors = {
   bg: {
@@ -33,36 +34,9 @@ const colors = {
 };
 
 const mockAgendamentos = [
-  {
-    id: 1,
-    data: "01/02/2026",
-    horario: "08:00",
-    quadra: "Quadra A",
-    professor: "Bruno",
-    rebatedor: "João",
-    auxiliar: "Giovana",
-    status: "pendente",
-  },
-  {
-    id: 2,
-    data: "01/02/2026",
-    horario: "09:00",
-    quadra: "Quadra B",
-    professor: "Kalleb",
-    rebatedor: "Lucas",
-    auxiliar: "Beatriz",
-    status: "confirmado",
-  },
-  {
-    id: 3,
-    data: "02/02/2026",
-    horario: "10:00",
-    quadra: "Quadra C",
-    professor: "Vitor",
-    rebatedor: "João",
-    auxiliar: "Giovana",
-    status: "cancelado",
-  },
+  { id: 1, data: "01/02/2026", horario: "08:00", quadra: "Quadra A", professor: "Bruno", rebatedor: "João", auxiliar: "Giovana", status: "pendente" },
+  { id: 2, data: "01/02/2026", horario: "09:00", quadra: "Quadra B", professor: "Kalleb", rebatedor: "Lucas", auxiliar: "Beatriz", status: "confirmado" },
+  { id: 3, data: "02/02/2026", horario: "10:00", quadra: "Quadra C", professor: "Vitor", rebatedor: "João", auxiliar: "Giovana", status: "cancelado" },
 ];
 
 function AgendamentosTable() {
@@ -110,8 +84,8 @@ function AgendamentosTable() {
           </button>
         </div>
 
-        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_150px_150px] gap-2 mb-4">
-          {["Data","Horário","Quadra","Professor","Rebatedor","Auxiliar","Status","Confirmar","Cancelar"].map((col) => (
+        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_250px] gap-2 mb-4">
+          {["Data","Horário","Quadra","Professor","Rebatedor","Auxiliar","Status","Ações"].map((col) => (
             <div key={col} className={`text-xl ${colors.bg.darkGray} p-3 rounded-lg text-center font-semibold`}>
               {col}
             </div>
@@ -119,40 +93,15 @@ function AgendamentosTable() {
         </div>
 
         <div className="flex flex-col gap-3">
-          {agendamentos.map((ag, index) => {
-            const bg = index % 2 === 0 ? colors.bg.orange : colors.bg.darkOrange;
-
-            return (
-              <div
-                key={ag.id}
-                className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_150px_150px] gap-3 items-center"
-              >
-                <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{ag.data}</div>
-                <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{ag.horario}</div>
-                <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{ag.quadra}</div>
-                <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{ag.professor}</div>
-                <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{ag.rebatedor}</div>
-                <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{ag.auxiliar}</div>
-                <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{ag.status}</div>
-                <div className="text-xl p-0 rounded-lg">
-                  <button
-                    onClick={() => handleConfirm(ag.id)}
-                    className={`w-full h-12 ${colors.bg.green} ${colors.hoverBg.green} rounded-lg text-white font-semibold`}
-                  >
-                    Confirmar
-                  </button>
-                </div>
-                <div className="text-xl p-0 rounded-lg">
-                  <button
-                    onClick={() => handleCancel(ag.id)}
-                    className={`w-full h-12 ${colors.bg.red} ${colors.hoverBg.red} rounded-lg text-white font-semibold`}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+          {agendamentos.map((ag, index) => (
+            <AgendamentosRow
+              key={ag.id}
+              agendamento={ag}
+              index={index}
+              onConfirm={handleConfirm}
+              onCancel={handleCancel}
+            />
+          ))}
         </div>
       </div>
 

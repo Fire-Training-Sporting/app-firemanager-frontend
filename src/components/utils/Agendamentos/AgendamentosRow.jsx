@@ -11,69 +11,51 @@ function AgendamentosRow({ agendamento, index, onConfirm, onCancel }) {
       blue: "bg-[#2563EA]",
       yellow: "bg-[#E9B308]",
     },
-    text: {
-      red: "text-[#DC2625]",
-      blue: "text-[#2563EA]",
-      green: "text-[#17A34A]",
-      gray: "text-[#4F4F4F]",
-    },
     hoverBg: {
-      red: "hover:bg-[#B91C1C]",      
-      blue: "hover:bg-[#1E40AF]",     
-      green: "hover:bg-[#166534]",    
-      orange: "hover:bg-[#EA580C]",   
-      gray: "hover:bg-[#2E2E2E]",     
-      yellow: "hover:bg-[#CA8A04]",   
-    },
-    hoverText: {
-      red: "hover:text-[#B91C1C]",
+      red: "hover:bg-[#B91C1C]",
+      blue: "hover:bg-[#1E40AF]",
+      green: "hover:bg-[#166534]",
+      orange: "hover:bg-[#EA580C]",
+      gray: "hover:bg-[#2E2E2E]",
+      yellow: "hover:bg-[#CA8A04]",
     }
-  };  
+  };
 
   const bg = index % 2 === 0 ? colors.bg.orange : colors.bg.darkOrange;
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "confirmado": return colors.bg.green;
-      case "pendente": return colors.bg.yellow;
-      case "cancelado": return colors.bg.red;
-      default: return colors.bg.gray;
-    }
+    const normalized = String(status).trim().toLowerCase();
+    if (normalized === "confirmado") return colors.bg.green;
+    if (normalized === "pendente") return colors.bg.yellow;
+    if (normalized === "cancelado") return colors.bg.red;
+    return colors.bg.gray;
   };
 
   return (
     <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_250px] gap-3 items-center">
-      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>
-        {agendamento.data}
-      </div>
-      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>
-        {agendamento.horario}
-      </div>
-      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>
-        {agendamento.quadra}
-      </div>
-      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>
-        {agendamento.professor}
-      </div>
-      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>
-        {agendamento.rebatedor}
-      </div>
-      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>
-        {agendamento.auxiliar}
-      </div>
+      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{agendamento.data}</div>
+      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{agendamento.horario}</div>
+      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{agendamento.quadra}</div>
+      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{agendamento.professor}</div>
+      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{agendamento.rebatedor}</div>
+      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{agendamento.auxiliar}</div>
+      
       <div className={`text-xl ${getStatusColor(agendamento.status)} p-3 rounded-lg text-center font-semibold text-white`}>
-        {agendamento.status.charAt(0).toUpperCase() + agendamento.status.slice(1)}
+        {String(agendamento.status).trim()[0].toUpperCase() + String(agendamento.status).trim().slice(1).toLowerCase()}
       </div>
+
       <div className="flex gap-2">
         <button
           onClick={() => onConfirm(agendamento.id)}
-          className={`flex-1 ${colors.bg.green} ${colors.hoverBg.green} text-white px-4 py-3 rounded-lg font-semibold text-xl`}
+          disabled={agendamento.status.toLowerCase().trim() === "confirmado"} // desabilita se já confirmado
+          className={`flex-1 ${colors.bg.green} ${colors.hoverBg.green} text-white px-4 py-3 rounded-lg font-semibold text-xl disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           Confirmar
         </button>
         <button
           onClick={() => onCancel(agendamento.id)}
-          className={`flex-1 ${colors.bg.red} ${colors.hoverBg.red} text-white px-4 py-3 rounded-lg font-semibold text-xl`}
+          disabled={agendamento.status.toLowerCase().trim() === "cancelado"} // desabilita se já cancelado
+          className={`flex-1 ${colors.bg.red} ${colors.hoverBg.red} text-white px-4 py-3 rounded-lg font-semibold text-xl disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           Cancelar
         </button>

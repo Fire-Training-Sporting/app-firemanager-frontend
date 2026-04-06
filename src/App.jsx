@@ -9,8 +9,8 @@ function App() {
   return (
     <>
       <Header/>
-      <TelaFuncionarios />
-      {/* <TelaAgendamentos /> */}
+      {/* <TelaFuncionarios /> */}
+      <TelaAgendamentos />
       {/* <Alunos /> */}
       {/* <Servico /> */}
     </>
