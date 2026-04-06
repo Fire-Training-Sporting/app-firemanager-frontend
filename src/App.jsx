@@ -1,12 +1,23 @@
 import './App.css'
 import { Servico } from './components/pages/Servico'
 import Header from './components/utils/Header'
+import { TelaDashboard } from './components/pages/TelaDashboard'
+
+import TelaFuncionarios from './components/pages/TelaFuncionarios'
+import TelaAgendamentos from './components/pages/TelaAgendamentos'
+
+// import { Servico } from './components/pages/Servico'
 
 function App() {
   return (
     <>
+      <TelaDashboard />
       <Header/>
-      <Servico/>
+      {/* <TelaFuncionarios /> */}
+      <TelaAgendamentos />
+      {/* <Alunos /> */}
+      {/* <Servico /> */}
+
     </>
   )
 }
