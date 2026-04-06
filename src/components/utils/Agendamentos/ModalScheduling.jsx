@@ -84,7 +84,7 @@ function ModalScheduling({ isOpen, onClose, onSave, title = "Criar agendamento" 
       <Header />
 
       <div className="flex justify-center p-6">
-        <div className={`relative w-[500px] ${colors.bg.gray} rounded-xl p-6 shadow-2xl space-y-4 text-white`}>
+        <div className={`relative w-500px ${colors.bg.gray} rounded-xl p-6 shadow-2xl space-y-4 text-white`}>
 
           <button
             onClick={onClose}
