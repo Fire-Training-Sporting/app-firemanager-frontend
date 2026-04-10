@@ -2,7 +2,7 @@ import React from "react";
 
 function InputComponent({ label, type = "text", value, onChange, placeholder }) {
   return (
-    <label className="block mb-4 bg-black rounded-xl">
+    <label className="block mb-4 rounded-xl">
       <span className="text-xl font-semibold">{label}</span>
       <input
         type={type}

@@ -1,5 +1,5 @@
 import Header from "../utils/Header"
-import { Dashboard } from "../utils/Dashboard"
+import { Dashboard } from "../utils/Dashboard/Dashboard"
 
 export function TelaDashboard() {
     return (
