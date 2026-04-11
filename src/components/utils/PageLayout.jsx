@@ -13,7 +13,7 @@ export default function PageLayout({ title, searchPlaceholder, onSearch, onAdd, 
                 type="text"
                 placeholder={searchPlaceholder}
                 onChange={onSearch}
-                className="border border-gray-300 rounded-md px-4 py-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 w-56"
+                className="border border-gray-300 rounded-md px-4 py-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 w-70"
               />
             </div>
             <button

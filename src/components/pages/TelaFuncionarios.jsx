@@ -1,13 +1,20 @@
-// import Header from '../utils/Header'
-import TableEmployees from '../utils/Funcionarios/TableEmployees'
+import PageLayout from '../utils/PageLayout';
+import FuncionariosTable from '../utils/Funcionarios/FuncionariosTable';
 
-function TelaFuncionarios() {
+export default function TelaFuncionarios() {
+  const handleSearch = () => {};
+  const handleAdd = () => {};
   return (
-    <>
-      {/* <Header /> */}
-      <TableEmployees />
-    </>
-  )
+    <PageLayout
+      title="Funcionários"
+      searchPlaceholder="Pesquisar funcionário"
+      onSearch={handleSearch}
+      onAdd={handleAdd}
+      addLabel="Cadastrar funcionário"
+    >
+      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+        <FuncionariosTable />
+      </div>
+    </PageLayout>
+  );
 }
-
-export default TelaFuncionarios

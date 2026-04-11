@@ -1,8 +1,9 @@
 // Componente base de tabela reutilizável
-export default function TableBase({ columns, data, maxHeight = '420px' }) {
+export default function TableBase({ columns, data }) {
+  // Altura máxima padronizada para todas as tabelas (igual à de alunos)
   return (
     <div className="w-full overflow-x-auto">
-      <div className={`max-h-[${maxHeight}] overflow-y-auto`}>
+      <div className="max-h-116 overflow-y-auto">
         <table className="w-full border-separate border-spacing-0 rounded-lg overflow-hidden shadow-md table-fixed">
           <thead className="sticky top-0 z-10">
             <tr className="border-b-2 border-gray-200">
