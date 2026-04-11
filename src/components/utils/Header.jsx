@@ -40,7 +40,7 @@ export default function Header({ children }) {
     "Agendamentos",
     "Alunos",
     "Funcionários",
-    // "Serviços", // Não aparece na imagem, então removido
+    "Serviços",
     "Dashboard"
   ];
   return (
