@@ -32,24 +32,43 @@ const colors = {
   }
 };
 
-export default function Header({children}){
-    return (
-        <header className="">
-            <div className={`h-fit ${colors.bg.gray} flex justify-between items-center pl-8 pr-8 pb-4 pt-4`}>
-                <div className="flex items-center gap-4">
-                    <img src={fireIcon} alt="Logo" className="w-16 h-16"/>
-                    <h1 className="text-4xl text-white font-bold">FireManager</h1>
-                </div>
-                <h1 className="text-2xl text-white font-bold">Olá, Bruno</h1>
-            </div>
-            <nav className={`${colors.bg.darkOrange} w-full h-fit flex p-4 gap-4`}>
-                <NavLink>Início</NavLink>
-                <NavLink>Agendamentos</NavLink>
-                <NavLink>Alunos</NavLink>
-                <NavLink>Funcionários</NavLink>
-                <NavLink>Serviços</NavLink>
-                <NavLink>Dashboard</NavLink>
-            </nav>
-        </header>
-    )
-} 
+export default function Header({ children }) {
+  // Simulação de item ativo (exemplo: "Alunos"), pode ser ajustado conforme a rota
+  const active = "Alunos";
+  const navItems = [
+    "Início",
+    "Agendamentos",
+    "Alunos",
+    "Funcionários",
+    // "Serviços", // Não aparece na imagem, então removido
+    "Dashboard"
+  ];
+  return (
+    <header className="w-full">
+      {/* Top bar */}
+      <div className="bg-[#23272F] flex justify-between items-center px-8 py-3">
+        <div className="flex items-center gap-3">
+          <img src={fireIcon} alt="Logo" className="w-8 h-8" />
+          <span className="text-lg font-semibold text-white tracking-wide">Fire Manager</span>
+        </div>
+        <span className="text-white text-base">Olá, Bruno</span>
+      </div>
+      {/* Navigation bar */}
+      <nav className="bg-[#F8821E] flex gap-2 px-8 py-2">
+        {navItems.map((item) => (
+          <button
+            key={item}
+            className={`px-6 py-1 rounded-md font-medium text-white text-base transition-all duration-150 ${
+              active === item
+                ? 'bg-[#B85B12] shadow-inner' // ativo
+                : 'hover:bg-[#EA580C] bg-transparent'
+            }`}
+            style={{ outline: 'none', border: 'none' }}
+          >
+            {item}
+          </button>
+        ))}
+      </nav>
+    </header>
+  );
+}
