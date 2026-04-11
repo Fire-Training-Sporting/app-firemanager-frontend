@@ -11,6 +11,7 @@ function CadastroFuncionario() {
     senha: "",
     condominio: ""
   })
+  
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [tipoUsuario, setTipoUsuario] = useState([]);
   const [isAluno, setIsAluno] = useState(false);
@@ -18,9 +19,11 @@ function CadastroFuncionario() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
+  const API = "http://localhost:8080/api";
+
   async function carregarTipoUsuarios() {
     try {
-      const resposta = await fetch("http://localhost:8080/api/tipo-usuarios");
+      const resposta = await fetch(`${API}/tipo-usuarios`);
 
       if (!resposta.ok) {
         throw new Error("Erro na requisição");
@@ -35,7 +38,7 @@ function CadastroFuncionario() {
   }
 
   async function carregarCondominios() {
-    const resposta = await fetch("http://localhost:8080/api/condominios");
+    const resposta = await fetch(`${API}/condominios`);
     const dados = await resposta.json();
     setCondominioState(dados);
   }
@@ -129,6 +132,7 @@ function CadastroFuncionario() {
     if (!confirmarSenha) { setErro("Confirmar é obrigatório"); return false; }
     if (credenciais.senha !== confirmarSenha) { setErro("Senhas não são iguais"); return false; }
     if (!credenciais.tipoUsuario) { setErro("Tipo de Usuário é obrigatório"); return false; }
+    if (isAluno && !credenciais.condominio) { setErro("Condomínio é obrigatório para aluno"); return false; }
 
     return true;
   }
@@ -140,7 +144,7 @@ function CadastroFuncionario() {
     if (!validacao) return console.error("Credenciais incorretas.")
 
     try {
-      const resposta = await fetch("http://localhost:8080/api/usuarios", {
+      const resposta = await fetch(`${API}/usuarios`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(credenciais)
@@ -234,6 +238,7 @@ function CadastroFuncionario() {
 
               <select
                 className="mt-1 w-full rounded-xl border border-black bg-white px-4 py-3 text-black"
+                value={credenciais.condominio}
                 onChange={atualizarCondominio}
               >
                 <option value="">Selecione</option>
