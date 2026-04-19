@@ -1,20 +1,28 @@
+import { useState } from "react";
 import PageLayout from '../utils/PageLayout';
 import { AgendamentosTable } from '../utils/Agendamentos/AgendamentosTable';
+import ModalScheduling from '../utils/Agendamentos/ModalScheduling';
 
 export default function TelaAgendamentos() {
+  const [showModal, setShowModal] = useState(false);
+
   const handleSearch = () => {};
-  const handleAdd = () => {};
+  const handleAdd = () => setShowModal(true);
 
   return (
     <PageLayout
       title="Agendamentos"
       searchPlaceholder="Pesquisar agendamento..."
       onSearch={handleSearch}
-      onAdd={handleAdd}
-      addLabel="Agendar serviço"
+      onAdd={showModal ? () => setShowModal(false) : handleAdd}
+      addLabel={showModal ? "Voltar" : "Agendar serviço"}
     >
       <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-        <AgendamentosTable />
+        {showModal ? (
+          <ModalScheduling onClose={() => setShowModal(false)} />
+        ) : (
+          <AgendamentosTable />
+        )}
       </div>
     </PageLayout>
   );
