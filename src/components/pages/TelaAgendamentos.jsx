@@ -1,11 +1,21 @@
-import AgendamentosTable from '../utils/Agendamentos/AgendamentosTable'
+import PageLayout from '../utils/PageLayout';
+import { AgendamentosTable } from '../utils/Agendamentos/AgendamentosTable';
 
-function TelaAgendamentos() {
+export default function TelaAgendamentos() {
+  const handleSearch = () => {};
+  const handleAdd = () => {};
+
   return (
-    <>
-      <AgendamentosTable />
-    </>
-  )
+    <PageLayout
+      title="Agendamentos"
+      searchPlaceholder="Pesquisar agendamento..."
+      onSearch={handleSearch}
+      onAdd={handleAdd}
+      addLabel="Agendar serviço"
+    >
+      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+        <AgendamentosTable />
+      </div>
+    </PageLayout>
+  );
 }
-
-export default TelaAgendamentos
