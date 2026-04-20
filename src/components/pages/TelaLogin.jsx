@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
 import InputComponent from "../utils/InputComponent"
 import { BtnGreen } from "../utils/Buttons/BtnGreen"
 
@@ -10,7 +9,7 @@ export async function login(email, senha) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, senha }),
-    });
+    }); //FETCH PADRAO
 
     if (!response.ok) throw new Error("Credenciais inválidas");
 
@@ -21,19 +20,20 @@ export async function login(email, senha) {
     return data;
 }
 
-export function TelaLogin() {
+export function TelaLogin({ onLoginSucesso }) { 
+    // ESSE ONLOGINSUCESSO É MEIO QUE UMA FUNÇÃO/PARAMETRO 
+    // VAZIO QUE SERVE SÓ PARA ALTERAR O ESTADO E MUDAR PAGINA
     const [email, setEmail] = useState("")
     const [senha, setSenha] = useState("")
     const [erro, setErro] = useState("")
     const [loading, setLoading] = useState(false)
-    const navigate = useNavigate()
 
     async function handleLogin() {
         setErro("")
         setLoading(true)
         try {
             await login(email, senha)
-            navigate("/dashboard") // troque pela rota que quiser
+            onLoginSucesso()
         } catch (e) {
             setErro("Email ou senha inválidos")
         } finally {
