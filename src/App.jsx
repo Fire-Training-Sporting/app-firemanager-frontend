@@ -1,10 +1,18 @@
 import './App.css'
-import Alunos from './components/pages/Alunos'
+import TelaAlunos from './components/pages/TelaAlunos'
+import TelaFuncionarios from './components/pages/TelaFuncionarios'
+import TelaAgendamentos from './components/pages/TelaAgendamentos'
+import TelaCondominios from './components/pages/TelaCondominios'
+import { TelaLogin } from './components/pages/TelaLogin'
 
 function App() {
   return (
     <>
-      <Alunos />
+      {/* <TelaAlunos /> */}
+      {/* <TelaFuncionarios /> */}
+      {/* <TelaAgendamentos /> */}
+      {/* <TelaCondominios /> */}
+      {/* <TelaLogin /> */}
     </>
   )
 }
