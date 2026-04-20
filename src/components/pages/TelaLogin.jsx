@@ -8,8 +8,43 @@ import visibilityOffIcon from "../../assets/visibility-off.png";
 import InputComponent from "../utils/InputComponent";
 import { BtnGreen } from "../utils/Buttons/BtnGreen";
 
-export function TelaLogin(){
+const API_URL = "http://localhost:8080";
+
+export async function login(email, senha) {
+    const response = await fetch(`${API_URL}/api/usuarios/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, senha }),
+    });
+
+    if (!response.ok) throw new Error("Credenciais inválidas");
+
+    const data = await response.json();
+
+    sessionStorage.setItem("token", data.token);
+    sessionStorage.setItem("usuario", JSON.stringify(data));
+    return data;
+}
+
+export function TelaLogin({ onLoginSucesso }) {
+    const [email, setEmail] = useState("");
+    const [senha, setSenha] = useState("");
+    const [erro, setErro] = useState("");
+    const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    async function handleLogin() {
+        setErro("");
+        setLoading(true);
+        try {
+            await login(email, senha);
+            onLoginSucesso();
+        } catch (e) {
+            setErro("Email ou senha inválidos");
+        } finally {
+            setLoading(false);
+        }
+    }
 
     return (
         <main className="min-h-screen font-[Montserrat,sans-serif]">
@@ -30,50 +65,57 @@ export function TelaLogin(){
                             Bem-vindo!
                         </h1>
 
-                            <InputComponent
-                                label="Email"
-                                id="login-email"
-                                name="email"
-                                type="email"
-                                autoComplete="email"
-                                placeholder="seuemail@email.com"
-                                containerClassName="mb-0"
-                                labelClassName="my-2 block text-[clamp(1rem,1.2vw,1.2rem)] font-medium text-white"
-                                leftIcon={<img src={emailIcon} alt="" className="h-5 w-5 object-contain" />}
-                                inputClassName="w-full rounded-[9px] border-0 bg-[#e6e7ed] py-[0.88rem] pl-11 pr-4 text-base text-[#1f1f1f] outline-none focus:ring-3 focus:ring-white/25"
-                            />
+                        <InputComponent
+                            label="Email"
+                            id="login-email"
+                            name="email"
+                            type="email"
+                            autoComplete="email"
+                            placeholder="seuemail@email.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            containerClassName="mb-0"
+                            labelClassName="my-2 block text-[clamp(1rem,1.2vw,1.2rem)] font-medium text-white"
+                            leftIcon={<img src={emailIcon} alt="" className="h-5 w-5 object-contain" />}
+                            inputClassName="w-full rounded-[9px] border-0 bg-[#e6e7ed] py-[0.88rem] pl-11 pr-4 text-base text-[#1f1f1f] outline-none focus:ring-3 focus:ring-white/25"
+                        />
 
-                            <InputComponent
-                                label="Senha"
-                                id="login-password"
-                                name="password"
-                                type={showPassword ? "text" : "password"}
-                                autoComplete="current-password"
-                                placeholder="Digite sua senha"
-                                containerClassName="mb-0"
-                                labelClassName="mb-[0.55rem] mt-[0.65rem] block text-[clamp(1rem,1.2vw,1.2rem)] font-medium text-white"
-                                leftIcon={<img src={lockIcon} alt="" className="h-5 w-5 object-contain" />}
-                                rightIcon={
-                                    <img
-                                        src={showPassword ? visibilityOffIcon : visibilityIcon}
-                                        alt=""
-                                        className="h-5 w-5 object-contain"
-                                    />
-                                }
-                                rightAction={() => setShowPassword((prev) => !prev)}
-                                inputClassName="w-full rounded-[9px] border-0 bg-[#e6e7ed] py-[0.88rem] pl-11 pr-12 text-base text-[#1f1f1f] outline-none focus:ring-3 focus:ring-white/25"
-                            />
+                        <InputComponent
+                            label="Senha"
+                            id="login-password"
+                            name="password"
+                            type={showPassword ? "text" : "password"}
+                            autoComplete="current-password"
+                            placeholder="Digite sua senha"
+                            value={senha}
+                            onChange={(e) => setSenha(e.target.value)}
+                            containerClassName="mb-0"
+                            labelClassName="mb-[0.55rem] mt-[0.65rem] block text-[clamp(1rem,1.2vw,1.2rem)] font-medium text-white"
+                            leftIcon={<img src={lockIcon} alt="" className="h-5 w-5 object-contain" />}
+                            rightIcon={
+                                <img
+                                    src={showPassword ? visibilityOffIcon : visibilityIcon}
+                                    alt=""
+                                    className="h-5 w-5 object-contain"
+                                />
+                            }
+                            rightAction={() => setShowPassword((prev) => !prev)}
+                            inputClassName="w-full rounded-[9px] border-0 bg-[#e6e7ed] py-[0.88rem] pl-11 pr-12 text-base text-[#1f1f1f] outline-none focus:ring-3 focus:ring-white/25"
+                        />
 
-                            <BtnGreen
-                                content={(
-                                    <span className="flex items-center justify-center gap-2 pt-1 pb-1">
-                                        <img src={loginIcon} alt="" className="h-5 w-5" />
-                                        <p>Entrar</p>
-                                    </span>
-                                )}
-                                type="submit"
-                                className="mt-[1.35rem] w-full py-2 text-base font-semibold transition hover:brightness-95"
-                            />
+                        {erro && <p className="mt-2 text-red-400 text-sm">{erro}</p>}
+
+                        <BtnGreen
+                            content={(
+                                <span className="flex items-center justify-center gap-2 pt-1 pb-1">
+                                    <img src={loginIcon} alt="" className="h-5 w-5" />
+                                    <p>{loading ? "Entrando..." : "Entrar"}</p>
+                                </span>
+                            )}
+                            onClick={handleLogin}
+                            type="button"
+                            className="mt-[1.35rem] w-full py-2 text-base font-semibold transition hover:brightness-95"
+                        />
                     </div>
                 </section>
             </section>
