@@ -10,20 +10,22 @@ export default function TelaCondominios() {
   const handleAdd = () => setShowModal(true);
 
   return (
-    <PageLayout
-      title="Condomínios"
-      searchPlaceholder="Pesquisar condomínio..."
-      onSearch={handleSearch}
-      onAdd={showModal ? () => setShowModal(false) : handleAdd}
-      addLabel={showModal ? "Voltar" : "Cadastrar condomínio"}
-    >
-      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-        {showModal ? (
-          <ModalCondominio isOpen={showModal} onClose={() => setShowModal(false)} />
-        ) : (
-          <CondominiosTable />
-        )}
-      </div>
-    </PageLayout>
+    <div className={showModal ? "modal-open" : ""}>
+      <PageLayout
+        title="Condomínios"
+        searchPlaceholder="Pesquisar condomínio..."
+        onSearch={handleSearch}
+        onAdd={showModal ? () => setShowModal(false) : handleAdd}
+        addLabel={showModal ? "Voltar" : "Cadastrar condomínio"}
+      >
+        <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+          {showModal ? (
+            <ModalCondominio isOpen={showModal} onClose={() => setShowModal(false)} />
+          ) : (
+            <CondominiosTable />
+          )}
+        </div>
+      </PageLayout>
+    </div>
   );
 }

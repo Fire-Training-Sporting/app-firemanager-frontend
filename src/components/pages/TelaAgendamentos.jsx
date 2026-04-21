@@ -10,20 +10,22 @@ export default function TelaAgendamentos() {
   const handleAdd = () => setShowModal(true);
 
   return (
-    <PageLayout
-      title="Agendamentos"
-      searchPlaceholder="Pesquisar agendamento..."
-      onSearch={handleSearch}
-      onAdd={showModal ? () => setShowModal(false) : handleAdd}
-      addLabel={showModal ? "Voltar" : "Agendar serviço"}
-    >
-      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-        {showModal ? (
-          <ModalScheduling onClose={() => setShowModal(false)} />
-        ) : (
-          <AgendamentosTable />
-        )}
-      </div>
-    </PageLayout>
+    <div className={showModal ? "modal-open" : ""}>
+      <PageLayout
+        title="Agendamentos"
+        searchPlaceholder="Pesquisar agendamento..."
+        onSearch={showModal ? () => {} : handleSearch}
+        onAdd={showModal ? () => setShowModal(false) : handleAdd}
+        addLabel={showModal ? "Voltar" : "Agendar serviço"}
+      >
+        <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+          {showModal ? (
+            <ModalScheduling onClose={() => setShowModal(false)} />
+          ) : (
+            <AgendamentosTable />
+          )}
+        </div>
+      </PageLayout>
+    </div>
   );
 }
