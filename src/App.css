@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+.modal-open input[type="text"][placeholder*="Pesquisar"] {
+  pointer-events: none;   /* bloqueia clique e digitação */
+  user-select: none;      /* não permite selecionar texto */
+  opacity: 0.5;           /* aparência desativada */
+  background-color: #f3f3f3;
+}
