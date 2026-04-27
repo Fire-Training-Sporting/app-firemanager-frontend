@@ -10,7 +10,7 @@ function App() {
     <>
       {/* <TelaAlunos /> */}
       {/* <TelaFuncionarios /> */}
-      {/* <TelaAgendamentos /> */}
+      <TelaAgendamentos />
       {/* <TelaCondominios /> */}
       {/* <TelaLogin /> */}
     </>
