@@ -22,6 +22,7 @@ export async function login(email, senha) {
     const data = await response.json();
 
     sessionStorage.setItem("token", data.token);
+    sessionStorage.setItem("cargo", data.cargo);
     sessionStorage.setItem("usuario", JSON.stringify(data));
     return data;
 }
