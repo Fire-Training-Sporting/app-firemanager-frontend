@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../provider/api";
 
-export default function ModalScheduling({ onClose }) {
-  const [data, setData] = useState("");
-  const [horaInicio, setHoraInicio] = useState("");
-  const [horaFim, setHoraFim] = useState("");
-  const [local, setLocal] = useState("");
-  const [aluno, setAluno] = useState("");
-  const [servico, setServico] = useState("");
-  const [funcionarios, setFuncionarios] = useState([{ nome: "", funcao: "" }]);
-  const [observacao, setObservacao] = useState("");
+export default function ModalEditScheduling({ agendamento, onClose }) {
+  const [data, setData] = useState(agendamento.data || "");
+  const [horaInicio, setHoraInicio] = useState(agendamento.horaInicio || "");
+  const [horaFim, setHoraFim] = useState(agendamento.horaFim || "");
+  const [local, setLocal] = useState(agendamento.condominio || "");
+  const [aluno, setAluno] = useState(agendamento.aluno || "");
+  const [servico, setServico] = useState(agendamento.servico || "");
+  const [funcionarios, setFuncionarios] = useState(
+    agendamento.funcionarios || [{ nome: "", funcao: "" }]
+  );
+  const [observacao, setObservacao] = useState(agendamento.observacao || "");
   const [condominios, setCondominios] = useState([]);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function ModalScheduling({ onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const novoAgendamento = {
+    const dadosAtualizados = {
       data,
       horaInicio,
       horaFim,
@@ -40,13 +42,13 @@ export default function ModalScheduling({ onClose }) {
       funcionarios,
       observacao,
     };
-    console.log("Novo agendamento:", novoAgendamento);
+    console.log("Agendamento atualizado:", dadosAtualizados);
     onClose();
   };
 
   return (
     <div className="p-6 min-h-[200px] max-h-[calc(100vh-250px)]">
-      <h2 className="text-base font-semibold text-gray-800 mb-4">Novo Agendamento</h2>
+      <h2 className="text-base font-semibold text-gray-800 mb-4">Editar Agendamento</h2>
       <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
         <div>
           <label className="block text-sm font-medium text-gray-700">Data</label>
@@ -166,7 +168,7 @@ export default function ModalScheduling({ onClose }) {
             type="submit"
             className="px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition"
           >
-            Criar agendamento
+            Salvar alterações
           </button>
         </div>
       </form>

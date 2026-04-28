@@ -1,18 +1,14 @@
 import { useEffect, useState } from "react";
-import { AgendamentosRow } from "./AgendamentosRow";
-import AgendamentosTh from "./AgendamentosTh";
 import api from "../../../provider/api";
+import {AgendamentosRow} from "./AgendamentosRow";
+import AgendamentosTh from "./AgendamentosTh";
 
-
-export function AgendamentosTable() {
+export function AgendamentosTable({ onEdit }) {
   const [agendamentos, setAgendamentos] = useState([]);
 
   useEffect(() => {
     api.get("/agendamentos")
-      .then(response => {
-        console.log(response.data);
-        setAgendamentos(response.data);
-      })
+      .then(response => setAgendamentos(response.data))
       .catch(err => console.error("Erro ao buscar agendamentos:", err));
   }, []);
 
@@ -35,7 +31,11 @@ export function AgendamentosTable() {
           </thead>
           <tbody className="bg-white">
             {agendamentos.map((ag) => (
-              <AgendamentosRow key={ag.id} {...ag} />
+              <AgendamentosRow
+                key={ag.id}
+                {...ag}
+                onEdit={() => onEdit(ag)} 
+              />
             ))}
           </tbody>
         </table>
