@@ -1,57 +1,88 @@
 # FireManager Frontend
 
-Front-end da aplicação FireManager, construída com React + Vite.
+Aplicação frontend do FireManager.
 
-## 🧩 Estrutura do projeto
+## Visão geral
 
-- `src/`
-  - `main.jsx`: ponto de entrada da aplicação
-  - `App.jsx`: componente raiz
-  - `components/`: componentes React reutilizáveis
-  - `components/pages/`: páginas da aplicação
-  - `components/utils/`: utilitários e componentes de suporte (ex: `header, buttons, inputs`)
-- `public/`: ativos estáticos (imagens, favicon, etc.)
-- `index.html`: template HTML principal
-- `package.json`: dependências e scripts
-- `vite.config.js`: configuração do Vite
+Este projeto concentra as telas de autenticação, dashboard e módulos operacionais como:
 
-## 🚀 Pré-requisitos
+- Agendamentos
+- Alunos
+- Condomínios
+- Funcionários
+- Serviços
 
-- Node.js 18+ (ou versão compatível com o ecossistema atual)
-- npm
+Atualmente o frontend roda de forma independente e consome a API própria.
 
-## ⚙️ Instalação
+## Stack
 
-1. Clonar repositório
+- React 19
+- Vite 8
+- Tailwind CSS 4
+- Chart.js + react-chartjs-2
+- ESLint 9
 
-```bash
-git clone https://github.com/<seu-usuario>/app-firemanager-frontend.git
-cd app-firemanager-frontend
-```
+## Pré-requisitos
 
-2. Instalar dependências
+- Node.js 20 ou superior
+- npm 10 ou superior
 
-```
-npm install
-```
+Para checar versões instaladas:
 
-## ▶️ Scripts disponíveis
+    node -v
+    npm -v
 
-- `npm run dev`: inicia servidor de desenvolvimento (HMR)
-- `npm run build`: gera build de produção (`dist/`)
-- `npm run preview`: pré-visualiza a build de produção localmente
-- `npm run lint`: executa lint (ESLint)
+## Instalação
 
-## 🧪 Como executar
+1. Entre na pasta do projeto.
 
-```bash
-npm run dev
-```
+2. Instale as dependências:
 
-Acesse `http://localhost:5173` (ou porta exibida no terminal).
+    npm install
 
-## 🔍 Convenções principais
+## Executando em desenvolvimento
 
-- Arquivos de componentes em `src/components`
-- Páginas em `src/components/pages`
-- Estilos global em `src/index.css` e `src/App.css`
+Inicie o servidor local:
+
+    npm run dev
+
+Depois acesse o endereço exibido no terminal (normalmente http://localhost:5173).
+
+## Scripts disponíveis
+
+- npm run dev
+  Inicia ambiente de desenvolvimento com hot reload.
+
+- npm run build
+  Gera build de produção na pasta dist.
+
+- npm run preview
+  Sobe localmente a build de produção para validação.
+
+- npm run lint
+  Executa análise estática com ESLint.
+
+## Integração com API
+
+O login usa a base URL definida em src/components/pages/TelaLogin.jsx:
+
+    const API_URL = "http://localhost:8080";
+
+Se a API estiver em outra porta ou host, ajuste esse valor.
+
+## Estrutura de pastas
+
+    src/
+      main.jsx                # entrada da aplicação
+      App.jsx                 # componente raiz
+      assets/                 # imagens e arquivos estáticos importados
+      components/
+        pages/                # telas principais da aplicação
+        utils/                # componentes reutilizáveis e utilitários
+          Agendamentos/
+          Alunos/
+          Buttons/
+          Condominios/
+          Dashboard/
+          Funcionarios/
+          Servicos/
