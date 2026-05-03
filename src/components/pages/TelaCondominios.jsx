@@ -1,9 +1,9 @@
 import { useState } from "react";
 import PageLayout from '../utils/PageLayout';
-import { AgendamentosTable } from '../utils/Agendamentos/AgendamentosTable';
-import ModalScheduling from '../utils/Agendamentos/ModalScheduling';
+import { CondominiosTable } from '../utils/Condominios/CondominiosTable';
+import ModalCondominio from '../utils/Condominios/ModalCondominios';
 
-export default function TelaAgendamentos() {
+export default function TelaCondominios() {
   const [showModal, setShowModal] = useState(false);
 
   const handleSearch = () => {};
@@ -12,17 +12,17 @@ export default function TelaAgendamentos() {
   return (
     <div className={showModal ? "modal-open" : ""}>
       <PageLayout
-        title="Agendamentos"
-        searchPlaceholder="Pesquisar agendamento..."
-        onSearch={showModal ? () => {} : handleSearch}
+        title="Condomínios"
+        searchPlaceholder="Pesquisar condomínio..."
+        onSearch={handleSearch}
         onAdd={showModal ? () => setShowModal(false) : handleAdd}
-        addLabel={showModal ? "Voltar" : "Agendar serviço"}
+        addLabel={showModal ? "Voltar" : "Cadastrar condomínio"}
       >
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
           {showModal ? (
-            <ModalScheduling onClose={() => setShowModal(false)} />
+            <ModalCondominio isOpen={showModal} onClose={() => setShowModal(false)} />
           ) : (
-            <AgendamentosTable />
+            <CondominiosTable />
           )}
         </div>
       </PageLayout>

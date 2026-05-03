@@ -1,23 +1,53 @@
-export default function ServicoModal() {
+import { useState } from "react";
 
-    return (
-        <div className="flex justify-center items-center mt-20">
-            <main className="bg-stone-600 w-120 h-50 rounded-2xl px-8 py-6">
-                <section>
-                    <h1 className="text-white font-bold text-4xl">Cadastrar Serviço</h1>
-                </section>
+export default function ServicoModal({ onClose, onSave }) {
+  const [form, setForm] = useState({
+    nome: ""
+  });
 
-                <section className="text-white mt-4">
-                    <p className="font-bold text-xl mb-1">Nome</p>
-                    <input type="text" className="bg-white text-black rounded font-bold px-2 py-0.5 w-full" />
-                </section>
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-                <section className="mt-4">
-                    <button className="bg-green-500 hover:bg-green-600 transition w-full rounded py-0.5 font-bold text-white ">
-                        Cadastrar Serviço
-                    </button>
-                </section>
-            </main>
+  const handleSave = (e) => {
+    e.preventDefault();
+    onSave(form);
+    setForm({ nome: "" });
+    onClose();
+  };
+
+  return (
+    <div className="relative p-6">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Cadastrar Serviço</h2>
+      <form onSubmit={handleSave} className="flex flex-col gap-4">
+        <div>
+          <label className="block text-gray-700 font-medium mb-1">Nome</label>
+          <input
+            type="text"
+            name="nome"
+            value={form.nome}
+            onChange={handleChange}
+            placeholder="Nome do serviço"
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+          />
         </div>
-    )
+
+        <div className="flex justify-end gap-2 mt-6">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+          >
+            Salvar
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 }
