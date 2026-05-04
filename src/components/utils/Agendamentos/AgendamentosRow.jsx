@@ -12,6 +12,7 @@ export function AgendamentosRow({ data, horario, condominio, aluno, prof, reba, 
 
   return (
     <tr className="border-b border-gray-200 hover:bg-[#F3F4F8] transition-colors duration-150">
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{aluno}</td>
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">{data}</td>
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">{horario}</td>
       <td
@@ -20,7 +21,6 @@ export function AgendamentosRow({ data, horario, condominio, aluno, prof, reba, 
       >
         {condominio}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{aluno}</td>
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">{prof}</td>
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">{reba}</td>
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">{aux}</td>
