@@ -2,12 +2,22 @@ import { useState } from "react";
 import PageLayout from '../utils/PageLayout';
 import { AgendamentosTable } from '../utils/Agendamentos/AgendamentosTable';
 import ModalScheduling from '../utils/Agendamentos/ModalScheduling';
+import ModalEditScheduling from '../utils/Agendamentos/ModalEditScheduling';
 
 export default function TelaAgendamentos() {
   const [showModal, setShowModal] = useState(false);
+  const [editAgendamento, setEditAgendamento] = useState(null);
 
   const handleSearch = () => {};
-  const handleAdd = () => setShowModal(true);
+  const handleAdd = () => {
+    setEditAgendamento(null);
+    setShowModal(true);
+  };
+
+  const handleEdit = (agendamento) => {
+    setEditAgendamento(agendamento);
+    setShowModal(true);
+  };
 
   return (
     <div className={showModal ? "modal-open" : ""}>
@@ -20,9 +30,16 @@ export default function TelaAgendamentos() {
       >
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
           {showModal ? (
-            <ModalScheduling onClose={() => setShowModal(false)} />
+            editAgendamento ? (
+              <ModalEditScheduling
+                agendamento={editAgendamento}
+                onClose={() => setShowModal(false)}
+              />
+            ) : (
+              <ModalScheduling onClose={() => setShowModal(false)} />
+            )
           ) : (
-            <AgendamentosTable />
+            <AgendamentosTable onEdit={handleEdit} />
           )}
         </div>
       </PageLayout>

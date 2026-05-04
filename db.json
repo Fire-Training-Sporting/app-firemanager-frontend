@@ -1,0 +1,53 @@
+{
+  "agendamentos": [
+    { "id": 1, "data": "16/02/26", "horario": "10h - 11h", "condominio": "Residencial Palmeiras", "aluno": "Carlos", "prof": "Bruno", "reba": "Davi", "aux": "Kalleb", "status": "Confirmada" },
+    { "id": 2, "data": "17/02/26", "horario": "13h - 14h", "condominio": "Condomínio Jardins", "aluno": "Marina", "prof": "Paulo", "reba": "Enzo", "aux": "Lucas", "status": "Pendente" },
+    { "id": 3, "data": "18/02/26", "horario": "09h - 10h", "condominio": "Edifício Pinheiros", "aluno": "João", "prof": "Mariana", "reba": "Sofia", "aux": "Pedro", "status": "Confirmada" },
+    { "id": 4, "data": "18/02/26", "horario": "15h - 16h", "condominio": "Residencial Palmeiras", "aluno": "Fernanda", "prof": "Bruno", "reba": "Lucas", "aux": "João", "status": "Cancelada" },
+    { "id": 5, "data": "19/02/26", "horario": "11h - 12h", "condominio": "Condomínio Jardins", "aluno": "Ricardo", "prof": "Paulo", "reba": "Ana", "aux": "Carla", "status": "Confirmada" },
+    { "id": 6, "data": "20/02/26", "horario": "14h - 15h", "condominio": "Edifício Pinheiros", "aluno": "Beatriz", "prof": "Fernanda", "reba": "Miguel", "aux": "Rafaela", "status": "Pendente" },
+    { "id": 7, "data": "21/02/26", "horario": "08h - 09h", "condominio": "Residencial Palmeiras", "aluno": "Gabriel", "prof": "Mariana", "reba": "Gabriel", "aux": "Thiago", "status": "Confirmada" },
+    { "id": 8, "data": "21/02/26", "horario": "17h - 18h", "condominio": "Condomínio Jardins", "aluno": "Beatriz", "prof": "Bruno", "reba": "Beatriz", "aux": "Felipe", "status": "Pendente" },
+    { "id": 9, "data": "22/02/26", "horario": "10h - 11h", "condominio": "Edifício Pinheiros", "aluno": "Clara", "prof": "Paulo", "reba": "Clara", "aux": "Daniel", "status": "Confirmada" },
+    { "id": 10, "data": "23/02/26", "horario": "16h - 17h", "condominio": "Residencial Palmeiras", "aluno": "Eduardo", "prof": "Fernanda", "reba": "Eduardo", "aux": "Marcos", "status": "Cancelada" },
+    { "id": 11, "data": "24/02/26", "horario": "09h - 10h", "condominio": "Condomínio Jardins", "aluno": "Juliana", "prof": "Paulo", "reba": "Juliana", "aux": "Mateus", "status": "Confirmada" },
+    { "id": 12, "data": "24/02/26", "horario": "15h - 16h", "condominio": "Edifício Pinheiros", "aluno": "Renata", "prof": "Mariana", "reba": "Renata", "aux": "Caio", "status": "Pendente" },
+    { "id": 13, "data": "25/02/26", "horario": "11h - 12h", "condominio": "Residencial Palmeiras", "aluno": "Isabela", "prof": "Bruno", "reba": "Isabela", "aux": "Rodrigo", "status": "Confirmada" },
+    { "id": 14, "data": "25/02/26", "horario": "17h - 18h", "condominio": "Condomínio Jardins", "aluno": "Leonardo", "prof": "Fernanda", "reba": "Leonardo", "aux": "Patrícia", "status": "Cancelada" },
+    { "id": 15, "data": "26/02/26", "horario": "08h - 09h", "condominio": "Edifício Pinheiros", "aluno": "Camila", "prof": "Mariana", "reba": "Camila", "aux": "André", "status": "Confirmada" },
+    { "id": 16, "data": "26/02/26", "horario": "14h - 15h", "condominio": "Residencial Palmeiras", "aluno": "Marcos", "prof": "Paulo", "reba": "Marcos", "aux": "Fernanda", "status": "Pendente" },
+    { "id": 17, "data": "27/02/26", "horario": "10h - 11h", "condominio": "Condomínio Jardins", "aluno": "Tatiane", "prof": "Bruno", "reba": "Tatiane", "aux": "Bruno", "status": "Confirmada" },
+    { "id": 18, "data": "27/02/26", "horario": "16h - 17h", "condominio": "Edifício Pinheiros", "aluno": "Ricardo", "prof": "Fernanda", "reba": "Ricardo", "aux": "Helena", "status": "Cancelada" },
+    { "id": 19, "data": "28/02/26", "horario": "09h - 10h", "condominio": "Residencial Palmeiras", "aluno": "Larissa", "prof": "Mariana", "reba": "Larissa", "aux": "Diego", "status": "Confirmada" },
+    { "id": 20, "data": "28/02/26", "horario": "15h - 16h", "condominio": "Condomínio Jardins", "aluno": "Felipe", "prof": "Paulo", "reba": "Felipe", "aux": "Mariana", "status": "Pendente" }
+  ],
+  "condominios": [
+    {
+      "id": 1,
+      "nome": "Residencial Palmeiras",
+      "cep": "01001-000",
+      "logradouro": "Rua das Palmeiras",
+      "numero": "123",
+      "cidade": "São Paulo",
+      "bairro": "Centro"
+    },
+    {
+      "id": 2,
+      "nome": "Condomínio Jardins",
+      "cep": "01415-000",
+      "logradouro": "Av. Brasil",
+      "numero": "456",
+      "cidade": "São Paulo",
+      "bairro": "Jardins"
+    },
+    {
+      "id": 3,
+      "nome": "Edifício Pinheiros",
+      "cep": "05422-000",
+      "logradouro": "Rua das Flores",
+      "numero": "789",
+      "cidade": "São Paulo",
+      "bairro": "Pinheiros"
+    }
+  ]
+}

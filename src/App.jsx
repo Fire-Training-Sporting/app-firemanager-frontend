@@ -8,6 +8,7 @@ function App() {
 
   //LOGICA DE MUDAR DE TELA ATRAVES DO ESTADO
   return (
+<<<<<<< HEAD
     <div className="App">
       {telaAtiva === "login" && (
         <TelaLogin onLoginSucesso={() => setTelaAtiva("dashboard")} />
@@ -18,6 +19,16 @@ function App() {
       )}
     </div>
   );
+=======
+    <>
+      {/* <TelaAlunos /> */}
+      {/* <TelaFuncionarios /> */}
+      <TelaAgendamentos />
+      {/* <TelaCondominios /> */}
+      {/* <TelaLogin /> */}
+    </>
+  )
+>>>>>>> feature/components/modal
 }
 
 export default App;
