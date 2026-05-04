@@ -41,7 +41,7 @@ const colors = {
   }
 };
 
-function ModalEmployeeEdit({ isOpen, onClose, onUpdate, employee }) {
+function ModalEdicaoFuncionario({ isOpen, onClose, onUpdate, employee }) {
   const [form, setForm] = useState(employee || { nome: "", email: "", telefone: "", perfil: "" });
 
   useEffect(() => {
@@ -102,4 +102,4 @@ function ModalEmployeeEdit({ isOpen, onClose, onUpdate, employee }) {
   );
 }
 
-export default ModalEmployeeEdit;
+export default ModalEdicaoFuncionario;

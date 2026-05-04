@@ -1,6 +1,6 @@
 import { useState } from "react";
-import ModalEmployeeRegistration from "./ModalEmployeeRegistration";
-import ModalEmployeeEdit from "./ModalEmployeeEdit";
+import ModalCadastroFuncionario from "./ModalCadastroFuncionario";
+import ModalEdicaoFuncionario from "./ModalEdicaoFuncionario";
 
 const mockEmployees = [
   { id: 1, nome: "Bruno Caique", email: "brunocaique@email.com", perfil: "Quadra" },
@@ -43,7 +43,7 @@ const colors = {
   }
 };
 
-function TableEmployees() {
+function TabelaFuncionariosLegado() {
   const [employees, setEmployees] = useState(mockEmployees);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -124,12 +124,11 @@ function TableEmployees() {
           })}
         </div>
       </div>
-      <ModalEmployeeRegistration
+      <ModalCadastroFuncionario
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={handleSave}
       />
-      <ModalEmployeeEdit
+      <ModalEdicaoFuncionario
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onUpdate={handleUpdate}
@@ -139,4 +138,4 @@ function TableEmployees() {
   );
 }
 
-export default TableEmployees;
+export default TabelaFuncionariosLegado;
