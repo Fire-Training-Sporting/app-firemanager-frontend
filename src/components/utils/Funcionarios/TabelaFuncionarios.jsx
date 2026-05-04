@@ -32,6 +32,6 @@ const columns = [
   },
 ];
 
-export default function FuncionariosTable() {
+export default function TabelaFuncionarios() {
   return <TableBase columns={columns} data={funcionarios} />;
 }
