@@ -9,7 +9,7 @@ function App() {
   return (
     <>
       {/* <TelaAlunos /> */}
-      {/* <TelaFuncionarios /> */}
+      <TelaFuncionarios /> 
       {/* <TelaAgendamentos /> */}
       {/* <TelaCondominios /> */}
       {/* <TelaLogin /> */}
