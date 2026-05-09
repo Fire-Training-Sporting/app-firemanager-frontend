@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import logoFire from "../../assets/logo2.png";
 import emailIcon from "../../assets/email.png";
 import lockIcon from "../../assets/lock.png";
@@ -27,7 +28,8 @@ export async function login(email, senha) {
     return data;
 }
 
-export function TelaLogin({ onLoginSucesso }) {
+export function TelaLogin() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [erro, setErro] = useState("");
@@ -39,7 +41,7 @@ export function TelaLogin({ onLoginSucesso }) {
         setLoading(true);
         try {
             await login(email, senha);
-            onLoginSucesso();
+            navigate("/agendamentos");
         } catch (e) {
             setErro("Email ou senha inválidos");
         } finally {
