@@ -1,6 +1,9 @@
 import Header from './Header';
 
 export default function PageLayout({ title, searchPlaceholder, onSearch, onAdd, addLabel, children }) {
+
+  const role = sessionStorage.getItem("cargo");
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -16,12 +19,14 @@ export default function PageLayout({ title, searchPlaceholder, onSearch, onAdd, 
                 className="border border-gray-300 rounded-md px-4 py-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 w-70"
               />
             </div>
-            <button
-              className="bg-[#2563EA] hover:bg-[#1E40AF] text-white px-6 py-2 rounded-md font-semibold shadow-md transition-all duration-150"
-              onClick={onAdd}
-            >
-              {addLabel}
-            </button>
+            { (role === "root" || role === "admin") && (
+              <button
+                className="bg-[#2563EA] hover:bg-[#1E40AF] text-white px-6 py-2 rounded-md font-semibold shadow-md transition-all duration-150"
+                onClick={onAdd}
+              >
+                {addLabel}
+              </button>
+            )}
           </div>
           <div className="flex-1 flex flex-col overflow-hidden">
             {children}
