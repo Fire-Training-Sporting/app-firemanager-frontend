@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import logoFire from "../../assets/logo2.png";
 import emailIcon from "../../assets/email.png";
 import lockIcon from "../../assets/lock.png";
@@ -12,15 +13,12 @@ import { BtnGreen } from "../utils/Buttons/BtnGreen";
 const API_URL = "http://localhost:8080";
 
 export async function login(email, senha) {
-    const response = await fetch(`${API_URL}/api/usuarios/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, senha }),
-    });
+    const response = await axios.post(`${API_URL}/api/usuarios/login`, { email, senha });
+    const data = response.data;
 
-    if (!response.ok) throw new Error("Credenciais inválidas");
-
-    const data = await response.json();
+    if(!response.ok) {
+        throw new Error(data.message || "Erro ao fazer login");
+    }
 
     sessionStorage.setItem("token", data.token);
     sessionStorage.setItem("cargo", data.cargo);
