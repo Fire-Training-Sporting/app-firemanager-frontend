@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import logoFire from "../../assets/logo2.png";
 import emailIcon from "../../assets/email.png";
 import lockIcon from "../../assets/lock.png";
@@ -9,16 +8,11 @@ import visibilityIcon from "../../assets/visibility.png";
 import visibilityOffIcon from "../../assets/visibility-off.png";
 import InputComponent from "../utils/InputComponent";
 import { BtnGreen } from "../utils/Buttons/BtnGreen";
-
-const API_URL = "http://localhost:8080";
+import api from "../../provider/api";
 
 export async function login(email, senha) {
-    const response = await axios.post(`${API_URL}/api/usuarios/login`, { email, senha });
+    const response = await api.post("/api/usuarios/login", { email, senha });
     const data = response.data;
-
-    if(!response.ok) {
-        throw new Error(data.message || "Erro ao fazer login");
-    }
 
     sessionStorage.setItem("token", data.token);
     sessionStorage.setItem("cargo", data.cargo);
