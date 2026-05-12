@@ -2,23 +2,32 @@ import NavLink from "./NavLink";
 import fireIcon from "../../assets/fireIcon.png";
 
 const routeMap = {
-  "Agendamentos": "/agendamentos",
-  "Alunos": "/alunos",
-  "Funcionários": "/funcionarios",
-  "Condomínios": "/condominios",
-  "Serviços": "/servicos",
-  "Dashboard": "/dashboard",
-  "Perfil": "/alunos",
-  "Pagamento": "/pagamento",
+  Agendamentos: "/agendamentos",
+  Alunos: "/alunos",
+  Funcionários: "/funcionarios",
+  Condomínios: "/condominios",
+  Serviços: "/servicos",
+  Dashboard: "/dashboard",
+  Perfil: "/alunos",
+  Pagamento: "/pagamento",
 };
 
 export default function Header({ children }) {
   const role = sessionStorage.getItem("cargo");
+  const usuarioString = sessionStorage.getItem("usuario");
+  const usuario = usuarioString ? JSON.parse(usuarioString) : null;
 
   const navItems = (() => {
     switch (role) {
       case "root":
-        return ["Agendamentos", "Alunos", "Funcionários", "Condomínios", "Serviços", "Dashboard"];
+        return [
+          "Agendamentos",
+          "Alunos",
+          "Funcionários",
+          "Condomínios",
+          "Serviços",
+          "Dashboard",
+        ];
       case "Professor":
         return ["Agendamentos", "Alunos", "Condomínios", "Pagamento"];
       case "Aluno":
@@ -38,12 +47,16 @@ export default function Header({ children }) {
             Fire Manager
           </span>
         </div>
-        <span className="text-white text-base">Olá, Bruno</span>
+        <span className="text-white text-base">
+          Olá, {usuario?.nome ?? "usuário"}
+        </span>
       </div>
       {/* Navigation bar */}
       <nav className="bg-[#F8821E] flex gap-2 px-8 py-2">
         {navItems.map((item) => (
-          <NavLink key={item} to={routeMap[item]}>{item}</NavLink>
+          <NavLink key={item} to={routeMap[item]}>
+            {item}
+          </NavLink>
         ))}
       </nav>
     </header>
