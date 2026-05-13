@@ -1,13 +1,7 @@
 import { CondominiosRow } from './CondominiosRow.jsx';
 import CondominiosTh from './CondominiosTh';
 
-const condominios = [
-  { id: 1, nome: "Condomínio Jardins do Sol", cep: "01234-567", logradouro: "Rua das Flores", numero: "123", cidade: "São Paulo", bairro: "Centro" },
-  { id: 2, nome: "Condomínio Vista Alegre", cep: "89012-345", logradouro: "Av. Paulista", numero: "456", cidade: "Rio de Janeiro", bairro: "Leblon" },
-  { id: 3, nome: "Condomínio Reserva Natural", cep: "56789-012", logradouro: "Rua Verde, 789", numero: "789", cidade: "Belo Horizonte", bairro: "Serra" },
-];
-
-export function CondominiosTable() {
+export function CondominiosTable({ condominios = [] }) {
   return (
     <div className="w-full overflow-x-auto">
       <div className="max-h-115 overflow-y-auto">

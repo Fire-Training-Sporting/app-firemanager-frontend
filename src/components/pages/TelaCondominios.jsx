@@ -1,10 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageLayout from '../utils/PageLayout';
 import { CondominiosTable } from '../utils/Condominios/CondominiosTable';
 import ModalCondominio from '../utils/Condominios/ModalCondominios';
+import api from "../../provider/api";
 
 export default function TelaCondominios() {
   const [showModal, setShowModal] = useState(false);
+  const [condominios, setCondominios] = useState([]);
+
+  useEffect(() => {
+    buscarDados();
+  }, []);
+
+  const buscarDados = async () => {
+    try {
+      const response = await api.get("/condominios");
+      setCondominios(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar condomínios:", error);
+    }
+  };
 
   const handleSearch = () => {};
   const handleAdd = () => setShowModal(true);
@@ -22,7 +37,7 @@ export default function TelaCondominios() {
           {showModal ? (
             <ModalCondominio isOpen={showModal} onClose={() => setShowModal(false)} />
           ) : (
-            <CondominiosTable />
+            <CondominiosTable condominios={condominios} />
           )}
         </div>
       </PageLayout>
