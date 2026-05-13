@@ -27,12 +27,14 @@ export default function PageLayout({
                 className="border border-gray-300 rounded-md px-4 py-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 w-70"
               />
             </div>
-            <button
-              className="bg-[#2563EA] hover:bg-[#1E40AF] text-white px-6 py-2 rounded-md font-semibold shadow-md transition-all duration-150"
-              onClick={onAdd}
-            >
-              {addLabel}
-            </button>
+            { (role === "root" || role === "admin") && (
+              <button
+                className="bg-[#2563EA] hover:bg-[#1E40AF] text-white px-6 py-2 rounded-md font-semibold shadow-md transition-all duration-150"
+                onClick={onAdd}
+              >
+                {addLabel}
+              </button>
+            )}
           </div>
           <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${contentClassName}`}>
             {children}
