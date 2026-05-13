@@ -1,16 +1,24 @@
 import Header from './Header';
 
-export default function PageLayout({ title, searchPlaceholder, onSearch, onAdd, addLabel, children }) {
-
-  const role = sessionStorage.getItem("cargo");
-
+export default function PageLayout({
+  title,
+  searchPlaceholder,
+  onSearch,
+  onAdd,
+  addLabel,
+  children,
+  innerClassName = "",
+  titleClassName = "",
+  controlsClassName = "justify-between",
+  contentClassName = "w-full",
+}) {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col h-screen overflow-hidden">
       <Header />
-      <main className="flex-1 w-full bg-[#FAFAFA] flex flex-col items-center justify-start">
-        <div className="w-full max-w-7xl flex-1 flex flex-col mt-5">
-          <h1 className="text-4xl font-bold text-[#23272F] mb-6">{title}</h1>
-          <div className="flex flex-row items-center justify-between mb-4">
+      <main className="flex-1 w-full bg-[#FAFAFA] flex flex-col items-center justify-start overflow-hidden">
+        <div className={`w-full max-w-7xl flex-1 min-h-0 flex flex-col mt-5 ${innerClassName}`}>
+          <h1 className={`text-4xl font-bold text-[#23272F] mb-6 ${titleClassName}`}>{title}</h1>
+          <div className={`flex flex-row items-center mb-4 ${controlsClassName}`}>
             <div className="flex flex-row gap-2 items-center">
               <input
                 type="text"
@@ -28,7 +36,7 @@ export default function PageLayout({ title, searchPlaceholder, onSearch, onAdd, 
               </button>
             )}
           </div>
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${contentClassName}`}>
             {children}
           </div>
         </div>
