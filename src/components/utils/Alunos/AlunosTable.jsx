@@ -22,7 +22,7 @@ const alunos = [
 export function AlunosTable() {
   return (
     <div className="w-full overflow-x-auto">
-      <div className="max-h-115 overflow-y-auto">
+      <div className="h-fit max-h-[calc(100vh-300px)] overflow-y-auto">
         <table className="w-full border-separate border-spacing-0 rounded-lg overflow-hidden">
           <thead className="sticky top-0 z-10">
             <tr className="border-b-2 border-gray-200">

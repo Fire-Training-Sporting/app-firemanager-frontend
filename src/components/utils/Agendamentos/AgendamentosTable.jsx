@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import api from "../../../provider/api";
 import {AgendamentosRow} from "./AgendamentosRow";
 import AgendamentosTh from "./AgendamentosTh";
 
