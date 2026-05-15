@@ -18,8 +18,14 @@ export default function TelaFuncionarios() {
   const buscarDados = async () => {
     try {
       const resp = await api.get('/usuarios');
-      setFuncionarios(resp.data || []);
-      console.log('Funcionários carregados:', resp.data);
+      const usuarios = resp.data || [];
+      const funcionariosFiltrados = usuarios.filter((usuario) => {
+        const cargo = (usuario.tipoUsuario?.cargo || '').toString().trim().toLowerCase();
+        return cargo !== 'aluno' && cargo !== 'root' && cargo !== '';
+      });
+
+      setFuncionarios(funcionariosFiltrados);
+      console.log('Funcionários carregados:', funcionariosFiltrados);
     } catch (err) {
       console.error('Erro ao carregar funcionários:', err);
     }

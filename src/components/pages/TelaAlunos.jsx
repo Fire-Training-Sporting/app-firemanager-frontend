@@ -1,12 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageLayout from "../utils/PageLayout";
 import { AlunosTable } from "../utils/Alunos/AlunosTable";
 import ModalAluno from "../utils/Alunos/ModalAlunos";
+import api from "../../provider/api";
 
 export default function TelaAlunos() {
   const [showModal, setShowModal] = useState(false);
+  const [alunos, setAlunos] = useState([]);
 
-  const handleSearch = () => {};
+  useEffect(() => {
+    buscarAlunos();
+  }, []);
+
+    const buscarAlunos = async () => {
+      try {
+        const resp = await api.get('/usuarios');
+        const usuarios = resp.data || [];
+        const alunosFiltrados = usuarios
+          .filter(u => u.tipoUsuario?.cargo === 'Aluno')
+          .map(u => ({
+            id: u.id,
+            nome: u.nome,
+            email: u.email,
+            telefone: u.telefone,
+            endereco: u.endereco || (u.condominio?.nome) || ''
+          }));
+
+        setAlunos(alunosFiltrados);
+      } catch (err) {
+        console.error('Erro ao buscar alunos:', err);
+      }
+    };
+
   const handleAdd = () => setShowModal(true);
 
   return (
@@ -22,7 +47,7 @@ export default function TelaAlunos() {
           {showModal ? (
             <ModalAluno isOpen={showModal} onClose={() => setShowModal(false)} />
           ) : (
-            <AlunosTable />
+            <AlunosTable alunos={alunos} />
           )}
         </div>
       </PageLayout>
