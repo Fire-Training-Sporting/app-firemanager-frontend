@@ -12,6 +12,8 @@ export default function PageLayout({
   controlsClassName = "justify-between",
   contentClassName = "w-full",
 }) {
+  const role = sessionStorage.getItem("cargo");
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <Header />

@@ -19,7 +19,7 @@ const alunos = [
   { id: 15, nome: "Camila Freitas", email: "camila.freitas@email.com", telefone: "(31) 93456-7890", endereco: "Rua O, 123, Montes Claros - MG" },
 ];
 
-export function AlunosTable() {
+export function AlunosTable({ alunos = [] }) {
   return (
     <div className="w-full overflow-x-auto">
       <div className="h-fit max-h-[calc(100vh-300px)] overflow-y-auto">

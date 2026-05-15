@@ -11,7 +11,7 @@ export function CondominiosTable({ condominios = [] }) {
               <CondominiosTh className="w-12">ID</CondominiosTh>
               <CondominiosTh>Nome</CondominiosTh>
               <CondominiosTh>CEP</CondominiosTh>
-              <CondominiosTh>Logradouro</CondominiosTh>
+              <CondominiosTh>Rua</CondominiosTh>
               <CondominiosTh>Número</CondominiosTh>
               <CondominiosTh>Cidade</CondominiosTh>
               <CondominiosTh>Bairro</CondominiosTh>
