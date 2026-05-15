@@ -16,6 +16,7 @@ export default function TelaCondominios() {
     try {
       const response = await api.get("/condominios");
       setCondominios(response.data);
+      console.log("Condomínios carregados:", response.data);
     } catch (error) {
       console.error("Erro ao buscar condomínios:", error);
     }
