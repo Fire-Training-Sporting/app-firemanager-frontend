@@ -34,6 +34,8 @@ export default function TelaAlunos() {
 
   const handleAdd = () => setShowModal(true);
 
+  const handleSearch = () => {};
+
   return (
     <div className={showModal ? "modal-open" : ""}>
       <PageLayout
