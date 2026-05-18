@@ -41,13 +41,14 @@ const colors = {
   }
 };
 
-function ModalEmployeeRegistration({ isOpen, onClose, onSave, title = "Cadastrar Funcionário" }) {
-  const [form, setForm] = useState({
-    nome: "",
-    email: "",
-    telefone: "",
-    perfil: ""
-  });
+function ModalEdicaoFuncionario({ isOpen, onClose, onUpdate, employee }) {
+  const [form, setForm] = useState(employee || { nome: "", email: "", telefone: "", perfil: "" });
+
+  useEffect(() => {
+    if (employee) {
+      setForm(employee);
+    }
+  }, [employee]);
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
@@ -60,9 +61,8 @@ function ModalEmployeeRegistration({ isOpen, onClose, onSave, title = "Cadastrar
     setForm((prevForm) => ({ ...prevForm, [field]: e.target.value }));
   }, []);
 
-  const handleSave = () => {
-    onSave(form);
-    setForm({ nome: "", email: "", telefone: "", perfil: "" });
+  const handleUpdate = () => {
+    onUpdate(form);
     onClose();
   };
 
@@ -81,7 +81,7 @@ function ModalEmployeeRegistration({ isOpen, onClose, onSave, title = "Cadastrar
             ×
           </button>
 
-          <h2 className="text-3xl font-bold mb-6">{title}</h2>
+          <h2 className="text-3xl font-bold mb-6">Editar Funcionário</h2>
 
           <FormField label="Nome" value={form.nome} onChange={handleChange("nome")} />
           <FormField label="Email" type="email" value={form.email} onChange={handleChange("email")} />
@@ -90,10 +90,10 @@ function ModalEmployeeRegistration({ isOpen, onClose, onSave, title = "Cadastrar
 
           <div className="flex gap-3">
             <Button
-              onClick={handleSave}
-              className={`flex-1 ${colors.bg.green} ${colors.hoverBg.green} text-white font-semibold`}
+              onClick={handleUpdate}
+              className={`flex-1 ${colors.bg.blue} ${colors.hoverBg.blue} text-white font-semibold`}
             >
-              Cadastrar Funcionário
+              Salvar Alterações
             </Button>
           </div>
         </div>
@@ -102,4 +102,4 @@ function ModalEmployeeRegistration({ isOpen, onClose, onSave, title = "Cadastrar
   );
 }
 
-export default ModalEmployeeRegistration;
+export default ModalEdicaoFuncionario;

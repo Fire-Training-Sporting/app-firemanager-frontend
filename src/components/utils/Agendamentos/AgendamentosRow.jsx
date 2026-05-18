@@ -1,67 +1,58 @@
-function AgendamentosRow({ agendamento, index, onConfirm, onCancel }) {
-  const colors = {
-    bg: {
-      gray: "bg-[#4F4F4F]",
-      darkGray: "bg-[#363636]",
-      orange: "bg-[#F99A4D]",
-      darkOrange: "bg-[#F8821E]",
-      white: "bg-[#F3F4F8]",
-      green: "bg-[#17A34A]",
-      red: "bg-[#DC2625]",
-      blue: "bg-[#2563EA]",
-      yellow: "bg-[#E9B308]",
-    },
-    hoverBg: {
-      red: "hover:bg-[#B91C1C]",
-      blue: "hover:bg-[#1E40AF]",
-      green: "hover:bg-[#166534]",
-      orange: "hover:bg-[#EA580C]",
-      gray: "hover:bg-[#2E2E2E]",
-      yellow: "hover:bg-[#CA8A04]",
+export function AgendamentosRow({ data, horaInicio, condominio, aluno, professor, rebatedor, auxiliar, status, onEdit}) {
+  const statusStyle = {
+    Confirmada: "bg-green-100 text-green-700",
+    Pendente: "bg-yellow-100 text-yellow-700",
+    Cancelada: "bg-red-100 text-red-700",
+  }[status] || "bg-gray-100 text-gray-700";
+
+  // Tratar como será exibido o valor, considerando que pode ser um objeto ou uma string
+  const getDisplayValue = (value) => {
+    if (value && typeof value === "object") {
+      return value.nome ?? "-";
     }
+    return value ?? "-";
   };
 
-  const bg = index % 2 === 0 ? colors.bg.orange : colors.bg.darkOrange;
-
-  const getStatusColor = (status) => {
-    const normalized = String(status).trim().toLowerCase();
-    if (normalized === "confirmado") return colors.bg.green;
-    if (normalized === "pendente") return colors.bg.yellow;
-    if (normalized === "cancelado") return colors.bg.red;
-    return colors.bg.gray;
-  };
+  function abrirRota(destino) {
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}`;
+    window.open(mapsUrl, "_blank");
+  }
 
   return (
-    <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_250px] gap-3 items-center">
-      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{agendamento.data}</div>
-      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{agendamento.horario}</div>
-      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{agendamento.quadra}</div>
-      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{agendamento.professor}</div>
-      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{agendamento.rebatedor}</div>
-      <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{agendamento.auxiliar}</div>
-      
-      <div className={`text-xl ${getStatusColor(agendamento.status)} p-3 rounded-lg text-center font-semibold text-white`}>
-        {String(agendamento.status).trim()[0].toUpperCase() + String(agendamento.status).trim().slice(1).toLowerCase()}
-      </div>
-
-      <div className="flex gap-2">
-        <button
-          onClick={() => onConfirm(agendamento.id)}
-          disabled={agendamento.status.toLowerCase().trim() === "confirmado"} // desabilita se já confirmado
-          className={`flex-1 ${colors.bg.green} ${colors.hoverBg.green} text-white px-4 py-3 rounded-lg font-semibold text-xl disabled:opacity-50 disabled:cursor-not-allowed`}
-        >
-          Confirmar
-        </button>
-        <button
-          onClick={() => onCancel(agendamento.id)}
-          disabled={agendamento.status.toLowerCase().trim() === "cancelado"} // desabilita se já cancelado
-          className={`flex-1 ${colors.bg.red} ${colors.hoverBg.red} text-white px-4 py-3 rounded-lg font-semibold text-xl disabled:opacity-50 disabled:cursor-not-allowed`}
-        >
-          Cancelar
-        </button>
-      </div>
-    </div>
+    <tr className="border-b border-gray-200 hover:bg-[#F3F4F8] transition-colors duration-150">
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{getDisplayValue(aluno)}</td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{data}</td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{horaInicio}</td>
+      <td
+        className="px-4 py-3 text-sm text-gray-800 underline align-middle cursor-pointer"
+        onClick={() => abrirRota(getDisplayValue(condominio))}
+      >
+        {getDisplayValue(condominio)}
+      </td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{getDisplayValue(professor)}</td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{getDisplayValue(rebatedor)}</td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{getDisplayValue(auxiliar)}</td>
+      <td className="px-4 py-2 text-sm font-semibold align-middle">
+        <span className={`px-3 py-1 rounded-full ${statusStyle}`}>
+          {status}
+        </span>
+      </td>
+      <td className="px-4 py-3 text-center align-middle">
+        <div className="flex justify-center gap-2">
+          <button className="px-4 py-2 bg-green-600 text-white text-xs rounded-md hover:bg-green-700 shadow-sm transition-all">
+            Confirmar
+          </button>
+          <button
+            className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
+            onClick={onEdit}
+          >
+            Editar
+          </button>
+          <button className="px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 shadow-sm transition-all">
+            Cancelar
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 }
-
-export default AgendamentosRow;

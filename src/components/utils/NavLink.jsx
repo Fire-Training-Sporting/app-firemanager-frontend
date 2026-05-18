@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const colors = {
   bg: {
     gray: "bg-[#4F4F4F]",
@@ -29,10 +31,10 @@ const colors = {
   }
 };
 
-export default function NavLink({children}) {
+export default function NavLink({ children, to }) {
     return (
-        <>
-            <p className={`${colors.bg.gray} text-white text-xl font-bold p-3.5 w-fit h-fit rounded-xl`}>{children}</p>
-        </>
+        <Link to={to}>
+            <p className={`${colors.bg.gray} text-white text-xl font-bold p-3.5 w-fit h-fit rounded-xl hover:${colors.hoverBg.gray} transition`}>{children}</p>
+        </Link>
     )
 }

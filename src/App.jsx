@@ -1,20 +1,13 @@
-import './App.css'
-import Header from './components/utils/Header'
-import TelaFuncionarios from './components/pages/TelaFuncionarios'
-import TelaAgendamentos from './components/pages/TelaAgendamentos'
-
-// import { Servico } from './components/pages/Servico'
+import './App.css';
+import { RouterProvider } from "react-router-dom";
+import { router } from "./provider/router";
 
 function App() {
   return (
     <>
-      <Header/>
-      {/* <TelaFuncionarios /> */}
-      <TelaAgendamentos />
-      {/* <Alunos /> */}
-      {/* <Servico /> */}
+      <RouterProvider router={router} />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
