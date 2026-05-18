@@ -79,7 +79,7 @@ function SaldoServico({ aulas }) {
                             <div key={nome} className="flex items-center gap-3">
                                 {/* Quadrado com emoji */}
                                 <div
-                                    className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 text-base"
+                                    className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-base"
                                     style={{ backgroundColor: cfg.color + "28", border: `2px solid ${cfg.color}` }}
                                 >
                                     {cfg.emoji}
@@ -95,7 +95,7 @@ function SaldoServico({ aulas }) {
                                     </div>
                                 </div>
                                 {/* Contagem */}
-                                <div className="text-right flex-shrink-0 w-10">
+                                <div className="text-right shrink-0 w-10">
                                     <span className="text-sm font-bold text-gray-800">{count}</span>
                                     <span className="block text-[10px] text-gray-400 leading-tight">Aulas</span>
                                 </div>
@@ -192,14 +192,14 @@ function ParticipacaoFuncao({ aulas }) {
                 <p className="text-xs text-gray-400 mt-4 text-center">Nenhuma aula confirmada</p>
             ) : (
                 <div className="flex items-center gap-5">
-                    <div className="h-28 w-28 flex-shrink-0">
+                    <div className="h-28 w-28 shrink-0">
                         <Doughnut data={donutData} options={donutOptions} />
                     </div>
                     <div className="flex flex-col gap-2.5 flex-1">
                         {funcoes.map(([nome, count], i) => (
                             <div key={nome} className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: cores[i] }} />
+                                    <div className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: cores[i] }} />
                                     <span className="text-xs text-gray-600">{nome}</span>
                                 </div>
                                 <span className="text-sm font-bold text-gray-800">{count}</span>
@@ -215,22 +215,43 @@ function ParticipacaoFuncao({ aulas }) {
 // ─── Tela Principal ──────────────────────────────────────────────────────────
 export function TelaPagamentos() {
     const [dataInicio, setDataInicio] = useState("");
-    const [dataFim, setDataFim]       = useState("");
+    const [dataFim, setDataFim] = useState("");
     const [filtroStatus, setFiltroStatus] = useState("Todas");
+    const [erroData, setErroData] = useState("");
+
+    // Data de hoje no formato yyyy-mm-dd
+    const hoje = useMemo(() => {
+        const d = new Date();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${d.getFullYear()}-${mm}-${dd}`;
+    }, []);
+
+    // Validação de datas
+    useMemo(() => {
+        if (dataInicio && dataFim && dataInicio > dataFim) {
+            setErroData("A data inicial não pode ser maior que a data final.");
+        } else if (dataFim && dataFim > hoje) {
+            setErroData("A data final não pode ser maior que hoje.");
+        } else {
+            setErroData("");
+        }
+    }, [dataInicio, dataFim, hoje]);
 
     // Filtragem por período — afeta TUDO
     const aulasFiltradas = useMemo(() => {
+        if (erroData) return [];
         return todasAsAulas.filter(a => {
             if (dataInicio && a.data < dataInicio) return false;
-            if (dataFim    && a.data > dataFim)    return false;
+            if (dataFim && a.data > dataFim) return false;
             return true;
         });
-    }, [dataInicio, dataFim]);
+    }, [dataInicio, dataFim, erroData]);
 
     // KPIs derivados do período
-    const saldoTotal  = useMemo(() => aulasFiltradas.reduce((s, a) => s + a.saldo, 0), [aulasFiltradas]);
+    const saldoTotal = useMemo(() => aulasFiltradas.reduce((s, a) => s + a.saldo, 0), [aulasFiltradas]);
     const confirmadas = useMemo(() => aulasFiltradas.filter(a => a.status === "Confirmada").length, [aulasFiltradas]);
-    const canceladas  = useMemo(() => aulasFiltradas.filter(a => a.status === "Cancelada").length, [aulasFiltradas]);
+    const canceladas = useMemo(() => aulasFiltradas.filter(a => a.status === "Cancelada").length, [aulasFiltradas]);
     const mediaSemana = useMemo(() => {
         if (!confirmadas) return 0;
         if (!dataInicio || !dataFim) return confirmadas;
@@ -261,6 +282,7 @@ export function TelaPagamentos() {
                             <input
                                 type="date"
                                 value={dataInicio}
+                                max={dataFim || hoje}
                                 onChange={(e) => setDataInicio(e.target.value)}
                                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
                             />
@@ -270,6 +292,8 @@ export function TelaPagamentos() {
                             <input
                                 type="date"
                                 value={dataFim}
+                                min={dataInicio}
+                                max={hoje}
                                 onChange={(e) => setDataFim(e.target.value)}
                                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
                             />
@@ -284,17 +308,22 @@ export function TelaPagamentos() {
                         )}
                     </div>
                 </div>
+                {erroData && (
+                    <div className="mt-2 text-xs text-red-600 font-semibold">
+                        {erroData}
+                    </div>
+                )}
             </div>
 
             <div className="px-24 pt-0 pb-6 bg-gray-50 space-y-4">
-
                 {/* KPIs */}
                 <div className="grid grid-cols-4 gap-4">
+                    {/* ...existing code... */}
                     {[
                         { label: "Saldo total no período", value: saldoTotal },
-                        { label: "Aulas confirmadas",       value: confirmadas },
-                        { label: "Aulas canceladas",        value: canceladas },
-                        { label: "Média por semana",        value: mediaSemana },
+                        { label: "Aulas confirmadas", value: confirmadas },
+                        { label: "Aulas canceladas", value: canceladas },
+                        { label: "Média por semana", value: mediaSemana },
                     ].map((kpi, i) => (
                         <div key={i} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
                             <p className="text-xs text-gray-500 mb-2 leading-tight">{kpi.label}</p>
@@ -305,8 +334,8 @@ export function TelaPagamentos() {
 
                 {/* Gráficos */}
                 <div className="grid grid-cols-3 gap-4">
-                    <SaldoServico      aulas={aulasFiltradas} />
-                    <AulasSemana       aulas={aulasFiltradas} />
+                    <SaldoServico aulas={aulasFiltradas} />
+                    <AulasSemana aulas={aulasFiltradas} />
                     <ParticipacaoFuncao aulas={aulasFiltradas} />
                 </div>
 
@@ -367,7 +396,7 @@ export function TelaPagamentos() {
                                                 </span>
                                             </td>
                                             <td className="py-2.5 px-3 text-sm text-blue-600 font-medium">{aula.funcao}</td>
-                                            <td className="py-2.5 px-3">
+                                            <td className={`py-2.5 px-3`}>
                                                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor[aula.status]}`}>
                                                     {aula.status}
                                                 </span>
