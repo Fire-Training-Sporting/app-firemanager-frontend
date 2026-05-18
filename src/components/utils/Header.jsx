@@ -38,7 +38,7 @@ export default function Header({ children }) {
   })();
 
   return (
-    <header className="w-full sticky top-0 z-40">
+    <header className="w-full">
       {/* Top bar */}
       <div className="bg-[#23272F] flex justify-between items-center px-8 py-3">
         <div className="flex items-center gap-3">
@@ -52,7 +52,7 @@ export default function Header({ children }) {
         </span>
       </div>
       {/* Navigation bar */}
-      <nav className="bg-[#F8821E] flex gap-2 px-8 py-2">
+      <nav className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] flex gap-2 px-8 py-2">
         {navItems.map((item) => (
           <NavLink key={item} to={routeMap[item]}>
             {item}
