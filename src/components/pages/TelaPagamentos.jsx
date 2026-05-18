@@ -24,15 +24,15 @@ ChartJS.register(
 
 // ─── Dados mocados completos ────────────────────────────────────────────────
 const todasAsAulas = [
-    { data: "2026-02-16", horario: "10h - 11h", quadra: "Quadra A", servico: "Tênis",        funcao: "Professor", status: "Confirmada", saldo: 1 },
-    { data: "2026-02-17", horario: "13h - 14h", quadra: "Quadra B", servico: "Beach Tennis", funcao: "Rebatedor", status: "Pendente",   saldo: 0 },
-    { data: "2026-02-20", horario: "16h - 17h", quadra: "Quadra B", servico: "Tênis",        funcao: "Professor", status: "Cancelada",  saldo: 0 },
-    { data: "2026-02-24", horario: "09h - 10h", quadra: "Quadra C", servico: "Beach Tennis", funcao: "Rebatedor", status: "Confirmada", saldo: 1 },
-    { data: "2026-03-03", horario: "08h - 09h", quadra: "Quadra A", servico: "Tênis",        funcao: "Professor", status: "Confirmada", saldo: 1 },
-    { data: "2026-03-05", horario: "11h - 12h", quadra: "Quadra B", servico: "Personal",   funcao: "Auxiliar",  status: "Confirmada", saldo: 1 },
-    { data: "2026-03-10", horario: "15h - 16h", quadra: "Quadra C", servico: "Tênis",        funcao: "Professor", status: "Cancelada",  saldo: 0 },
-    { data: "2026-03-12", horario: "10h - 11h", quadra: "Quadra A", servico: "Beach Tennis", funcao: "Professor", status: "Confirmada", saldo: 1 },
-    { data: "2026-03-15", horario: "09h - 10h", quadra: "Quadra B", servico: "Tênis",        funcao: "Rebatedor", status: "Pendente",   saldo: 0 },
+    { data: "2026-04-16", horario: "10h - 11h", quadra: "Quadra A", servico: "Tênis",        funcao: "Professor", status: "Confirmada", saldo: 1 },
+    { data: "2026-04-17", horario: "13h - 14h", quadra: "Quadra B", servico: "Beach Tennis", funcao: "Rebatedor", status: "Pendente",   saldo: 0 },
+    { data: "2026-04-20", horario: "16h - 17h", quadra: "Quadra B", servico: "Tênis",        funcao: "Professor", status: "Cancelada",  saldo: 0 },
+    { data: "2026-04-24", horario: "09h - 10h", quadra: "Quadra C", servico: "Beach Tennis", funcao: "Rebatedor", status: "Confirmada", saldo: 1 },
+    { data: "2026-05-03", horario: "08h - 09h", quadra: "Quadra A", servico: "Tênis",        funcao: "Professor", status: "Confirmada", saldo: 1 },
+    { data: "2026-05-05", horario: "11h - 12h", quadra: "Quadra B", servico: "Personal",   funcao: "Auxiliar",  status: "Confirmada", saldo: 1 },
+    { data: "2026-05-10", horario: "15h - 16h", quadra: "Quadra C", servico: "Tênis",        funcao: "Professor", status: "Cancelada",  saldo: 0 },
+    { data: "2026-05-12", horario: "10h - 11h", quadra: "Quadra A", servico: "Beach Tennis", funcao: "Professor", status: "Confirmada", saldo: 1 },
+    { data: "2026-05-15", horario: "09h - 10h", quadra: "Quadra B", servico: "Tênis",        funcao: "Rebatedor", status: "Pendente",   saldo: 0 },
 ];
 
 const statusColor = {
