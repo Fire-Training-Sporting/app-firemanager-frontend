@@ -6,6 +6,7 @@ import TelaCondominios from "../components/pages/TelaCondominios";
 import { TelaDashboard } from "../components/pages/TelaDashboard";
 import TelaFuncionarios from "../components/pages/TelaFuncionarios";
 import TelaServico from "../components/pages/TelaServico";
+import { TelaPagamentos } from "../components/pages/TelaPagamentos";
 import Tela404 from "../components/pages/Tela404";
 
 export const router = createBrowserRouter([
@@ -36,6 +37,10 @@ export const router = createBrowserRouter([
     {
         path: "/servicos",
         element: <TelaServico />,
+    },
+    {
+        path: "/pagamento",
+        element: <TelaPagamentos />,
     },
     {
         path: "*",
