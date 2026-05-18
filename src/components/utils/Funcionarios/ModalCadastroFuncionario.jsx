@@ -148,124 +148,80 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+return (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
 
-        <div className="bg-[#F8821E] px-6 py-5 flex items-center justify-between shrink-0">
-          <h2 className="text-2xl font-bold text-white">Cadastrar Usuários</h2>
-          <button
-            type="button"
-            onClick={() => { resetFormulario(); onClose(); }}
-            className="text-white text-4xl font-medium leading-none hover:text-red-200 transition"
-          >
-            x
-          </button>
-        </div>
+      {/* Cabeçalho */}
+      <div className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+        <h2 className="text-lg font-bold text-white">Cadastrar Usuários</h2>
+        <button
+          type="button"
+          onClick={() => { resetFormulario(); onClose(); }}
+          className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
+        >
+          ✕
+        </button>
+      </div>
 
-        <div className="overflow-y-auto px-6 py-5">
-          <form onSubmit={cadastrarUsuario} className="flex flex-col">
+      {/* Conteúdo */}
+      <div className="px-5 py-4">
+        <form onSubmit={cadastrarUsuario} className="flex flex-col space-y-3">
 
-            <Field label="Nome">
-              <input
-                type="text"
-                value={credenciais.nome}
-                onChange={(e) => atualizarCampo("nome", e.target.value)}
-                placeholder="Nome completo"
-                className={inputCls}
-              />
-            </Field>
+          <Field label="Nome">
+            <input type="text" value={credenciais.nome} onChange={(e) => atualizarCampo("nome", e.target.value)} placeholder="Nome completo" className={inputCls} />
+          </Field>
 
-            <Field label="E-mail">
-              <input
-                type="email"
-                value={credenciais.email}
-                onChange={(e) => atualizarCampo("email", e.target.value)}
-                placeholder="exemplo@email.com"
-                className={inputCls}
-              />
-            </Field>
+          <Field label="E-mail">
+            <input type="email" value={credenciais.email} onChange={(e) => atualizarCampo("email", e.target.value)} placeholder="exemplo@email.com" className={inputCls} />
+          </Field>
 
-            <Field label="Telefone">
-              <input
-                type="tel"
-                value={credenciais.telefone}
-                onChange={(e) => atualizarCampo("telefone", e.target.value)}
-                placeholder="(11) 9 9999-9999"
-                className={inputCls}
-              />
-            </Field>
+          <Field label="Telefone">
+            <input type="tel" value={credenciais.telefone} onChange={(e) => atualizarCampo("telefone", e.target.value)} placeholder="(11) 9 9999-9999" className={inputCls} />
+          </Field>
 
-            <Field label="Senha">
-              <input
-                type="password"
-                value={credenciais.senha}
-                onChange={(e) => atualizarCampo("senha", e.target.value)}
-                placeholder="Minimo 6 caracteres"
-                className={inputCls}
-              />
-            </Field>
+          <Field label="Senha">
+            <input type="password" value={credenciais.senha} onChange={(e) => atualizarCampo("senha", e.target.value)} placeholder="Mínimo 6 caracteres" className={inputCls} />
+          </Field>
 
-            <Field label="Confirmar Senha">
-              <input
-                type="password"
-                value={confirmarSenha}
-                onChange={(e) => { setConfirmarSenha(e.target.value); setErro(""); }}
-                placeholder="Repita a senha"
-                className={inputCls}
-              />
-            </Field>
+          <Field label="Confirmar Senha">
+            <input type="password" value={confirmarSenha} onChange={(e) => { setConfirmarSenha(e.target.value); setErro(""); }} placeholder="Repita a senha" className={inputCls} />
+          </Field>
 
-            <Field label="Tipo de Usuario">
-              <select
-                value={credenciais.tipoUsuario}
-                onChange={atualizarTipoUsuario}
-                className={selectCls}
-              >
+          <Field label="Tipo de Usuário">
+            <select value={credenciais.tipoUsuario} onChange={atualizarTipoUsuario} className={selectCls}>
+              <option value="">Selecione</option>
+              {tiposUsuario.map((tipo) => (
+                <option key={tipo.id} value={tipo.id}>{tipo.cargo}</option>
+              ))}
+            </select>
+          </Field>
+
+          {isAluno && (
+            <Field label="Condomínio">
+              <select value={credenciais.condominio} onChange={atualizarCondominio} className={selectCls}>
                 <option value="">Selecione</option>
-                {tiposUsuario.map((tipo) => (
-                  <option key={tipo.id} value={tipo.id}>{tipo.cargo}</option>
+                {condominios.map((c) => (
+                  <option key={c.id} value={c.id}>{c.nome}</option>
                 ))}
               </select>
             </Field>
+          )}
 
-            {isAluno && (
-              <Field label="Condominio">
-                <select
-                  value={credenciais.condominio}
-                  onChange={atualizarCondominio}
-                  className={selectCls}
-                >
-                  <option value="">Selecione</option>
-                  {condominios.map((c) => (
-                    <option key={c.id} value={c.id}>{c.nome}</option>
-                  ))}
-                </select>
-              </Field>
-            )}
+          {erro && <p className="text-red-600 text-sm text-center font-medium">{erro}</p>}
+          {sucesso && <p className="text-green-600 text-sm text-center font-medium">{sucesso}</p>}
 
-            {erro && (
-              <p className="text-[#DC2625] text-sm text-center font-semibold mt-1 mb-2">
-                {erro}
-              </p>
-            )}
-            {sucesso && (
-              <p className="text-[#17A34A] text-sm text-center font-semibold mt-1 mb-2">
-                {sucesso}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className="mt-2 w-full bg-[#F8821E] hover:bg-[#EA580C] text-white font-bold py-3 rounded-xl transition"
-            >
-              Cadastrar Funcionario
-            </button>
-          </form>
-        </div>
+          <button
+            type="submit"
+            className="mt-2 w-full bg-gradient-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold py-2 rounded-lg shadow-md transition-transform transform hover:scale-105"
+          >
+            Cadastrar Funcionário
+          </button>
+        </form>
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 export default ModalCadastroFuncionario;

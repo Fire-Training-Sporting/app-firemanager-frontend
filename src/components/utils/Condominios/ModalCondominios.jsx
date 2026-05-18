@@ -76,7 +76,7 @@ export default function ModalCondominio({ onClose }) {
           <button
             type="button"
             onClick={buscarCep}
-            className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+            className="px-3 py-2 bg-blue-600 text-white roundxed-md hover:bg-blue-700 transition"
           >
             Buscar CEP
           </button>
