@@ -38,7 +38,7 @@ export default function Header({ children }) {
   })();
 
   return (
-    <header className="w-full">
+    <header className="w-full sticky top-0 z-40">
       {/* Top bar */}
       <div className="bg-[#23272F] flex justify-between items-center px-8 py-3">
         <div className="flex items-center gap-3">

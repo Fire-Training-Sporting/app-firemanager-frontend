@@ -37,8 +37,9 @@ export default function TelaAgendamentos() {
       <PageLayout title="Agendamentos" searchPlaceholder="Pesquisar agendamento..." onSearch={showModal ? () => {} : buscarDados}
         onAdd={showModal ? () => setShowModal(false) : adicionarDados}
         addLabel={showModal ? "Voltar" : "Agendar serviço"}
+        allowOverflow={showModal}
       >
-        <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+        <div className={"bg-white rounded-lg shadow-md border " + (showModal ? "w-full max-w-xl mx-auto overflow-visible pb-2" : "overflow-hidden")}>
           {showModal ? (
             editAgendamento ? (
               <ModalEditScheduling
@@ -52,6 +53,7 @@ export default function TelaAgendamentos() {
             <AgendamentosTable agendamentos={agendamentos} onEdit={editarDados} />
           )}
         </div>
+        {showModal && <div className="h-2 bg-[#FAFAFA]" />}
       </PageLayout>
     </div>
   );
