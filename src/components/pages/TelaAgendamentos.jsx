@@ -33,28 +33,31 @@ export default function TelaAgendamentos() {
   };
 
   return (
-    <div className={showModal ? "modal-open" : ""}>
-      <PageLayout title="Agendamentos" searchPlaceholder="Pesquisar agendamento..." onSearch={showModal ? () => {} : buscarDados}
-        onAdd={showModal ? () => setShowModal(false) : adicionarDados}
-        addLabel={showModal ? "Voltar" : "Agendar serviço"}
-        allowOverflow={showModal}
-      >
-        <div className={"bg-white rounded-lg shadow-md border " + (showModal ? "w-full max-w-xl mx-auto overflow-visible pb-2" : "overflow-hidden")}>
-          {showModal ? (
-            editAgendamento ? (
-              <ModalEditScheduling
-                agendamento={editAgendamento}
-                onClose={() => setShowModal(false)}
-              />
-            ) : (
-              <ModalScheduling onClose={() => setShowModal(false)} />
-            )
+  <div className={showModal ? "modal-open" : ""}>
+    <PageLayout
+      title="Agendamentos"
+      searchPlaceholder="Pesquisar agendamento..."
+      onSearch={buscarDados}
+      onAdd={adicionarDados}
+      addLabel="Agendar serviço"
+    >
+      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+        <AgendamentosTable agendamentos={agendamentos} onEdit={editarDados} />
+      </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          {editAgendamento ? (
+            <ModalEditScheduling
+              agendamento={editAgendamento}
+              onClose={() => setShowModal(false)}
+            />
           ) : (
-            <AgendamentosTable agendamentos={agendamentos} onEdit={editarDados} />
+            <ModalScheduling onClose={() => setShowModal(false)} />
           )}
         </div>
-        {showModal && <div className="h-2 bg-[#FAFAFA]" />}
-      </PageLayout>
-    </div>
-  );
+      )}
+    </PageLayout>
+  </div>
+);
 }
