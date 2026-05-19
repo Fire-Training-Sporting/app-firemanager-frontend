@@ -31,16 +31,17 @@ export default function TelaCondominios() {
         title="Condomínios"
         searchPlaceholder="Pesquisar condomínio..."
         onSearch={handleSearch}
-        onAdd={showModal ? () => setShowModal(false) : handleAdd}
-        addLabel={showModal ? "Voltar" : "Cadastrar condomínio"}
+        onAdd={handleAdd}
+        addLabel="Cadastrar condomínio"
       >
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-          {showModal ? (
-            <ModalCondominio isOpen={showModal} onClose={() => setShowModal(false)} />
-          ) : (
-            <CondominiosTable condominios={condominios} />
-          )}
+          <CondominiosTable condominios={condominios} />
         </div>
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <ModalCondominio onClose={() => setShowModal(false)} />
+          </div>
+        )}
       </PageLayout>
     </div>
   );
