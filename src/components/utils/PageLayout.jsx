@@ -30,7 +30,7 @@ export default function PageLayout({
                 className="border border-gray-300 rounded-md px-4 py-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 w-70"
               />
             </div>
-            { (role === "root" || role === "admin") && (
+            { (role === "root" || role === "admin" || role === "Administracao") && (
               <button
                 className="bg-[#2563EA] hover:bg-[#1E40AF] text-white px-6 py-2 rounded-md font-semibold shadow-md transition-all duration-150"
                 onClick={onAdd}
