@@ -53,7 +53,7 @@ export default function TelaAgendamentos() {
               onClose={() => setShowModal(false)}
             />
           ) : (
-            <ModalScheduling onClose={() => setShowModal(false)} />
+            <ModalScheduling onClose={() => setShowModal(false)} onCreated={buscarDados} />
           )}
         </div>
       )}
