@@ -32,6 +32,7 @@ export function AgendamentosTable({ agendamentos = [], onEdit }) {
               <AgendamentosTh>Aluno</AgendamentosTh>
               <AgendamentosTh>Data</AgendamentosTh>
               <AgendamentosTh>Hora Início</AgendamentosTh>
+              <AgendamentosTh>Hora Fim</AgendamentosTh>
               <AgendamentosTh>Condomínio</AgendamentosTh>
               <AgendamentosTh>Professor</AgendamentosTh>
               <AgendamentosTh>Rebatedor</AgendamentosTh>
@@ -47,7 +48,7 @@ export function AgendamentosTable({ agendamentos = [], onEdit }) {
               ))
             ) : (
               <tr>
-                <td colSpan={9} className="p-4 text-center text-gray-500">
+                <td colSpan={10} className="p-4 text-center text-gray-500">
                   Nenhum agendamento encontrado.
                 </td>
               </tr>
