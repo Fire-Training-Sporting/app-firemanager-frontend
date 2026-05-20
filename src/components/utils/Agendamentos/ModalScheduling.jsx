@@ -1,25 +1,22 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import api from "../../../provider/api";
 
-export default function ModalScheduling({ onClose, onCreated }) {
-  const [data, setData] = useState("");
-  const [horaInicio, setHoraInicio] = useState("");
-  const [horaFim, setHoraFim] = useState("");
-  const [local, setLocal] = useState("");
-  const [aluno, setAluno] = useState("");
-  const [servico, setServico] = useState("");
-  const [funcionarios, setFuncionarios] = useState([{ nome: "", funcao: "" }]);
-  const [observacao, setObservacao] = useState("");
+export default function ModalScheduling({ agendamento = null, onClose, onCreated }) {
+  const isEditMode = !!agendamento;
+  
+  const [data, setData] = useState(agendamento?.data || "");
+  const [horaInicio, setHoraInicio] = useState(agendamento?.horaInicio?.slice(0, 5) || "");
+  const [horaFim, setHoraFim] = useState(agendamento?.horaFim?.slice(0, 5) || "");
+  const [local, setLocal] = useState(agendamento?.condominio?.nome || agendamento?.condominio || "");
+  const [aluno, setAluno] = useState(agendamento?.aluno?.nome || agendamento?.aluno || "");
+  const [servico, setServico] = useState(agendamento?.servico?.titulo || agendamento?.servico || "");
+  const [funcionarios, setFuncionarios] = useState(agendamento?.funcionarios || [{ nome: "", funcao: "" }]);
+  const [observacao, setObservacao] = useState(agendamento?.observacao || "");
   const [condominios, setCondominios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [listaServicos, setListaServicos] = useState([]);
   const [erroHorario, setErroHorario] = useState("");
-
-  // Lista de professores
-  const professores = ["Carlos Andrade", "Fernanda Costa", "Ricardo Oliveira", "Juliana Martins"];
-
-  // Lista de funções
-  const funcoes = ["Professor", "Rebatedor", "Auxiliar"];
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const buscarDados = async () => {
@@ -47,6 +44,7 @@ export default function ModalScheduling({ onClose, onCreated }) {
 
   const obterId = (item) => item?.id ?? item?.codigo ?? obterNome(item);
   const cargosQuadra = ["professor"];
+  const funcoes = ["Professor", "Rebatedor", "Auxiliar"];
 
   const condominiosOptions = condominios;
 
@@ -110,7 +108,7 @@ export default function ModalScheduling({ onClose, onCreated }) {
     const funcionarioRebatedor = encontrarFuncionarioPorFuncao("Rebatedor");
     const funcionarioAuxiliar = encontrarFuncionarioPorFuncao("Auxiliar");
 
-    const novoAgendamento = {
+    const agendamentoData = {
       aluno: encontrarIdPorNome(alunos, aluno),
       professor: encontrarIdPorNome(funcionariosOptions, funcionarioProfessor?.nome),
       auxiliar: encontrarIdPorNome(funcionariosOptions, funcionarioAuxiliar?.nome),
@@ -124,13 +122,25 @@ export default function ModalScheduling({ onClose, onCreated }) {
     };
 
     try {
-      const response = await api.post("/agendamentos", novoAgendamento);
-      if (onCreated) {
-        onCreated();
+      setLoading(true);
+      if (isEditMode) {
+        // Modo EDIÇÃO - PATCH
+        await api.patch(`/agendamentos/${agendamento.id}`, agendamentoData);
+        if (onCreated) {
+          onCreated();
+        }
+      } else {
+        // Modo CRIAÇÃO - POST
+        await api.post("/agendamentos", agendamentoData);
+        if (onCreated) {
+          onCreated();
+        }
       }
       onClose();
     } catch (err) {
-      console.error("Erro ao criar agendamento:", err);
+      console.error(isEditMode ? "Erro ao atualizar agendamento:" : "Erro ao criar agendamento:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -140,7 +150,9 @@ export default function ModalScheduling({ onClose, onCreated }) {
 
         {/* Cabeçalho */}
         <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
-          <h2 className="text-lg font-bold text-white">Novo Agendamento</h2>
+          <h2 className="text-lg font-bold text-white">
+            {isEditMode ? "Editar Agendamento" : "Novo Agendamento"}
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -295,9 +307,10 @@ export default function ModalScheduling({ onClose, onCreated }) {
               </button>
               <button
                 type="submit"
-                className="px-3 py-1.5 bg-linear-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white text-sm font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
+                disabled={loading}
+                className="px-3 py-1.5 bg-linear-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white text-sm font-semibold rounded-md shadow-md transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Criar agendamento
+                {loading ? "Processando..." : (isEditMode ? "Salvar alterações" : "Criar agendamento")}
               </button>
             </div>
           </form>

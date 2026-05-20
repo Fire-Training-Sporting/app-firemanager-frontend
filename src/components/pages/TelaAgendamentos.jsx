@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import PageLayout from '../utils/PageLayout';
 import { AgendamentosTable } from '../utils/Agendamentos/AgendamentosTable';
 import ModalScheduling from '../utils/Agendamentos/ModalScheduling';
-import ModalEditScheduling from '../utils/Agendamentos/ModalEditScheduling';
 import api from "../../provider/api";
 
 export default function TelaAgendamentos() {
@@ -46,16 +45,11 @@ export default function TelaAgendamentos() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          {editAgendamento ? (
-            <ModalEditScheduling
-              agendamento={editAgendamento}
-              onClose={() => setShowModal(false)}
-            />
-          ) : (
-            <ModalScheduling onClose={() => setShowModal(false)} onCreated={buscarDados} />
-          )}
-        </div>
+        <ModalScheduling 
+          agendamento={editAgendamento}
+          onClose={() => setShowModal(false)} 
+          onCreated={buscarDados} 
+        />
       )}
     </PageLayout>
   </div>
