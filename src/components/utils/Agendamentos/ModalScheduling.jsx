@@ -90,7 +90,12 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
     setFuncionarios(updated);
   };
 
-  const handleSubmit = async (e) => {
+  const removeFuncionario = (index) => {
+    const updated = funcionarios.filter((_, i) => i !== index);
+    setFuncionarios(updated);
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     // Validação de horários
@@ -245,7 +250,8 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Funcionários</label>
               {funcionarios.map((f, index) => (
-                <div key={index} className="flex gap-2 mb-1.5">
+                <div key={index} className="flex gap-2 mb-1.5 items-center">
+                  {/* Select de professores */}
                   <select
                     className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
                     value={f.nome}
@@ -267,6 +273,18 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                       <option key={funcao} value={funcao}>{funcao}</option>
                     ))}
                   </select>
+
+                  {/* Botão de exclusão */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = funcionarios.filter((_, i) => i !== index);
+                      setFuncionarios(updated);
+                    }}
+                    className="px-2 py-1 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition"
+                  >
+                    ✕
+                  </button>
                 </div>
               ))}
 
@@ -286,7 +304,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 <p className="text-xs text-gray-500 mt-1">Máximo de 3 funcionários.</p>
               )}
             </div>
-
+            
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Observação</label>
               <textarea

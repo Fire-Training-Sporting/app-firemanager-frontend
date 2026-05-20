@@ -33,12 +33,19 @@ export default function TelaFuncionarios() {
 
   const handleAdd = () => setShowModal(true);
 
-  const handleEdit = () => {};
+  const handleEdit = (employee) => {
+    setSelectedEmployee(employee);
+    setShowEditModal(true);
+  };
 
   const handleDelete = () => {};
 
+  const handleUpdate = (data) => {
+    buscarDados();
+  };
+
   return (
-    <>
+    <div>
       <PageLayout
         title="Funcionários"
         searchPlaceholder="Pesquisar funcionário"
@@ -47,20 +54,34 @@ export default function TelaFuncionarios() {
         addLabel="Cadastrar funcionário"
       >
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-          <TabelaFuncionarios funcionarios={funcionarios} onEdit={handleEdit} onDelete={handleDelete} />
+          <TabelaFuncionarios
+            funcionarios={funcionarios}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
         </div>
       </PageLayout>
-      <ModalCadastroFuncionario
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onSuccess={() => { setShowModal(false); buscarDados(); }}
-      />
-      <ModalEdicaoFuncionario
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        onUpdate={(data) => { handleUpdate(data); setShowEditModal(false); }}
-        employee={selectedEmployee}
-      />
-    </>
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <ModalCadastroFuncionario
+            isOpen={showModal}
+            onClose={() => setShowModal(false)}
+            onSuccess={() => { setShowModal(false); buscarDados(); }}
+          />
+        </div>
+      )}
+
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <ModalEdicaoFuncionario
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            onUpdate={(data) => { handleUpdate(data); setShowEditModal(false); }}
+            employee={selectedEmployee}
+          />
+        </div>
+      )}
+    </div>
   );
 }

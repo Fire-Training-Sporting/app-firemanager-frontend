@@ -12,28 +12,27 @@ export default function TelaAlunos() {
     buscarAlunos();
   }, []);
 
-    const buscarAlunos = async () => {
-      try {
-        const resp = await api.get('/usuarios');
-        const usuarios = resp.data || [];
-        const alunosFiltrados = usuarios
-          .filter(u => u.tipoUsuario?.cargo === 'Aluno')
-          .map(u => ({
-            id: u.id,
-            nome: u.nome,
-            email: u.email,
-            telefone: u.telefone,
-            endereco: u.endereco || (u.condominio?.nome) || ''
-          }));
+  const buscarAlunos = async () => {
+    try {
+      const resp = await api.get("/usuarios");
+      const usuarios = resp.data || [];
+      const alunosFiltrados = usuarios
+        .filter((u) => u.tipoUsuario?.cargo === "Aluno")
+        .map((u) => ({
+          id: u.id,
+          nome: u.nome,
+          email: u.email,
+          telefone: u.telefone,
+          endereco: u.endereco || u.condominio?.nome || "",
+        }));
 
-        setAlunos(alunosFiltrados);
-      } catch (err) {
-        console.error('Erro ao buscar alunos:', err);
-      }
-    };
+      setAlunos(alunosFiltrados);
+    } catch (err) {
+      console.error("Erro ao buscar alunos:", err);
+    }
+  };
 
   const handleAdd = () => setShowModal(true);
-
   const handleSearch = () => {};
 
   return (
@@ -42,16 +41,17 @@ export default function TelaAlunos() {
         title="Alunos"
         searchPlaceholder="Pesquisar aluno..."
         onSearch={handleSearch}
-        onAdd={showModal ? () => setShowModal(false) : handleAdd}
-        addLabel={showModal ? "Voltar" : "Cadastrar aluno"}
+        onAdd={handleAdd}
+        addLabel="Cadastrar aluno"
       >
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-          {showModal ? (
-            <ModalAluno isOpen={showModal} onClose={() => setShowModal(false)} />
-          ) : (
-            <AlunosTable alunos={alunos} />
-          )}
+          <AlunosTable alunos={alunos} />
         </div>
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <ModalAluno onClose={() => setShowModal(false)} />
+          </div>
+        )}
       </PageLayout>
     </div>
   );

@@ -30,23 +30,29 @@ export default function TelaServicos() {
       <PageLayout
         title="Serviços"
         searchPlaceholder="Pesquisar serviço..."
-        onSearch={showModal ? () => {} : buscarDados}
-        onAdd={showModal ? () => setShowModal(false) : adicionarDados}
-        addLabel={showModal ? "Voltar" : "Cadastrar serviço"}
+        onSearch={buscarDados}
+        onAdd={adicionarDados}
+        addLabel="Cadastrar serviço"
         innerClassName="w-full max-w-[760px] mx-auto"
         controlsClassName="justify-between"
         contentClassName="w-full"
       >
         <div className="bg-white rounded-lg shadow-md border overflow-hidden w-full">
-          {showModal ? (
+          <ServicoLista servicos={servicos} />
+        </div>
+
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <ServicoModal
               onClose={() => setShowModal(false)}
-              onSave={(data) => console.log("Serviço cadastrado:", data)}
+              onSave={(data) => {
+                console.log("Serviço cadastrado:", data);
+                setShowModal(false);
+                buscarDados();
+              }}
             />
-          ) : (
-            <ServicoLista servicos={servicos} />
-          )}
-        </div>
+          </div>
+        )}
       </PageLayout>
     </div>
   );
