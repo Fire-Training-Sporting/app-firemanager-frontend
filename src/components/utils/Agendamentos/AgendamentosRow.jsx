@@ -1,4 +1,4 @@
-export function AgendamentosRow({ data, horaInicio, horaFim, condominio, aluno, professor, rebatedor, auxiliar, status, onEdit}) {
+export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, aluno, professor, rebatedor, auxiliar, status, onEdit}) {
   const statusStyle = {
     Confirmada: "bg-green-100 text-green-700",
     Pendente: "bg-yellow-100 text-yellow-700",
@@ -55,6 +55,7 @@ export function AgendamentosRow({ data, horaInicio, horaFim, condominio, aluno, 
 
   return (
     <tr className="border-b border-gray-200 hover:bg-[#F3F4F8] transition-colors duration-150">
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle font-semibold">{id}</td>
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">{getDisplayValue(aluno)}</td>
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">{formatDateValue(data)}</td>
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">{formatTimeValue(horaInicio)}</td>
