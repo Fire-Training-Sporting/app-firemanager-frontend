@@ -58,24 +58,24 @@ export function AgendamentosTable({ agendamentos = [], onEdit }) {
         </table>
       </div>
 
-      <div className="flex items-center justify-between gap-4 px-4 py-3 border-t bg-white">
-        <div className="text-sm text-gray-600">
+      <div className="flex items-center justify-between gap-4 px-4 py-2 border-t bg-white">
+        <div className="text-xs text-gray-600">
           Mostrando {Math.min(totalItems, startIndex + 1)}-{Math.min(totalItems, endIndex)} de {totalItems}
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={goPrev}
             disabled={currentPage === 1}
-            className={`px-3 py-1 rounded-md border ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
+            className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
             Anterior
           </button>
-          <div className="text-sm">
+          <div className="text-xs">
             Página {currentPage} de {totalPages}
           </div>
           <button
             onClick={goNext}
             disabled={currentPage === totalPages}
-            className={`px-3 py-1 rounded-md border ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
+            className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
             Próxima
           </button>
         </div>
