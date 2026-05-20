@@ -130,13 +130,13 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       setLoading(true);
       if (isEditMode) {
         // Modo EDIÇÃO - PATCH
-        await api.patch(`/agendamentos/${agendamento.id}`, agendamentoData);
+        api.patch(`/agendamentos/${agendamento.id}`, agendamentoData);
         if (onCreated) {
           onCreated();
         }
       } else {
         // Modo CRIAÇÃO - POST
-        await api.post("/agendamentos", agendamentoData);
+        api.post("/agendamentos", agendamentoData);
         if (onCreated) {
           onCreated();
         }
