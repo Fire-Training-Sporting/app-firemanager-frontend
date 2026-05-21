@@ -13,9 +13,9 @@ export default function ModalCondominio({ onClose }) {
 
   const aplicarMascaraCep = (valor) => {
     return valor
-      .replace(/\D/g, "")        
-      .replace(/(\d{5})(\d)/, "$1-$2") 
-      .slice(0, 9);               
+      .replace(/\D/g, "")
+      .replace(/(\d{5})(\d)/, "$1-$2")
+      .slice(0, 9);
   };
 
   const handleChange = (e) => {
@@ -61,106 +61,103 @@ export default function ModalCondominio({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
+    <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
+      {/* Cabeçalho */}
+      <div className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+        <h2 className="text-lg font-bold text-white">Cadastrar Condomínio</h2>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
+        >
+          ✕
+        </button>
+      </div>
 
-        {/* Cabeçalho */}
-        <div className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
-          <h2 className="text-lg font-bold text-white">Cadastrar Condomínio</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
-          >
-            ✕
-          </button>
-        </div>
+      {/* Conteúdo */}
+      <div className="px-5 py-4">
+        <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
+          <input
+            type="text"
+            name="nome"
+            value={form.nome}
+            onChange={handleChange}
+            placeholder="Nome"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
+          />
 
-        {/* Conteúdo */}
-        <div className="px-5 py-4">
-          <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
-            <input
-              type="text"
-              name="nome"
-              value={form.nome}
-              onChange={handleChange}
-              placeholder="Nome"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
-            />
-
-            {/* Campo CEP + botão */}
-            <div className="flex gap-2 items-start">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  name="cep"
-                  value={form.cep}
-                  onChange={handleChange}
-                  placeholder="CEP"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
-                />
-                {cepError && <p className="text-red-600 text-sm mt-1">{cepError}</p>}
-              </div>
-              <button
-                type="button"
-                onClick={buscarCep}
-                className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-              >
-                Buscar CEP
-              </button>
+          {/* Campo CEP + botão */}
+          <div className="flex gap-2 items-start">
+            <div className="flex-1">
+              <input
+                type="text"
+                name="cep"
+                value={form.cep}
+                onChange={handleChange}
+                placeholder="CEP"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
+              />
+              {cepError && <p className="text-red-600 text-sm mt-1">{cepError}</p>}
             </div>
+            <button
+              type="button"
+              onClick={buscarCep}
+              className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+            >
+              Buscar CEP
+            </button>
+          </div>
 
-            <input
-              type="text"
-              name="logradouro"
-              value={form.logradouro}
-              onChange={handleChange}
-              placeholder="Logradouro"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
-            />
-            <input
-              type="text"
-              name="numero"
-              value={form.numero}
-              onChange={handleChange}
-              placeholder="Número"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
-            />
-            <input
-              type="text"
-              name="cidade"
-              value={form.cidade}
-              onChange={handleChange}
-              placeholder="Cidade"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
-            />
-            <input
-              type="text"
-              name="bairro"
-              value={form.bairro}
-              onChange={handleChange}
-              placeholder="Bairro"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
-            />
+          <input
+            type="text"
+            name="logradouro"
+            value={form.logradouro}
+            onChange={handleChange}
+            placeholder="Logradouro"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
+          />
+          <input
+            type="text"
+            name="numero"
+            value={form.numero}
+            onChange={handleChange}
+            placeholder="Número"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
+          />
+          <input
+            type="text"
+            name="cidade"
+            value={form.cidade}
+            onChange={handleChange}
+            placeholder="Cidade"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
+          />
+          <input
+            type="text"
+            name="bairro"
+            value={form.bairro}
+            onChange={handleChange}
+            placeholder="Bairro"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
+          />
 
-            {/* Botões */}
-            <div className="flex justify-end gap-2 mt-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-gradient-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
-              >
-                Cadastrar condomínio
-              </button>
-            </div>
-          </form>
-        </div>
+          {/* Botões */}
+          <div className="flex justify-end gap-2 mt-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-gradient-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
+            >
+              Cadastrar condomínio
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

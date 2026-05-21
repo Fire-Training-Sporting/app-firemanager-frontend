@@ -92,32 +92,21 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
   }
 
   function validarCredenciais() {
-    if (!credenciais.nome.trim()) 
-        { setErro("Nome e obrigatorio"); return false; }
-    if (!credenciais.email.trim()) 
-        { setErro("E-mail e obrigatorio"); return false; }
+    if (!credenciais.nome.trim()) { setErro("Nome e obrigatorio"); return false; }
+    if (!credenciais.email.trim()) { setErro("E-mail e obrigatorio"); return false; }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailRegex.test(credenciais.email)) 
-        { setErro("E-mail invalido"); return false; }
-    if (!credenciais.telefone.trim()) 
-        { setErro("Telefone e obrigatorio"); return false; }
+    if (!emailRegex.test(credenciais.email)) { setErro("E-mail invalido"); return false; }
+    if (!credenciais.telefone.trim()) { setErro("Telefone e obrigatorio"); return false; }
     const tel = credenciais.telefone.replace(/\D/g, "");
-    if (tel.length !== 11) 
-        { setErro("Telefone deve ter 11 digitos (DDD + numero)"); return false; }
-    if (!credenciais.senha) 
-        { setErro("Senha e obrigatoria"); return false; }
-    if (credenciais.senha.length < 6) 
-        { setErro("Senha deve ter no minimo 6 caracteres"); return false; }
-    if (!confirmarSenha) 
-        { setErro("Confirmacao de senha e obrigatoria"); return false; }
-    if (credenciais.senha !== confirmarSenha) 
-        { setErro("Senhas nao sao iguais"); return false; }
-    if (!credenciais.tipoUsuario) 
-        { setErro("Tipo de Usuario e obrigatorio"); return false; }
-    if (isAluno && !credenciais.condominio) 
-        { setErro("Condominio e obrigatorio para alunos"); return false; }
+    if (tel.length !== 11) { setErro("Telefone deve ter 11 digitos (DDD + numero)"); return false; }
+    if (!credenciais.senha) { setErro("Senha e obrigatoria"); return false; }
+    if (credenciais.senha.length < 6) { setErro("Senha deve ter no minimo 6 caracteres"); return false; }
+    if (!confirmarSenha) { setErro("Confirmacao de senha e obrigatoria"); return false; }
+    if (credenciais.senha !== confirmarSenha) { setErro("Senhas nao sao iguais"); return false; }
+    if (!credenciais.tipoUsuario) { setErro("Tipo de Usuario e obrigatorio"); return false; }
+    if (isAluno && !credenciais.condominio) { setErro("Condominio e obrigatorio para alunos"); return false; }
     return true;
   }
 
@@ -148,10 +137,8 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-return (
-  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+  return (
     <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
-
       {/* Cabeçalho */}
       <div className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
         <h2 className="text-lg font-bold text-white">Cadastrar Usuários</h2>
@@ -220,8 +207,9 @@ return (
         </form>
       </div>
     </div>
-  </div>
-);
+  );
+
+
 }
 
 export default ModalCadastroFuncionario;
