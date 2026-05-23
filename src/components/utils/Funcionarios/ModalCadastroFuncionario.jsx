@@ -48,7 +48,7 @@ export default function ModalCadastroFuncionario({ isOpen, onClose, onSuccess, u
   useEffect(() => {
     if (isOpen) {
       setTiposUsuario([
-        { id: 2, cargo: "Administração" },
+        { id: 2, cargo: "Administracao" },
         { id: 3, cargo: "Quadra" },
         { id: 4, cargo: "Aluno" }
       ])

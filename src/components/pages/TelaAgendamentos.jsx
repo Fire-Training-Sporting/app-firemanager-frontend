@@ -3,6 +3,7 @@ import PageLayout from '../utils/PageLayout';
 import SearchFilter from '../utils/SearchFilter';
 import { AgendamentosTable } from '../utils/Agendamentos/AgendamentosTable';
 import ModalScheduling from '../utils/Agendamentos/ModalScheduling';
+import ConfirmationModal from '../utils/ConfirmationModal';
 import api from "../../provider/api";
 
 const search_columns = [
@@ -20,6 +21,7 @@ export default function TelaAgendamentos() {
   const [agendamentos, setAgendamentos] = useState([]);
   const [agendamentosOriginais, setAgendamentosOriginais] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [agendamentoParaExcluir, setAgendamentoParaExcluir] = useState(null);
 
   useEffect(() => {
     buscarDados();
@@ -81,9 +83,111 @@ export default function TelaAgendamentos() {
     setShowModal(true);
   };
 
+  const extrairId = (value) => {
+    if (value == null || value === "") {
+      return "";
+    }
+
+    if (typeof value === "object") {
+      return String(value.id ?? value.codigo ?? value.value ?? "");
+    }
+
+    return String(value);
+  };
+
+  const extrairNome = (value) => {
+    if (value == null || value === "") {
+      return "";
+    }
+
+    if (typeof value === "object") {
+      return value.nome ?? value.descricao ?? value.razaoSocial ?? value.titulo ?? "";
+    }
+
+    return String(value);
+  };
+
+  const formatarData = (valor) => {
+    if (!valor) {
+      return "";
+    }
+
+    if (typeof valor === "string") {
+      return valor.slice(0, 10);
+    }
+
+    if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
+      return valor.toISOString().slice(0, 10);
+    }
+
+    return String(valor).slice(0, 10);
+  };
+
+  const formatarHora = (valor) => {
+    if (!valor) {
+      return "";
+    }
+
+    return String(valor).slice(0, 5);
+  };
+
+  const normalizarAgendamentoParaModal = (agendamento) => ({
+    id: agendamento?.id ?? null,
+    data: formatarData(agendamento?.data),
+    horaInicio: formatarHora(agendamento?.horaInicio),
+    horaFim: formatarHora(agendamento?.horaFim),
+    condominio: extrairId(agendamento?.condominio),
+    aluno: extrairId(agendamento?.aluno),
+    servico: extrairId(agendamento?.servico),
+    professor: extrairId(agendamento?.professor),
+    rebatedor: extrairId(agendamento?.rebatedor),
+    auxiliar: extrairId(agendamento?.auxiliar),
+    observacao: agendamento?.observacao || "",
+    nomes: {
+      condominio: extrairNome(agendamento?.condominio),
+      aluno: extrairNome(agendamento?.aluno),
+      servico: extrairNome(agendamento?.servico),
+      professor: extrairNome(agendamento?.professor),
+      rebatedor: extrairNome(agendamento?.rebatedor),
+      auxiliar: extrairNome(agendamento?.auxiliar),
+    },
+  });
+
   const editarDados = (agendamento) => {
-    setEditAgendamento(agendamento);
+    setEditAgendamento(normalizarAgendamentoParaModal(agendamento));
     setShowModal(true);
+  };
+
+  const solicitarExclusao = (id) => {
+    const agendamento = agendamentos.find((item) => item.id === id);
+    setAgendamentoParaExcluir(agendamento ?? { id });
+  };
+
+  const cancelarExclusao = () => {
+    setAgendamentoParaExcluir(null);
+  };
+
+  const confirmarExclusao = async () => {
+    if (!agendamentoParaExcluir?.id) {
+      return;
+    }
+
+    try {
+      await api.delete(`/agendamentos/${agendamentoParaExcluir.id}`);
+      setAgendamentoParaExcluir(null);
+      await buscarDados();
+    } catch (error) {
+      console.error("Erro ao excluir agendamento:", error);
+      window.alert("Não foi possível excluir o agendamento. Tente novamente.");
+    }
+  };
+
+  const formatarValor = (valor) => {
+    if (valor && typeof valor === "object") {
+      return valor.nome ?? "-";
+    }
+
+    return valor ?? "-";
   };
 
   return (
@@ -103,7 +207,11 @@ export default function TelaAgendamentos() {
       }
     >
       <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-        <AgendamentosTable agendamentos={agendamentos} onEdit={editarDados} />
+        <AgendamentosTable
+          agendamentos={agendamentos}
+          onEdit={editarDados}
+          onDelete={solicitarExclusao}
+        />
       </div>
 
       {showModal && (
@@ -113,6 +221,28 @@ export default function TelaAgendamentos() {
           onCreated={buscarDados} 
         />
       )}
+
+      <ConfirmationModal
+        isOpen={!!agendamentoParaExcluir}
+        title="Confirmar exclusão"
+        message="Deseja realmente excluir este agendamento?"
+        items={agendamentoParaExcluir ? [
+          { label: "ID", value: agendamentoParaExcluir.id },
+          { label: "Aluno", value: formatarValor(agendamentoParaExcluir.aluno) },
+          { label: "Data", value: formatarValor(agendamentoParaExcluir.data) },
+          { label: "Hora início", value: formatarValor(agendamentoParaExcluir.horaInicio) },
+          { label: "Hora fim", value: formatarValor(agendamentoParaExcluir.horaFim) },
+          { label: "Condomínio", value: formatarValor(agendamentoParaExcluir.condominio) },
+          { label: "Professor", value: formatarValor(agendamentoParaExcluir.professor) },
+          { label: "Rebatedor", value: formatarValor(agendamentoParaExcluir.rebatedor) },
+          { label: "Auxiliar", value: formatarValor(agendamentoParaExcluir.auxiliar) },
+          { label: "Status", value: formatarValor(agendamentoParaExcluir.status) },
+        ] : []}
+        confirmLabel="Sim, excluir"
+        cancelLabel="Não, cancelar"
+        onCancel={cancelarExclusao}
+        onConfirm={confirmarExclusao}
+      />
     </PageLayout>
   </div>
 );
