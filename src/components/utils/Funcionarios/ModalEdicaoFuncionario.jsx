@@ -5,10 +5,12 @@ import Button from "../Button";
 
 const PERFIL_OPTIONS = [
   { value: "", label: "Selecione" },
-  { value: "Administrador", label: "Administrador" },
+  { value: "Administracao", label: "Administracao" },
   { value: "Escritório", label: "Escritório" },
   { value: "Quadra", label: "Quadra" }
 ];
+
+const normalizarPerfil = (perfil) => perfil || "";
 
 const colors = {
   bg: {
@@ -46,7 +48,10 @@ function ModalEdicaoFuncionario({ isOpen, onClose, onUpdate, employee }) {
 
   useEffect(() => {
     if (employee) {
-      setForm(employee);
+      setForm({
+        ...employee,
+        perfil: normalizarPerfil(employee.perfil),
+      });
     }
   }, [employee]);
 

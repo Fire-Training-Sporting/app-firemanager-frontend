@@ -35,7 +35,7 @@ export default function PageLayout({
                 />
               </div>
             )}
-            { (role === "root" || role === "admin" || role === "Administracao") && (
+            { (role === "root" || role === "Administracao") && (
               <button
                 className="bg-[#2563EA] hover:bg-[#1E40AF] text-white px-6 py-2 rounded-md font-semibold shadow-md transition-all duration-150"
                 onClick={onAdd}
