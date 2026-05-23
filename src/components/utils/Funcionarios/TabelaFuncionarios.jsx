@@ -41,10 +41,8 @@ export default function TabelaFuncionarios({ funcionarios = [], onEdit = () => {
   ];
 
   return (
-    <div className="w-full overflow-x-auto">
-      <div className="h-fit max-h-[calc(100vh-360px)] overflow-y-auto">
-        <TableBase columns={columns} data={pageItems} />
-      </div>
+    <div className="w-full">
+      <TableBase columns={columns} data={pageItems} />
 
       <div className="flex items-center justify-between gap-4 px-4 py-2 border-t bg-white">
         <div className="text-xs text-gray-600">
