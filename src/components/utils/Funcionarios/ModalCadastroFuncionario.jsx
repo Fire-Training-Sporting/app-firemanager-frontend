@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import api from "../../../provider/api";
 
 const inputCls =
   "mt-1 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]";
@@ -15,7 +16,7 @@ function Field({ label, children }) {
   );
 }
 
-function ModalCadastroFuncionario({ isOpen, onClose }) {
+function ModalCadastroFuncionario({ isOpen, onClose, onSuccess }) {
   const [credenciais, setCredenciais] = useState({
     tipoUsuario: "",
     nome: "",
@@ -40,32 +41,13 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
 
   useEffect(() => {
     if (isOpen) {
-      carregarTiposUsuario();
-      carregarCondominios();
+      setTiposUsuario([
+        { id: 2, cargo: "Administração" },
+        { id: 3, cargo: "Quadra" },
+        { id: 4, cargo: "Aluno" }
+      ])
     }
   }, [isOpen]);
-
-  async function carregarTiposUsuario() {
-    try {
-      const resposta = await fetch("http://localhost:8080/api/tipo-usuarios");
-      if (!resposta.ok) throw new Error("Erro na requisicao");
-      const dados = await resposta.json();
-      setTiposUsuario(dados);
-    } catch (e) {
-      console.error("Erro ao buscar tipos de usuario:", e);
-    }
-  }
-
-  async function carregarCondominios() {
-    try {
-      const resposta = await fetch("http://localhost:8080/api/condominios");
-      if (!resposta.ok) throw new Error("Erro na requisicao");
-      const dados = await resposta.json();
-      setCondominios(dados);
-    } catch (e) {
-      console.error("Erro ao buscar condominios:", e);
-    }
-  }
 
   function atualizarCampo(campo, valor) {
     setCredenciais((prev) => ({ ...prev, [campo]: valor }));
@@ -123,23 +105,10 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
 
   async function cadastrarUsuario(evento) {
     evento.preventDefault();
-    if (!validarCredenciais()) return;
     try {
-      const resposta = await fetch("http://localhost:8080/api/usuarios", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credenciais),
-      });
-      if (!resposta.ok) {
-        const erroBackend = await resposta.json();
-        console.log("STATUS:", resposta.status);
-        console.log("ERRO DO BACKEND:", erroBackend);
-        throw new Error("Erro na requisicao");
-      }
-      await resposta.json();
-      setSucesso("Cadastro realizado com sucesso!");
+      await api.post("/usuarios", credenciais);
+      if (onSuccess) onSuccess();
       resetFormulario();
-      setTimeout(() => setSucesso(""), 10000);
     } catch (e) {
       console.error("Erro ao cadastrar:", e);
       setErro("Erro ao cadastrar. Tente novamente.");
@@ -209,7 +178,6 @@ return (
           )}
 
           {erro && <p className="text-red-600 text-sm text-center font-medium">{erro}</p>}
-          {sucesso && <p className="text-green-600 text-sm text-center font-medium">{sucesso}</p>}
 
           <button
             type="submit"

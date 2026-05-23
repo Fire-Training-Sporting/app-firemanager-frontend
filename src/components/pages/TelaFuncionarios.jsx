@@ -10,6 +10,7 @@ export default function TelaFuncionarios() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [funcionarios, setFuncionarios] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [sucessoCadastro, setSucessoCadastro] = useState("");
 
   useEffect(() => {
     buscarDados();
@@ -33,6 +34,17 @@ export default function TelaFuncionarios() {
 
   const handleAdd = () => setShowModal(true);
 
+  const handleSuccess = () => {
+    setShowModal(false);
+    setSucessoCadastro("Funcionário cadastrado com sucesso!");
+    buscarDados();
+
+    window.clearTimeout(handleSuccess.timeoutId);
+    handleSuccess.timeoutId = window.setTimeout(() => {
+      setSucessoCadastro("");
+    }, 7000);
+  };
+
   const handleEdit = (employee) => {
     setSelectedEmployee(employee);
     setShowEditModal(true);
@@ -53,6 +65,11 @@ export default function TelaFuncionarios() {
         onAdd={handleAdd}
         addLabel="Cadastrar funcionário"
       >
+        {sucessoCadastro && (
+          <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+            {sucessoCadastro}
+          </div>
+        )}
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
           <TabelaFuncionarios
             funcionarios={funcionarios}
@@ -67,7 +84,7 @@ export default function TelaFuncionarios() {
           <ModalCadastroFuncionario
             isOpen={showModal}
             onClose={() => setShowModal(false)}
-            onSuccess={() => { setShowModal(false); buscarDados(); }}
+            onSuccess={handleSuccess}
           />
         </div>
       )}
