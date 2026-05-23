@@ -75,36 +75,39 @@ function ModalCadastroFuncionario({ isOpen, onClose, onSuccess }) {
 
   function validarCredenciais() {
     if (!credenciais.nome.trim()) 
-        { setErro("Nome e obrigatorio"); return false; }
+        { setErro("Nome é obrigatorio"); return false; }
     if (!credenciais.email.trim()) 
-        { setErro("E-mail e obrigatorio"); return false; }
+        { setErro("E-mail é obrigatorio"); return false; }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(credenciais.email)) 
-        { setErro("E-mail invalido"); return false; }
+        { setErro("E-mail inválido"); return false; }
     if (!credenciais.telefone.trim()) 
-        { setErro("Telefone e obrigatorio"); return false; }
+        { setErro("Telefone é obrigatório"); return false; }
     const tel = credenciais.telefone.replace(/\D/g, "");
     if (tel.length !== 11) 
-        { setErro("Telefone deve ter 11 digitos (DDD + numero)"); return false; }
+        { setErro("Telefone deve ter 11 dígitos (DDD + número)"); return false; }
     if (!credenciais.senha) 
-        { setErro("Senha e obrigatoria"); return false; }
+        { setErro("Senha é obrigatória"); return false; }
     if (credenciais.senha.length < 6) 
-        { setErro("Senha deve ter no minimo 6 caracteres"); return false; }
+        { setErro("Senha deve ter no mínimo 6 caracteres"); return false; }
     if (!confirmarSenha) 
-        { setErro("Confirmacao de senha e obrigatoria"); return false; }
+        { setErro("Confirmação de senha é obrigatória"); return false; }
     if (credenciais.senha !== confirmarSenha) 
-        { setErro("Senhas nao sao iguais"); return false; }
+        { setErro("Senhas não são iguais"); return false; }
     if (!credenciais.tipoUsuario) 
-        { setErro("Tipo de Usuario e obrigatorio"); return false; }
+        { setErro("Tipo de Usuário é obrigatório"); return false; }
     if (isAluno && !credenciais.condominio) 
-        { setErro("Condominio e obrigatorio para alunos"); return false; }
+        { setErro("Condomínio é obrigatório para alunos"); return false; }
     return true;
   }
 
   async function cadastrarUsuario(evento) {
     evento.preventDefault();
+    // executar validações locais antes de enviar
+    if (!validarCredenciais()) return;
+
     try {
       await api.post("/usuarios", credenciais);
       if (onSuccess) onSuccess();
@@ -123,7 +126,7 @@ return (
 
       {/* Cabeçalho */}
       <div className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
-        <h2 className="text-lg font-bold text-white">Cadastrar Usuários</h2>
+        <h2 className="text-lg font-bold text-white">Cadastrar Funcionário</h2>
         <button
           type="button"
           onClick={() => { resetFormulario(); onClose(); }}
@@ -136,9 +139,9 @@ return (
       {/* Conteúdo */}
       <div className="px-5 py-4">
         <form onSubmit={cadastrarUsuario} className="flex flex-col space-y-3">
-
+ 
           <Field label="Nome">
-            <input type="text" value={credenciais.nome} onChange={(e) => atualizarCampo("nome", e.target.value)} placeholder="Nome completo" className={inputCls} />
+            <input type="text" value={credenciais.nome} onChange={(e) => atualizarCampo("nome", e.target.value)} placeholder="Nome e sobrenome" className={inputCls} />
           </Field>
 
           <Field label="E-mail">
@@ -177,7 +180,7 @@ return (
             </Field>
           )}
 
-          {erro && <p className="text-red-600 text-sm text-center font-medium">{erro}</p>}
+          {erro && <p className="bg-red-100 p-2 rounded-lg text-red-600 text-sm text-left font-medium">{erro} !</p>}
 
           <button
             type="submit"
