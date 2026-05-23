@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 export default function ModalCondominio({ onClose }) {
   const [form, setForm] = useState({
@@ -31,8 +32,8 @@ export default function ModalCondominio({ onClose }) {
     const cepNumerico = form.cep.replace(/\D/g, "");
     if (cepNumerico.length === 8) {
       try {
-        const response = await fetch(`https://viacep.com.br/ws/${cepNumerico}/json/`);
-        const data = await response.json();
+        const response = await axios.get(`https://viacep.com.br/ws/${cepNumerico}/json/`);
+        const data = response.data;
         if (data.erro) {
           setCepError("CEP não encontrado.");
           setForm({ ...form, logradouro: "", bairro: "", cidade: "" });
