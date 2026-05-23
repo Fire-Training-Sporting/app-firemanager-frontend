@@ -1,15 +1,27 @@
 import { useState, useEffect } from "react";
 import PageLayout from '../utils/PageLayout';
+import SearchFilter from '../utils/SearchFilter';
 import TabelaFuncionarios from '../utils/Funcionarios/TabelaFuncionarios';
 import ModalCadastroFuncionario from '../utils/Funcionarios/ModalCadastroFuncionario';
 import ModalEdicaoFuncionario from '../utils/Funcionarios/ModalEdicaoFuncionario';
 import api from "../../provider/api";
 
+const search_columns = [
+  { label: "ID", value: "id" },
+  { label: "Nome", value: "nome" },
+  { label: "Email", value: "email" },
+  { label: "Telefone", value: "telefone" },
+  { label: "Tipo", value: "perfil" },
+];
+
 export default function TelaFuncionarios() {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [funcionarios, setFuncionarios] = useState([]);
+  const [funcionariosOriginais, setFuncionariosOriginais] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [sucessoCadastro, setSucessoCadastro] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     buscarDados();
@@ -17,6 +29,7 @@ export default function TelaFuncionarios() {
 
   const buscarDados = async () => {
     try {
+      setIsLoading(true);
       const resp = await api.get('/usuarios');
       const usuarios = resp.data || [];
       const funcionariosFiltrados = usuarios.filter((usuario) => {
@@ -25,13 +38,63 @@ export default function TelaFuncionarios() {
       });
 
       setFuncionarios(funcionariosFiltrados);
+      setFuncionariosOriginais(funcionariosFiltrados);
       console.log('Funcionários carregados:', funcionariosFiltrados);
     } catch (err) {
       console.error('Erro ao carregar funcionários:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filtrarFuncionarios = async ({ field, value }) => {
+    try {
+      setIsLoading(true);
+
+      if (!value.trim()) {
+        setFuncionarios(funcionariosOriginais);
+        return;
+      }
+
+      const filtrados = funcionariosOriginais.filter((funcionario) => {
+        const fieldValue = funcionario[field];
+        let compareValue = value.toLowerCase();
+
+        let fieldString = "";
+
+        if (typeof fieldValue === "object" && fieldValue !== null) {
+          fieldString = fieldValue.nome ? fieldValue.nome.toLowerCase() : "";
+        } else if (typeof fieldValue === "string") {
+          fieldString = fieldValue.toLowerCase();
+        } else if (typeof fieldValue === "number") {
+          fieldString = fieldValue.toString().toLowerCase();
+        } else if (fieldValue instanceof Date) {
+          fieldString = fieldValue.toLocaleDateString("pt-BR").toLowerCase();
+        }
+
+        return fieldString.includes(compareValue);
+      });
+
+      setFuncionarios(filtrados);
+    } catch (error) {
+      console.error("Erro ao filtrar funcionários:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleAdd = () => setShowModal(true);
+
+  const handleSuccess = () => {
+    setShowModal(false);
+    setSucessoCadastro("Funcionário cadastrado com sucesso!");
+    buscarDados();
+
+    window.clearTimeout(handleSuccess.timeoutId);
+    handleSuccess.timeoutId = window.setTimeout(() => {
+      setSucessoCadastro("");
+    }, 7000);
+  };
 
   const handleEdit = (employee) => {
     setSelectedEmployee(employee);
@@ -49,10 +112,21 @@ export default function TelaFuncionarios() {
       <PageLayout
         title="Funcionários"
         searchPlaceholder="Pesquisar funcionário"
-        onSearch={() => {}}
         onAdd={handleAdd}
         addLabel="Cadastrar funcionário"
+        customControls={
+          <SearchFilter
+            columns={search_columns}
+            onSearch={filtrarFuncionarios}
+            isLoading={isLoading}
+          />
+        }
       >
+        {sucessoCadastro && (
+          <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+            {sucessoCadastro}
+          </div>
+        )}
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
           <TabelaFuncionarios
             funcionarios={funcionarios}
@@ -67,7 +141,7 @@ export default function TelaFuncionarios() {
           <ModalCadastroFuncionario
             isOpen={showModal}
             onClose={() => setShowModal(false)}
-            onSuccess={() => { setShowModal(false); buscarDados(); }}
+            onSuccess={handleSuccess}
           />
         </div>
       )}
