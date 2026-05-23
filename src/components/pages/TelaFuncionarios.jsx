@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import PageLayout from '../utils/PageLayout';
 import SearchFilter from '../utils/SearchFilter';
 import TabelaFuncionarios from '../utils/Funcionarios/TabelaFuncionarios';
-import ModalCadastroFuncionario from '../utils/Funcionarios/ModalCadastroFuncionario';
-import ModalEdicaoFuncionario from '../utils/Funcionarios/ModalEdicaoFuncionario';
+import ModalCadastroFuncionario from '../utils/Funcionarios/ModalCadastroFuncionario'; // Modal unificado
 import api from "../../provider/api";
 
 const search_columns = [
@@ -15,8 +14,7 @@ const search_columns = [
 ];
 
 export default function TelaFuncionarios() {
-  const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [funcionarios, setFuncionarios] = useState([]);
   const [funcionariosOriginais, setFuncionariosOriginais] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -38,8 +36,6 @@ export default function TelaFuncionarios() {
       });
 
       setFuncionarios(funcionariosFiltrados);
-      setFuncionariosOriginais(funcionariosFiltrados);
-      console.log('Funcionários carregados:', funcionariosFiltrados);
     } catch (err) {
       console.error('Erro ao carregar funcionários:', err);
     } finally {
@@ -83,7 +79,10 @@ export default function TelaFuncionarios() {
     }
   };
 
-  const handleAdd = () => setShowModal(true);
+  const handleAdd = () => {
+    setSelectedEmployee(null);
+    setIsModalOpen(true);
+  };
 
   const handleSuccess = () => {
     setShowModal(false);
@@ -98,13 +97,15 @@ export default function TelaFuncionarios() {
 
   const handleEdit = (employee) => {
     setSelectedEmployee(employee);
-    setShowEditModal(true);
+    setIsModalOpen(true);
   };
 
-  const handleDelete = () => {};
+  const handleDelete = () => {
+  };
 
-  const handleUpdate = (data) => {
-    buscarDados();
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedEmployee(null); 
   };
 
   return (

@@ -131,43 +131,38 @@ export function Dashboard() {
             <h1 className="text-2xl font-bold mb-2">Dashboard administrativa</h1>
 
             <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-3xl bg-white p-3 shadow-sm border border-slate-200">
-                    <div className="text-[0.65rem] uppercase tracking-[0.2em] text-slate-500 mb-1.5">Novos alunos</div>
-                    <div className="flex items-end gap-2">
-                        <span className="text-xl font-extrabold text-slate-900">124</span>
-                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[0.65rem] font-medium text-emerald-700">+12%</span>
-                    </div>
+                <div className="rounded-3xl bg-white p-3 shadow-sm border border-slate-200 flex flex-col items-center justify-center">
+                    <div className="text-[0.65rem] uppercase tracking-[0.2em] text-slate-500 mb-1.5 text-center">Novos alunos</div>
+                    <span className="text-xl font-extrabold text-slate-900">124</span>
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[0.65rem] font-medium text-emerald-700 mt-1">+12%</span>
                 </div>
 
-                <div className="rounded-3xl bg-white p-3 shadow-sm border border-slate-200">
-                    <div className="text-[0.65rem] uppercase tracking-[0.2em] text-slate-500 mb-1.5">Total de agendamentos</div>
-                    <div className="flex items-end gap-2">
-                        <span className="text-xl font-extrabold text-slate-900">1.842</span>
-                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[0.65rem] font-medium text-emerald-700">+5.4%</span>
-                    </div>
+                <div className="rounded-3xl bg-white p-3 shadow-sm border border-slate-200 flex flex-col items-center justify-center">
+                    <div className="text-[0.65rem] uppercase tracking-[0.2em] text-slate-500 mb-1.5 text-center">Total de agendamentos</div>
+                    <span className="text-xl font-extrabold text-slate-900">1.842</span>
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[0.65rem] font-medium text-emerald-700 mt-1">+5.4%</span>
                 </div>
 
-                <div className="rounded-3xl bg-white p-3 shadow-sm border border-slate-200">
-                    <div className="text-[0.65rem] uppercase tracking-[0.2em] text-slate-500 mb-1.5">Taxa conclusão vs cancelamento</div>
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-base font-semibold text-slate-900">88%</div>
-                        <div>
-                            <div className="text-base font-semibold text-slate-900">Conclusão</div>
-                            <div className="text-[0.65rem] text-slate-500">12% cancelado • Meta 85%</div>
-                        </div>
+                <div className="rounded-3xl bg-white p-3 shadow-sm border border-slate-200 flex flex-col items-center justify-center">
+                    <div className="text-[0.65rem] uppercase tracking-[0.2em] text-slate-500 mb-1.5 text-center">Taxa conclusão vs cancelamento</div>
+                    <div className="flex flex-col items-center">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-base font-semibold text-slate-900 mb-1">88%</div>
+                        <div className="text-base font-semibold text-slate-900">Conclusão</div>
+                        <div className="text-[0.65rem] text-slate-500">12% cancelado • Meta 85%</div>
                     </div>
-                    <div className="mt-3 h-2 rounded-full bg-slate-200 overflow-hidden">
+                    <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
                         <div className="h-full rounded-full bg-orange-500" style={{ width: "88%" }} />
                     </div>
                 </div>
 
-                <div className="rounded-3xl bg-white p-3 shadow-sm border border-slate-200">
-                    <div className="text-[0.65rem] uppercase tracking-[0.2em] text-slate-500 mb-1.5">Média por condomínio</div>
-                    <div className="text-xl font-extrabold text-slate-900">42.5</div>
+                <div className="rounded-3xl bg-white p-3 shadow-sm border border-slate-200 flex flex-col items-center justify-center">
+                    <div className="text-[0.65rem] uppercase tracking-[0.2em] text-slate-500 mb-1.5 text-center">Média por condomínio</div>
+                    <span className="text-xl font-extrabold text-slate-900">42.5</span>
                     <div className="text-[0.65rem] text-slate-500 mt-1">sessões/mês</div>
                 </div>
             </div>
 
+            {/* O restante do dashboard permanece igual */}
             <div className="mt-3 grid gap-2 xl:grid-cols-2">
                 <div className="xl:col-span-1 rounded-3xl bg-white p-3 shadow-sm border border-slate-200">
                     <div className="flex items-center justify-between gap-2 mb-2">
