@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import axios from "axios";
+import api from "../../../provider/api";
 
-export default function ModalCondominio({ onClose }) {
+export default function ModalCondominio({ onClose, onCreated }) {
   const [form, setForm] = useState({
     nome: "",
     cep: "",
@@ -10,6 +12,8 @@ export default function ModalCondominio({ onClose }) {
     bairro: "",
   });
   const [cepError, setCepError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const aplicarMascaraCep = (valor) => {
     return valor
@@ -31,8 +35,8 @@ export default function ModalCondominio({ onClose }) {
     const cepNumerico = form.cep.replace(/\D/g, "");
     if (cepNumerico.length === 8) {
       try {
-        const response = await fetch(`https://viacep.com.br/ws/${cepNumerico}/json/`);
-        const data = await response.json();
+        const response = await axios.get(`https://viacep.com.br/ws/${cepNumerico}/json/`);
+        const data = response.data;
         if (data.erro) {
           setCepError("CEP não encontrado.");
           setForm({ ...form, logradouro: "", bairro: "", cidade: "" });
@@ -53,11 +57,33 @@ export default function ModalCondominio({ onClose }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (cepError) return;
-    console.log("Condomínio cadastrado:", form);
-    onClose();
+
+    const payload = {
+      nome: form.nome.trim(),
+      cidade: form.cidade.trim(),
+      bairro: form.bairro.trim(),
+      logradouro: form.logradouro.trim(),
+      numero: form.numero.trim(),
+      cep: form.cep.replace(/\D/g, ""),
+    };
+
+    try {
+      setIsSaving(true);
+      setSubmitError("");
+      await api.post("/condominios", payload);
+      if (onCreated) {
+        onCreated();
+      }
+      onClose();
+    } catch (error) {
+      console.error("Erro ao cadastrar condomínio:", error);
+      setSubmitError("Não foi possível cadastrar condomínio. Tente novamente.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -141,23 +167,28 @@ export default function ModalCondominio({ onClose }) {
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
           />
 
-          {/* Botões */}
-          <div className="flex justify-end gap-2 mt-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-gradient-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
-            >
-              Cadastrar condomínio
-            </button>
-          </div>
-        </form>
+            {submitError && <p className="text-red-600 text-sm">{submitError}</p>}
+
+            {/* Botões */}
+            <div className="flex justify-end gap-2 mt-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSaving}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="px-4 py-2 bg-gradient-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
+              >
+                {isSaving ? "Cadastrando..." : "Cadastrar condomínio"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
