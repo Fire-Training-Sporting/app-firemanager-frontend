@@ -1,4 +1,4 @@
-export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, aluno, professor, rebatedor, auxiliar, status, onEdit}) {
+export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, aluno, professor, rebatedor, auxiliar, status, onEdit, onDelete }) {
   const statusStyle = {
     Confirmada: "bg-green-100 text-green-700",
     Pendente: "bg-yellow-100 text-yellow-700",
@@ -85,8 +85,11 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
           >
             Editar
           </button>
-          <button className="px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 shadow-sm transition-all">
-            Cancelar
+          <button
+            className="px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 shadow-sm transition-all"
+            onClick={onDelete}
+          >
+            Excluir
           </button>
         </div>
       </td>

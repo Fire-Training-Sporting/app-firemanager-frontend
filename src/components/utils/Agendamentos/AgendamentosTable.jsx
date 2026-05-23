@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {AgendamentosRow} from "./AgendamentosRow";
 import AgendamentosTh from "./AgendamentosTh";
 
-export function AgendamentosTable({ agendamentos = [], onEdit }) {
+export function AgendamentosTable({ agendamentos = [], onEdit, onDelete }) {
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -45,7 +45,12 @@ export function AgendamentosTable({ agendamentos = [], onEdit }) {
           <tbody className="bg-white">
             {pageItems.length > 0 ? (
               pageItems.map((agendamento) => (
-                <AgendamentosRow key={agendamento.id} {...agendamento} onEdit={onEdit} />
+                <AgendamentosRow
+                  key={agendamento.id}
+                  {...agendamento}
+                  onEdit={() => onEdit(agendamento)}
+                  onDelete={() => onDelete(agendamento.id)}
+                />
               ))
             ) : (
               <tr>
