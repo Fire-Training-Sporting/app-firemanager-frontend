@@ -315,8 +315,8 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 onClick={addFuncionario}
                 disabled={funcionarios.length >= 3}
                 className={`px-3 py-1.5 text-sm rounded-md transition ${funcionarios.length >= 3
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-100 text-blue-700 hover:bg-blue-200"
                   }`}
               >
                 + Adicionar funcionário
@@ -326,7 +326,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 <p className="text-xs text-gray-500 mt-1">Máximo de 3 funcionários.</p>
               )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Observação</label>
               <textarea
