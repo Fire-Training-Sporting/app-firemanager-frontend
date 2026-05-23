@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import PageLayout from '../utils/PageLayout';
 import TabelaFuncionarios from '../utils/Funcionarios/TabelaFuncionarios';
-import ModalCadastroFuncionario from '../utils/Funcionarios/ModalCadastroFuncionario';
-import ModalEdicaoFuncionario from '../utils/Funcionarios/ModalEdicaoFuncionario';
+import ModalCadastroFuncionario from '../utils/Funcionarios/ModalCadastroFuncionario'; // Modal unificado
 import api from "../../provider/api";
 
 export default function TelaFuncionarios() {
-  const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [funcionarios, setFuncionarios] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
@@ -25,23 +23,27 @@ export default function TelaFuncionarios() {
       });
 
       setFuncionarios(funcionariosFiltrados);
-      console.log('Funcionários carregados:', funcionariosFiltrados);
     } catch (err) {
       console.error('Erro ao carregar funcionários:', err);
     }
   };
 
-  const handleAdd = () => setShowModal(true);
+  const handleAdd = () => {
+    setSelectedEmployee(null);
+    setIsModalOpen(true);
+  };
 
   const handleEdit = (employee) => {
     setSelectedEmployee(employee);
-    setShowEditModal(true);
+    setIsModalOpen(true);
   };
 
-  const handleDelete = () => {};
+  const handleDelete = () => {
+  };
 
-  const handleUpdate = (data) => {
-    buscarDados();
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedEmployee(null); 
   };
 
   return (
@@ -62,26 +64,12 @@ export default function TelaFuncionarios() {
         </div>
       </PageLayout>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <ModalCadastroFuncionario
-            isOpen={showModal}
-            onClose={() => setShowModal(false)}
-            onSuccess={() => { setShowModal(false); buscarDados(); }}
-          />
-        </div>
-      )}
-
-      {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <ModalEdicaoFuncionario
-            isOpen={showEditModal}
-            onClose={() => setShowEditModal(false)}
-            onUpdate={(data) => { handleUpdate(data); setShowEditModal(false); }}
-            employee={selectedEmployee}
-          />
-        </div>
-      )}
+      <ModalCadastroFuncionario
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onCreated={buscarDados} 
+        usuario={selectedEmployee} 
+      />
     </div>
   );
 }
