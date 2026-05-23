@@ -3,15 +3,19 @@ import api from "../../../provider/api";
 
 export default function ModalScheduling({ agendamento = null, onClose, onCreated }) {
   const isEditMode = !!agendamento;
-  
-  const [data, setData] = useState(agendamento?.data || "");
-  const [horaInicio, setHoraInicio] = useState(agendamento?.horaInicio?.slice(0, 5) || "");
-  const [horaFim, setHoraFim] = useState(agendamento?.horaFim?.slice(0, 5) || "");
-  const [local, setLocal] = useState(agendamento?.condominio?.nome || agendamento?.condominio || "");
-  const [aluno, setAluno] = useState(agendamento?.aluno?.nome || agendamento?.aluno || "");
-  const [servico, setServico] = useState(agendamento?.servico?.titulo || agendamento?.servico || "");
-  const [funcionarios, setFuncionarios] = useState(agendamento?.funcionarios || [{ nome: "", funcao: "" }]);
-  const [observacao, setObservacao] = useState(agendamento?.observacao || "");
+
+  const [data, setData] = useState("");
+  const [horaInicio, setHoraInicio] = useState("");
+  const [horaFim, setHoraFim] = useState("");
+  const [local, setLocal] = useState("");
+  const [aluno, setAluno] = useState("");
+  const [servico, setServico] = useState("");
+  const [funcionarios, setFuncionarios] = useState([
+    { funcionarioId: "", funcao: "Professor" },
+    { funcionarioId: "", funcao: "Rebatedor" },
+    { funcionarioId: "", funcao: "Auxiliar" },
+  ]);
+  const [observacao, setObservacao] = useState("");
   const [condominios, setCondominios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [listaServicos, setListaServicos] = useState([]);
@@ -30,7 +34,6 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
         setCondominios(condominiosResponse.data || []);
         setUsuarios(usuariosResponse.data || []);
         setListaServicos(servicosResponse.data || []);
-
       } catch (err) {
         console.error("Erro ao buscar dados para o agendamento:", err);
       }
@@ -39,48 +42,68 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
     buscarDados();
   }, []);
 
-  const obterNome = (item) =>
-    item?.nome ?? item?.descricao ?? item?.razaoSocial ?? item?.titulo ?? String(item ?? "");
+  const getId = (item) => item?.id ?? item?.codigo ?? item?.value ?? "";
+  const getNome = (item) => item?.nome ?? item?.descricao ?? item?.razaoSocial ?? item?.titulo ?? "";
 
-  const obterId = (item) => item?.id ?? item?.codigo ?? obterNome(item);
-  const cargosQuadra = ["professor"];
-  const funcoes = ["Professor", "Rebatedor", "Auxiliar"];
-
-  const condominiosOptions = condominios;
+  const condominiosOptions = condominios.map((condominio) => ({
+    id: String(getId(condominio)),
+    nome: getNome(condominio),
+  }));
 
   const alunos = usuarios
-    .filter((usuario) => usuario.tipoUsuario?.cargo === "Aluno")
-    .map((usuario) => ({
-      id: obterId(usuario),
-      nome: obterNome(usuario),
-    }));
+    .filter((usuario) => (usuario.tipoUsuario?.cargo || "").toString().trim().toLowerCase() === "aluno")
+    .map((usuario) => ({ id: String(getId(usuario)), nome: getNome(usuario) }));
+
+  const funcoes = ["Professor", "Rebatedor", "Auxiliar"];
 
   const funcionariosOptions = usuarios
     .filter((usuario) => {
       const cargo = (usuario.tipoUsuario?.cargo || "").toString().trim().toLowerCase();
-      return cargosQuadra.includes(cargo);
+      return cargo === "professor";
     })
-    .map((usuario) => ({
-      id: obterId(usuario),
-      nome: obterNome(usuario),
-    }));
+    .map((usuario) => ({ id: String(getId(usuario)), nome: getNome(usuario) }));
 
   const servicos = listaServicos.map((item) => ({
-    id: obterId(item),
-    nome: obterNome(item),
+    id: String(getId(item)),
+    nome: getNome(item),
   }));
 
-  const encontrarIdPorNome = (lista, nomeSelecionado) =>
-    lista.find((item) => item.nome === nomeSelecionado)?.id ?? null;
+  useEffect(() => {
+    if (!agendamento) {
+      setData("");
+      setHoraInicio("");
+      setHoraFim("");
+      setLocal("");
+      setAluno("");
+      setServico("");
+      setFuncionarios([
+        { funcionarioId: "", funcao: "Professor" },
+        { funcionarioId: "", funcao: "Rebatedor" },
+        { funcionarioId: "", funcao: "Auxiliar" },
+      ]);
+      setObservacao("");
+      setErroHorario("");
+      return;
+    }
 
-  const encontrarFuncionarioPorFuncao = (funcao) =>
-    funcionarios.find((item) => item.funcao === funcao && item.nome);
-
-  const formatarHora = (hora) => (hora ? `${hora}:00` : null);
+    setData(agendamento.data || "");
+    setHoraInicio(agendamento.horaInicio || "");
+    setHoraFim(agendamento.horaFim || "");
+    setLocal(String(agendamento.condominio || ""));
+    setAluno(String(agendamento.aluno || ""));
+    setServico(String(agendamento.servico || ""));
+    setFuncionarios([
+      { funcionarioId: String(agendamento.professor || ""), funcao: "Professor" },
+      { funcionarioId: String(agendamento.rebatedor || ""), funcao: "Rebatedor" },
+      { funcionarioId: String(agendamento.auxiliar || ""), funcao: "Auxiliar" },
+    ]);
+    setObservacao(agendamento.observacao || "");
+    setErroHorario("");
+  }, [agendamento]);
 
   const addFuncionario = () => {
     if (funcionarios.length < 3) {
-      setFuncionarios([...funcionarios, { nome: "", funcao: "" }]);
+      setFuncionarios([...funcionarios, { funcionarioId: "", funcao: "" }]);
     }
   };
 
@@ -91,51 +114,51 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
   };
 
   const removeFuncionario = (index) => {
-    const updated = funcionarios.filter((_, i) => i !== index);
-    setFuncionarios(updated);
+    setFuncionarios(funcionarios.filter((_, i) => i !== index));
   };
+
+  const formatarHoraPayload = (hora) => (hora ? `${hora.slice(0, 5)}:00` : null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validação de horários
     if (!horaInicio || !horaFim) {
       setErroHorario("Informe os horários de início e término.");
       return;
     }
+
     if (horaFim <= horaInicio) {
       setErroHorario("A hora de término deve ser maior que a hora de início.");
       return;
     }
+
     setErroHorario("");
 
-    const funcionarioProfessor = encontrarFuncionarioPorFuncao("Professor");
-    const funcionarioRebatedor = encontrarFuncionarioPorFuncao("Rebatedor");
-    const funcionarioAuxiliar = encontrarFuncionarioPorFuncao("Auxiliar");
+    const funcionarioProfessor = funcionarios.find((item) => item.funcao === "Professor" && item.funcionarioId);
+    const funcionarioRebatedor = funcionarios.find((item) => item.funcao === "Rebatedor" && item.funcionarioId);
+    const funcionarioAuxiliar = funcionarios.find((item) => item.funcao === "Auxiliar" && item.funcionarioId);
 
     const agendamentoData = {
-      aluno: encontrarIdPorNome(alunos, aluno),
-      professor: encontrarIdPorNome(funcionariosOptions, funcionarioProfessor?.nome),
-      auxiliar: encontrarIdPorNome(funcionariosOptions, funcionarioAuxiliar?.nome),
-      rebatedor: encontrarIdPorNome(funcionariosOptions, funcionarioRebatedor?.nome),
-      servico: encontrarIdPorNome(servicos, servico),
-      condominio: encontrarIdPorNome(condominiosOptions, local),
+      aluno: aluno ? Number(aluno) : null,
+      professor: funcionarioProfessor?.funcionarioId ? Number(funcionarioProfessor.funcionarioId) : null,
+      auxiliar: funcionarioAuxiliar?.funcionarioId ? Number(funcionarioAuxiliar.funcionarioId) : null,
+      rebatedor: funcionarioRebatedor?.funcionarioId ? Number(funcionarioRebatedor.funcionarioId) : null,
+      servico: servico ? Number(servico) : null,
+      condominio: local ? Number(local) : null,
       data,
-      horaInicio: formatarHora(horaInicio),
-      horaFim: formatarHora(horaFim),
+      horaInicio: formatarHoraPayload(horaInicio),
+      horaFim: formatarHoraPayload(horaFim),
       observacao,
     };
 
     try {
       setLoading(true);
       if (isEditMode) {
-        // Modo EDIÇÃO - PATCH
         api.patch(`/agendamentos/${agendamento.id}`, agendamentoData);
         if (onCreated) {
           onCreated();
         }
       } else {
-        // Modo CRIAÇÃO - POST
         api.post("/agendamentos", agendamentoData);
         if (onCreated) {
           onCreated();
@@ -211,8 +234,8 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
               >
                 <option value="">Selecione um condomínio</option>
                 {condominiosOptions.map((condominio) => (
-                  <option key={obterId(condominio)} value={obterNome(condominio)}>
-                    {obterNome(condominio)}
+                  <option key={condominio.id} value={condominio.id}>
+                    {condominio.nome}
                   </option>
                 ))}
               </select>
@@ -225,10 +248,11 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
                   value={aluno}
                   onChange={(e) => setAluno(e.target.value)}
+                  disabled={isEditMode}
                 >
                   <option value="">Selecione um aluno</option>
                   {alunos.map((alunoItem) => (
-                    <option key={alunoItem.id ?? alunoItem.nome} value={alunoItem.nome}>{alunoItem.nome}</option>
+                    <option key={alunoItem.id ?? alunoItem.nome} value={alunoItem.id}>{alunoItem.nome}</option>
                   ))}
                 </select>
               </div>
@@ -238,10 +262,11 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
                   value={servico}
                   onChange={(e) => setServico(e.target.value)}
+                  disabled={isEditMode}
                 >
                   <option value="">Selecione um serviço</option>
                   {servicos.map((servicoItem) => (
-                    <option key={servicoItem.id ?? servicoItem.nome} value={servicoItem.nome}>{servicoItem.nome}</option>
+                    <option key={servicoItem.id ?? servicoItem.nome} value={servicoItem.id}>{servicoItem.nome}</option>
                   ))}
                 </select>
               </div>
@@ -253,18 +278,18 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 <div key={index} className="flex gap-2 mb-1.5 items-center">
                   {/* Select de professores */}
                   <select
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
-                    value={f.nome}
-                    onChange={(e) => updateFuncionario(index, "nome", e.target.value)}
+                    className="flex-1 min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
+                    value={f.funcionarioId}
+                    onChange={(e) => updateFuncionario(index, "funcionarioId", e.target.value)}
                   >
                     <option value="">Selecione o funcionário</option>
                     {funcionariosOptions.map((funcionario) => (
-                      <option key={funcionario.id} value={funcionario.nome}>{funcionario.nome}</option>
+                      <option key={funcionario.id} value={String(funcionario.id)}>{funcionario.nome}</option>
                     ))}
                   </select>
 
                   <select
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
+                    className="flex-1 min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
                     value={f.funcao}
                     onChange={(e) => updateFuncionario(index, "funcao", e.target.value)}
                   >
@@ -277,11 +302,8 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                   {/* Botão de exclusão */}
                   <button
                     type="button"
-                    onClick={() => {
-                      const updated = funcionarios.filter((_, i) => i !== index);
-                      setFuncionarios(updated);
-                    }}
-                    className="px-2 py-1 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition"
+                    onClick={() => removeFuncionario(index)}
+                    className="flex-none px-2 py-1 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition"
                   >
                     ✕
                   </button>

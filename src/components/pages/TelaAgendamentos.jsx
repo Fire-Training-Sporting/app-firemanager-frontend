@@ -83,8 +83,78 @@ export default function TelaAgendamentos() {
     setShowModal(true);
   };
 
+  const extrairId = (value) => {
+    if (value == null || value === "") {
+      return "";
+    }
+
+    if (typeof value === "object") {
+      return String(value.id ?? value.codigo ?? value.value ?? "");
+    }
+
+    return String(value);
+  };
+
+  const extrairNome = (value) => {
+    if (value == null || value === "") {
+      return "";
+    }
+
+    if (typeof value === "object") {
+      return value.nome ?? value.descricao ?? value.razaoSocial ?? value.titulo ?? "";
+    }
+
+    return String(value);
+  };
+
+  const formatarData = (valor) => {
+    if (!valor) {
+      return "";
+    }
+
+    if (typeof valor === "string") {
+      return valor.slice(0, 10);
+    }
+
+    if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
+      return valor.toISOString().slice(0, 10);
+    }
+
+    return String(valor).slice(0, 10);
+  };
+
+  const formatarHora = (valor) => {
+    if (!valor) {
+      return "";
+    }
+
+    return String(valor).slice(0, 5);
+  };
+
+  const normalizarAgendamentoParaModal = (agendamento) => ({
+    id: agendamento?.id ?? null,
+    data: formatarData(agendamento?.data),
+    horaInicio: formatarHora(agendamento?.horaInicio),
+    horaFim: formatarHora(agendamento?.horaFim),
+    condominio: extrairId(agendamento?.condominio),
+    aluno: extrairId(agendamento?.aluno),
+    servico: extrairId(agendamento?.servico),
+    professor: extrairId(agendamento?.professor),
+    rebatedor: extrairId(agendamento?.rebatedor),
+    auxiliar: extrairId(agendamento?.auxiliar),
+    observacao: agendamento?.observacao || "",
+    nomes: {
+      condominio: extrairNome(agendamento?.condominio),
+      aluno: extrairNome(agendamento?.aluno),
+      servico: extrairNome(agendamento?.servico),
+      professor: extrairNome(agendamento?.professor),
+      rebatedor: extrairNome(agendamento?.rebatedor),
+      auxiliar: extrairNome(agendamento?.auxiliar),
+    },
+  });
+
   const editarDados = (agendamento) => {
-    setEditAgendamento(agendamento);
+    setEditAgendamento(normalizarAgendamentoParaModal(agendamento));
     setShowModal(true);
   };
 
