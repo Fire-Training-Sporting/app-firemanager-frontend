@@ -105,7 +105,7 @@ export default function TelaFuncionarios() {
 
   const handleModalClose = () => {
     setIsModalOpen(false);
-    setSelectedEmployee(null); 
+    setSelectedEmployee(null);
   };
 
   return (
@@ -137,26 +137,17 @@ export default function TelaFuncionarios() {
         </div>
       </PageLayout>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
           <ModalCadastroFuncionario
-            isOpen={showModal}
-            onClose={() => setShowModal(false)}
+            isOpen={isModalOpen}
+            onClose={handleModalClose}
             onSuccess={handleSuccess}
-          />
-        </div>
-      )}
-
-      {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <ModalEdicaoFuncionario
-            isOpen={showEditModal}
-            onClose={() => setShowEditModal(false)}
-            onUpdate={(data) => { handleUpdate(data); setShowEditModal(false); }}
-            employee={selectedEmployee}
+            usuario={selectedEmployee}
           />
         </div>
       )}
     </div>
   );
+
 }

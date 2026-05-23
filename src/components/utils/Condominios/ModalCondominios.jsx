@@ -167,28 +167,27 @@ export default function ModalCondominio({ onClose, onCreated }) {
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
           />
 
-            {submitError && <p className="text-red-600 text-sm">{submitError}</p>}
+          {submitError && <p className="text-red-600 text-sm">{submitError}</p>}
 
-            {/* Botões */}
-            <div className="flex justify-end gap-2 mt-3">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={isSaving}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="px-4 py-2 bg-gradient-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
-              >
-                {isSaving ? "Cadastrando..." : "Cadastrar condomínio"}
-              </button>
-            </div>
-          </form>
-        </div>
+          {/* Botões */}
+          <div className="flex justify-end gap-2 mt-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSaving}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="px-4 py-2 bg-gradient-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
+            >
+              {isSaving ? "Cadastrando..." : "Cadastrar condomínio"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
