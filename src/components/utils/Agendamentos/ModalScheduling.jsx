@@ -17,6 +17,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
   const [listaServicos, setListaServicos] = useState([]);
   const [erroHorario, setErroHorario] = useState("");
   const [loading, setLoading] = useState(false);
+  const podeAdicionarFuncionario = funcionarios.length < 3;
 
   useEffect(() => {
     const buscarDados = async () => {
@@ -306,20 +307,14 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 </div>
               ))}
 
-              <button
-                type="button"
-                onClick={addFuncionario}
-                disabled={funcionarios.length >= 3}
-                className={`px-3 py-1.5 text-sm rounded-md transition ${funcionarios.length >= 3
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                  }`}
-              >
-                + Adicionar funcionário
-              </button>
-
-              {funcionarios.length >= 3 && (
-                <p className="text-xs text-gray-500 mt-1">Máximo de 3 funcionários.</p>
+              {podeAdicionarFuncionario && (
+                <button
+                  type="button"
+                  onClick={addFuncionario}
+                  className="px-3 py-1.5 text-sm rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+                >
+                  + Adicionar funcionário
+                </button>
               )}
             </div>
 

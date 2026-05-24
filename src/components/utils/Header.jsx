@@ -1,5 +1,7 @@
+import { useNavigate } from "react-router-dom";
 import NavLink from "./NavLink";
 import fireIcon from "../../assets/fireIcon.png";
+import logoutIcon from "../../assets/logout.png";
 
 const routeMap = {
   Agendamentos: "/agendamentos",
@@ -12,10 +14,18 @@ const routeMap = {
   Pagamento: "/pagamento",
 };
 
-export default function Header({ children }) {
+export default function Header() {
+  const navigate = useNavigate();
   const role = sessionStorage.getItem("cargo");
   const usuarioString = sessionStorage.getItem("usuario");
   const usuario = usuarioString ? JSON.parse(usuarioString) : null;
+
+  function handleLogout() {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("cargo");
+    sessionStorage.removeItem("usuario");
+    navigate("/", { replace: true });
+  }
 
   const navItems = (() => {
     switch (role) {
@@ -48,9 +58,19 @@ export default function Header({ children }) {
             Fire Manager
           </span>
         </div>
-        <span className="text-white text-base">
-          Olá, {usuario?.nome ?? "usuário"}
-        </span>
+        <div className="flex items-center gap-3 text-white text-base">
+          <span>Olá, {usuario?.nome ?? "usuário"}</span>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-medium transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40"
+            aria-label="Fazer logout"
+            title="Fazer logout"
+          >
+            <img src={logoutIcon} alt="" className="h-4 w-4" />
+            <span>Sair</span>
+          </button>
+        </div>
       </div>
       {/* Navigation bar */}
       <nav className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] flex gap-2 px-8 py-2">
