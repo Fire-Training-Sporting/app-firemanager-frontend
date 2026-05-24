@@ -3,6 +3,7 @@ import PageLayout from "../utils/PageLayout";
 import SearchFilter from "../utils/SearchFilter";
 import { AlunosTable } from "../utils/Alunos/AlunosTable";
 import ModalAluno from "../utils/Alunos/ModalAlunos";
+import ConfirmationModal from "../utils/ConfirmationModal";
 import api from "../../provider/api";
 
 const search_columns = [
@@ -18,6 +19,7 @@ export default function TelaAlunos() {
   const [alunos, setAlunos] = useState([]);
   const [alunosOriginais, setAlunosOriginais] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [alunoParaExcluir, setAlunoParaExcluir] = useState(null);
 
   useEffect(() => {
     buscarAlunos();
@@ -48,6 +50,37 @@ export default function TelaAlunos() {
   };
 
   const handleAdd = () => setShowModal(true);
+
+  const solicitarExclusao = (aluno) => {
+    setAlunoParaExcluir(aluno);
+  };
+
+  const cancelarExclusao = () => {
+    setAlunoParaExcluir(null);
+  };
+
+  const confirmarExclusao = async () => {
+    if (!alunoParaExcluir?.id) {
+      return;
+    }
+
+    try {
+      await api.delete(`/usuarios/${alunoParaExcluir.id}`);
+      setAlunoParaExcluir(null);
+      await buscarAlunos();
+    } catch (error) {
+      console.error("Erro ao excluir aluno:", error);
+      window.alert("Não foi possível excluir o aluno. Tente novamente.");
+    }
+  };
+
+  const formatarValor = (valor) => {
+    if (valor && typeof valor === "object") {
+      return valor.nome ?? "-";
+    }
+
+    return valor ?? "-";
+  };
 
   const filtrarAlunos = async ({ field, value }) => {
     try {
@@ -101,13 +134,33 @@ export default function TelaAlunos() {
         }
       >
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-          <AlunosTable alunos={alunos} />
+          <AlunosTable alunos={alunos} onDelete={solicitarExclusao} />
         </div>
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <ModalAluno onClose={() => setShowModal(false)} />
+            <ModalAluno
+              onClose={() => setShowModal(false)}
+              onCreated={buscarAlunos}
+            />
           </div>
         )}
+
+        <ConfirmationModal
+          isOpen={!!alunoParaExcluir}
+          title="Confirmar exclusão"
+          message="Deseja realmente excluir este aluno?"
+          items={alunoParaExcluir ? [
+            { label: "ID", value: alunoParaExcluir.id },
+            { label: "Nome", value: formatarValor(alunoParaExcluir.nome) },
+            { label: "Email", value: formatarValor(alunoParaExcluir.email) },
+            { label: "Telefone", value: formatarValor(alunoParaExcluir.telefone) },
+            { label: "Endereço", value: formatarValor(alunoParaExcluir.endereco) },
+          ] : []}
+          confirmLabel="Sim, excluir"
+          cancelLabel="Não, cancelar"
+          onCancel={cancelarExclusao}
+          onConfirm={confirmarExclusao}
+        />
       </PageLayout>
     </div>
   );

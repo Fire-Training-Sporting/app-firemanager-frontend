@@ -13,17 +13,21 @@ function Field({ label, children }) {
   );
 }
 
-export default function ModalAluno({ onClose }) {
+export default function ModalAluno({ onClose, onCreated }) {
   const [form, setForm] = useState({
     nome: "",
     email: "",
     telefone: "",
+    senha: "",
     condominio: "",
   });
 
   const [emailError, setEmailError] = useState("");
   const [telefoneError, setTelefoneError] = useState("");
+  const [senhaError, setSenhaError] = useState("");
   const [condominios, setCondominios] = useState([]);
+  const [submitError, setSubmitError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     api.get("/condominios")
@@ -46,6 +50,7 @@ export default function ModalAluno({ onClose }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setSubmitError("");
     if (name === "telefone") {
       const telFormatado = aplicarMascaraTelefone(value);
       setForm({ ...form, telefone: telFormatado });
@@ -53,6 +58,9 @@ export default function ModalAluno({ onClose }) {
     } else if (name === "email") {
       setForm({ ...form, email: value });
       setEmailError(value && !validarEmail(value) ? "Digite um e-mail válido." : "");
+    } else if (name === "senha") {
+      setForm({ ...form, senha: value });
+      setSenhaError(value && value.length < 6 ? "A senha deve ter no mínimo 6 caracteres." : "");
     } else {
       setForm({ ...form, [name]: value });
     }
@@ -60,15 +68,51 @@ export default function ModalAluno({ onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (emailError || telefoneError || !form.condominio) return;
-    console.log("Aluno cadastrado:", form);
-    onClose();
+    if (
+      emailError ||
+      telefoneError ||
+      senhaError ||
+      !form.nome.trim() ||
+      !form.email.trim() ||
+      !form.telefone.trim() ||
+      !form.senha.trim() ||
+      !form.condominio
+    ) {
+      return;
+    }
+
+    const payload = {
+      tipoUsuario: 4,
+      nome: form.nome.trim(),
+      email: form.email.trim(),
+      telefone: form.telefone.replace(/\D/g, ""),
+      senha: form.senha,
+      condominio: Number(form.condominio),
+    };
+
+    setIsSaving(true);
+    setSubmitError("");
+
+    api.post("/usuarios", payload)
+      .then(() => {
+        if (onCreated) {
+          onCreated();
+        }
+        onClose();
+      })
+      .catch((error) => {
+        console.error("Erro ao cadastrar aluno:", error);
+        setSubmitError("Não foi possível cadastrar o aluno. Tente novamente.");
+      })
+      .finally(() => {
+        setIsSaving(false);
+      });
   };
 
   return (
     <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
       {/* Cabeçalho */}
-      <div className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+      <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
         <h2 className="text-lg font-bold text-white">Cadastrar Aluno</h2>
         <button
           type="button"
@@ -96,6 +140,11 @@ export default function ModalAluno({ onClose }) {
             {telefoneError && <p className="text-red-600 text-sm mt-1">{telefoneError}</p>}
           </Field>
 
+          <Field label="Senha">
+            <input name="senha" type="password" value={form.senha} onChange={handleChange} placeholder="Mínimo 6 caracteres" className={inputCls} />
+            {senhaError && <p className="text-red-600 text-sm mt-1">{senhaError}</p>}
+          </Field>
+
           <Field label="Condomínio">
             <select
               name="condominio"
@@ -112,20 +161,24 @@ export default function ModalAluno({ onClose }) {
             </select>
           </Field>
 
+          {submitError && <p className="text-red-600 text-sm">{submitError}</p>}
+
           {/* Botões */}
           <div className="flex justify-end gap-2 mt-3">
             <button
               type="button"
               onClick={onClose}
+              disabled={isSaving}
               className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-gradient-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
+              disabled={isSaving}
+              className="px-4 py-2 bg-linear-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
             >
-              Cadastrar aluno
+              {isSaving ? "Cadastrando..." : "Cadastrar aluno"}
             </button>
           </div>
         </form>

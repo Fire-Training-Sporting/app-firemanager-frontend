@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { AlunosRow } from './AlunosRow'
 import AlunosTh from './AlunoTh'
 
-export function AlunosTable({ alunos = [] }) {
+export function AlunosTable({ alunos = [], onDelete = () => {} }) {
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -39,7 +39,7 @@ export function AlunosTable({ alunos = [] }) {
           <tbody className="bg-white">
             {pageItems.length > 0 ? (
               pageItems.map((aluno) => (
-                <AlunosRow key={aluno.id} {...aluno} />
+                <AlunosRow key={aluno.id} {...aluno} onDelete={() => onDelete(aluno)} />
               ))
             ) : (
               <tr>
