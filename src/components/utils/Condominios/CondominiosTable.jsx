@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { CondominiosRow } from './CondominiosRow.jsx';
 import CondominiosTh from './CondominiosTh';
 
-export function CondominiosTable({ condominios = [] }) {
+export function CondominiosTable({ condominios = [], onDelete = () => {} }) {
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -41,7 +41,7 @@ export function CondominiosTable({ condominios = [] }) {
           <tbody className="bg-white">
             {pageItems.length > 0 ? (
               pageItems.map((cond) => (
-                <CondominiosRow key={cond.id} {...cond} />
+                <CondominiosRow key={cond.id} {...cond} onDelete={() => onDelete(cond)} />
               ))
             ) : (
               <tr>
