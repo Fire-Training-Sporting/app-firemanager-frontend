@@ -10,7 +10,7 @@ const routeMap = {
   Condomínios: "/condominios",
   Serviços: "/servicos",
   Dashboard: "/dashboard",
-  Perfil: "/alunos",
+  Perfil: "/perfil",
   Pagamento: "/pagamento",
 };
 
@@ -37,6 +37,7 @@ export default function Header() {
           "Funcionários",
           "Condomínios",
           "Serviços",
+          "Pagamento",
           "Dashboard",
         ];
       case "Professor":
