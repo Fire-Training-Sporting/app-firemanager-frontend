@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import Header from "../utils/Header";
 import { Bar, Doughnut } from "react-chartjs-2";
+import { BeachBall, Dumbbell, TennisBall, User } from "@boxicons/react";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -24,27 +25,27 @@ ChartJS.register(
 
 // ─── Dados mocados completos ────────────────────────────────────────────────
 const todasAsAulas = [
-    { data: "2026-02-16", horario: "10h - 11h", quadra: "Quadra A", servico: "Tênis",        funcao: "Professor", status: "Confirmada", saldo: 1 },
-    { data: "2026-02-17", horario: "13h - 14h", quadra: "Quadra B", servico: "Beach Tennis", funcao: "Rebatedor", status: "Pendente",   saldo: 0 },
-    { data: "2026-02-20", horario: "16h - 17h", quadra: "Quadra B", servico: "Tênis",        funcao: "Professor", status: "Cancelada",  saldo: 0 },
-    { data: "2026-02-24", horario: "09h - 10h", quadra: "Quadra C", servico: "Beach Tennis", funcao: "Rebatedor", status: "Confirmada", saldo: 1 },
-    { data: "2026-03-03", horario: "08h - 09h", quadra: "Quadra A", servico: "Tênis",        funcao: "Professor", status: "Confirmada", saldo: 1 },
-    { data: "2026-03-05", horario: "11h - 12h", quadra: "Quadra B", servico: "Personal",   funcao: "Auxiliar",  status: "Confirmada", saldo: 1 },
-    { data: "2026-03-10", horario: "15h - 16h", quadra: "Quadra C", servico: "Tênis",        funcao: "Professor", status: "Cancelada",  saldo: 0 },
-    { data: "2026-03-12", horario: "10h - 11h", quadra: "Quadra A", servico: "Beach Tennis", funcao: "Professor", status: "Confirmada", saldo: 1 },
-    { data: "2026-03-15", horario: "09h - 10h", quadra: "Quadra B", servico: "Tênis",        funcao: "Rebatedor", status: "Pendente",   saldo: 0 },
+    { data: "2026-04-16", horario: "10h - 11h", quadra: "Quadra A", servico: "Tênis",        funcao: "Professor", status: "Confirmada", saldo: 1 },
+    { data: "2026-04-17", horario: "13h - 14h", quadra: "Quadra B", servico: "Beach Tennis", funcao: "Rebatedor", status: "Pendente",   saldo: 0 },
+    { data: "2026-04-20", horario: "16h - 17h", quadra: "Quadra B", servico: "Tênis",        funcao: "Professor", status: "Cancelada",  saldo: 0 },
+    { data: "2026-04-24", horario: "09h - 10h", quadra: "Quadra C", servico: "Beach Tennis", funcao: "Rebatedor", status: "Confirmada", saldo: 1 },
+    { data: "2026-05-03", horario: "08h - 09h", quadra: "Quadra A", servico: "Tênis",        funcao: "Professor", status: "Confirmada", saldo: 1 },
+    { data: "2026-05-05", horario: "11h - 12h", quadra: "Quadra B", servico: "Personal",   funcao: "Auxiliar",  status: "Confirmada", saldo: 1 },
+    { data: "2026-05-10", horario: "15h - 16h", quadra: "Quadra C", servico: "Tênis",        funcao: "Professor", status: "Cancelada",  saldo: 0 },
+    { data: "2026-05-12", horario: "10h - 11h", quadra: "Quadra A", servico: "Beach Tennis", funcao: "Professor", status: "Confirmada", saldo: 1 },
+    { data: "2026-05-15", horario: "09h - 10h", quadra: "Quadra B", servico: "Tênis",        funcao: "Rebatedor", status: "Pendente",   saldo: 0 },
 ];
 
 const statusColor = {
     "Confirmada": "bg-green-100 text-green-700",
-    "Pendente":   "bg-yellow-100 text-yellow-700",
+    "Pendente":   "bg-[#ffd700]/25 text-[#b88600]",
     "Cancelada":  "bg-red-100 text-red-700"
 };
 
 const servicoConfig = {
-    "Tênis":        { emoji: "🎾", color: "#fde910" },
-    "Beach Tennis": { emoji: "🏖️", color: "#ff8800" },
-    "Personal":   { emoji: "💪", color: "#ef4444" },
+    "Tênis":        { Icon: TennisBall, color: "#ffd700" },
+    "Beach Tennis": { Icon: BeachBall, color: "#ff8800" },
+    "Personal":   { Icon: Dumbbell, color: "#ef4444" },
 };
 
 function formatarData(isoDate) {
@@ -73,16 +74,17 @@ function SaldoServico({ aulas }) {
             ) : (
                 <div className="space-y-3.5">
                     {servicos.map(([nome, count]) => {
-                        const cfg = servicoConfig[nome] || { emoji: "📋", color: "#999" };
+                        const cfg = servicoConfig[nome] || { Icon: User, color: "#999" };
                         const pct = Math.round((count / total) * 100);
+                        const Icon = cfg.Icon;
                         return (
                             <div key={nome} className="flex items-center gap-3">
-                                {/* Quadrado com emoji */}
+                                {/* Quadrado com ícone */}
                                 <div
-                                    className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 text-base"
+                                    className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-base"
                                     style={{ backgroundColor: cfg.color + "28", border: `2px solid ${cfg.color}` }}
                                 >
-                                    {cfg.emoji}
+                                    <Icon size="sm" fill={cfg.color} />
                                 </div>
                                 {/* Label + Barra */}
                                 <div className="flex-1 min-w-0">
@@ -95,7 +97,7 @@ function SaldoServico({ aulas }) {
                                     </div>
                                 </div>
                                 {/* Contagem */}
-                                <div className="text-right flex-shrink-0 w-10">
+                                <div className="text-right shrink-0 w-10">
                                     <span className="text-sm font-bold text-gray-800">{count}</span>
                                     <span className="block text-[10px] text-gray-400 leading-tight">Aulas</span>
                                 </div>
@@ -162,7 +164,7 @@ function ParticipacaoFuncao({ aulas }) {
     }, [aulas]);
 
     const funcoes = Object.entries(contagem).sort((a, b) => b[1] - a[1]);
-    const cores = ["#ef4444", "#fde910", "#f5a623", "#22c55e", "#a855f7"];
+    const cores = ["#ef4444", "#ffd700", "#f5a623", "#22c55e", "#a855f7"];
 
     const donutData = {
         labels: funcoes.map(([f]) => f),
@@ -192,14 +194,14 @@ function ParticipacaoFuncao({ aulas }) {
                 <p className="text-xs text-gray-400 mt-4 text-center">Nenhuma aula confirmada</p>
             ) : (
                 <div className="flex items-center gap-5">
-                    <div className="h-28 w-28 flex-shrink-0">
+                    <div className="h-28 w-28 shrink-0">
                         <Doughnut data={donutData} options={donutOptions} />
                     </div>
                     <div className="flex flex-col gap-2.5 flex-1">
                         {funcoes.map(([nome, count], i) => (
                             <div key={nome} className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: cores[i] }} />
+                                    <div className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: cores[i] }} />
                                     <span className="text-xs text-gray-600">{nome}</span>
                                 </div>
                                 <span className="text-sm font-bold text-gray-800">{count}</span>
@@ -215,22 +217,43 @@ function ParticipacaoFuncao({ aulas }) {
 // ─── Tela Principal ──────────────────────────────────────────────────────────
 export function TelaPagamentos() {
     const [dataInicio, setDataInicio] = useState("");
-    const [dataFim, setDataFim]       = useState("");
+    const [dataFim, setDataFim] = useState("");
     const [filtroStatus, setFiltroStatus] = useState("Todas");
+    const [erroData, setErroData] = useState("");
+
+    // Data de hoje no formato yyyy-mm-dd
+    const hoje = useMemo(() => {
+        const d = new Date();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${d.getFullYear()}-${mm}-${dd}`;
+    }, []);
+
+    // Validação de datas
+    useMemo(() => {
+        if (dataInicio && dataFim && dataInicio > dataFim) {
+            setErroData("A data inicial não pode ser maior que a data final.");
+        } else if (dataFim && dataFim > hoje) {
+            setErroData("A data final não pode ser maior que hoje.");
+        } else {
+            setErroData("");
+        }
+    }, [dataInicio, dataFim, hoje]);
 
     // Filtragem por período — afeta TUDO
     const aulasFiltradas = useMemo(() => {
+        if (erroData) return [];
         return todasAsAulas.filter(a => {
             if (dataInicio && a.data < dataInicio) return false;
-            if (dataFim    && a.data > dataFim)    return false;
+            if (dataFim && a.data > dataFim) return false;
             return true;
         });
-    }, [dataInicio, dataFim]);
+    }, [dataInicio, dataFim, erroData]);
 
     // KPIs derivados do período
-    const saldoTotal  = useMemo(() => aulasFiltradas.reduce((s, a) => s + a.saldo, 0), [aulasFiltradas]);
+    const saldoTotal = useMemo(() => aulasFiltradas.reduce((s, a) => s + a.saldo, 0), [aulasFiltradas]);
     const confirmadas = useMemo(() => aulasFiltradas.filter(a => a.status === "Confirmada").length, [aulasFiltradas]);
-    const canceladas  = useMemo(() => aulasFiltradas.filter(a => a.status === "Cancelada").length, [aulasFiltradas]);
+    const canceladas = useMemo(() => aulasFiltradas.filter(a => a.status === "Cancelada").length, [aulasFiltradas]);
     const mediaSemana = useMemo(() => {
         if (!confirmadas) return 0;
         if (!dataInicio || !dataFim) return confirmadas;
@@ -261,6 +284,7 @@ export function TelaPagamentos() {
                             <input
                                 type="date"
                                 value={dataInicio}
+                                max={dataFim || hoje}
                                 onChange={(e) => setDataInicio(e.target.value)}
                                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
                             />
@@ -270,6 +294,8 @@ export function TelaPagamentos() {
                             <input
                                 type="date"
                                 value={dataFim}
+                                min={dataInicio}
+                                max={hoje}
                                 onChange={(e) => setDataFim(e.target.value)}
                                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
                             />
@@ -284,17 +310,22 @@ export function TelaPagamentos() {
                         )}
                     </div>
                 </div>
+                {erroData && (
+                    <div className="mt-2 text-xs text-red-600 font-semibold">
+                        {erroData}
+                    </div>
+                )}
             </div>
 
             <div className="px-24 pt-0 pb-6 bg-gray-50 space-y-4">
-
                 {/* KPIs */}
                 <div className="grid grid-cols-4 gap-4">
+                    {/* ...existing code... */}
                     {[
                         { label: "Saldo total no período", value: saldoTotal },
-                        { label: "Aulas confirmadas",       value: confirmadas },
-                        { label: "Aulas canceladas",        value: canceladas },
-                        { label: "Média por semana",        value: mediaSemana },
+                        { label: "Aulas confirmadas", value: confirmadas },
+                        { label: "Aulas canceladas", value: canceladas },
+                        { label: "Média por semana", value: mediaSemana },
                     ].map((kpi, i) => (
                         <div key={i} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
                             <p className="text-xs text-gray-500 mb-2 leading-tight">{kpi.label}</p>
@@ -305,8 +336,8 @@ export function TelaPagamentos() {
 
                 {/* Gráficos */}
                 <div className="grid grid-cols-3 gap-4">
-                    <SaldoServico      aulas={aulasFiltradas} />
-                    <AulasSemana       aulas={aulasFiltradas} />
+                    <SaldoServico aulas={aulasFiltradas} />
+                    <AulasSemana aulas={aulasFiltradas} />
                     <ParticipacaoFuncao aulas={aulasFiltradas} />
                 </div>
 
@@ -338,10 +369,10 @@ export function TelaPagamentos() {
 
                     <div className="overflow-y-auto" style={{ maxHeight: "200px" }}>
                         <table className="w-full">
-                            <thead className="sticky top-0 bg-white">
+                            <thead className="sticky top-0 bg-gray-200">
                                 <tr className="border-b border-gray-200">
                                     {["Data", "Horário", "Quadra", "Serviço", "Função", "Status", "Saldo"].map((col) => (
-                                        <th key={col} className="text-left py-2 px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                                        <th key={col} className="text-left py-2 px-3 text-xs font-semibold uppercase tracking-wide text-black">
                                             {col}
                                         </th>
                                     ))}
@@ -361,13 +392,10 @@ export function TelaPagamentos() {
                                             <td className="py-2.5 px-3 text-sm text-gray-700">{aula.horario}</td>
                                             <td className="py-2.5 px-3 text-sm text-gray-700">{aula.quadra}</td>
                                             <td className="py-2.5 px-3 text-sm text-gray-700">
-                                                <span className="flex items-center gap-1.5">
-                                                    <span>{servicoConfig[aula.servico]?.emoji}</span>
-                                                    {aula.servico}
-                                                </span>
+                                                {aula.servico}
                                             </td>
                                             <td className="py-2.5 px-3 text-sm text-blue-600 font-medium">{aula.funcao}</td>
-                                            <td className="py-2.5 px-3">
+                                            <td className={`py-2.5 px-3`}>
                                                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor[aula.status]}`}>
                                                     {aula.status}
                                                 </span>
