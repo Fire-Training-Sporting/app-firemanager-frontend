@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import Header from "../utils/Header";
 import { Bar, Doughnut } from "react-chartjs-2";
+import { BeachBall, Dumbbell, TennisBall, User } from "@boxicons/react";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -37,14 +38,14 @@ const todasAsAulas = [
 
 const statusColor = {
     "Confirmada": "bg-green-100 text-green-700",
-    "Pendente":   "bg-yellow-100 text-yellow-700",
+    "Pendente":   "bg-[#ffd700]/25 text-[#b88600]",
     "Cancelada":  "bg-red-100 text-red-700"
 };
 
 const servicoConfig = {
-    "Tênis":        { emoji: "🎾", color: "#fde910" },
-    "Beach Tennis": { emoji: "🏖️", color: "#ff8800" },
-    "Personal":   { emoji: "💪", color: "#ef4444" },
+    "Tênis":        { Icon: TennisBall, color: "#ffd700" },
+    "Beach Tennis": { Icon: BeachBall, color: "#ff8800" },
+    "Personal":   { Icon: Dumbbell, color: "#ef4444" },
 };
 
 function formatarData(isoDate) {
@@ -73,16 +74,17 @@ function SaldoServico({ aulas }) {
             ) : (
                 <div className="space-y-3.5">
                     {servicos.map(([nome, count]) => {
-                        const cfg = servicoConfig[nome] || { emoji: "📋", color: "#999" };
+                        const cfg = servicoConfig[nome] || { Icon: User, color: "#999" };
                         const pct = Math.round((count / total) * 100);
+                        const Icon = cfg.Icon;
                         return (
                             <div key={nome} className="flex items-center gap-3">
-                                {/* Quadrado com emoji */}
+                                {/* Quadrado com ícone */}
                                 <div
                                     className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-base"
                                     style={{ backgroundColor: cfg.color + "28", border: `2px solid ${cfg.color}` }}
                                 >
-                                    {cfg.emoji}
+                                    <Icon size="sm" fill={cfg.color} />
                                 </div>
                                 {/* Label + Barra */}
                                 <div className="flex-1 min-w-0">
@@ -162,7 +164,7 @@ function ParticipacaoFuncao({ aulas }) {
     }, [aulas]);
 
     const funcoes = Object.entries(contagem).sort((a, b) => b[1] - a[1]);
-    const cores = ["#ef4444", "#fde910", "#f5a623", "#22c55e", "#a855f7"];
+    const cores = ["#ef4444", "#ffd700", "#f5a623", "#22c55e", "#a855f7"];
 
     const donutData = {
         labels: funcoes.map(([f]) => f),
@@ -367,10 +369,10 @@ export function TelaPagamentos() {
 
                     <div className="overflow-y-auto" style={{ maxHeight: "200px" }}>
                         <table className="w-full">
-                            <thead className="sticky top-0 bg-white">
+                            <thead className="sticky top-0 bg-gray-200">
                                 <tr className="border-b border-gray-200">
                                     {["Data", "Horário", "Quadra", "Serviço", "Função", "Status", "Saldo"].map((col) => (
-                                        <th key={col} className="text-left py-2 px-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                                        <th key={col} className="text-left py-2 px-3 text-xs font-semibold uppercase tracking-wide text-black">
                                             {col}
                                         </th>
                                     ))}
@@ -390,10 +392,7 @@ export function TelaPagamentos() {
                                             <td className="py-2.5 px-3 text-sm text-gray-700">{aula.horario}</td>
                                             <td className="py-2.5 px-3 text-sm text-gray-700">{aula.quadra}</td>
                                             <td className="py-2.5 px-3 text-sm text-gray-700">
-                                                <span className="flex items-center gap-1.5">
-                                                    <span>{servicoConfig[aula.servico]?.emoji}</span>
-                                                    {aula.servico}
-                                                </span>
+                                                {aula.servico}
                                             </td>
                                             <td className="py-2.5 px-3 text-sm text-blue-600 font-medium">{aula.funcao}</td>
                                             <td className={`py-2.5 px-3`}>
