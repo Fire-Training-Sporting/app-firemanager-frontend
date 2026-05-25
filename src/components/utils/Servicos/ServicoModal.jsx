@@ -17,37 +17,51 @@ export default function ServicoModal({ onClose, onSave }) {
   };
 
   return (
-    <div className="relative p-6">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Cadastrar Serviço</h2>
-      <form onSubmit={handleSave} className="flex flex-col gap-4">
-        <div>
-          <label className="block text-gray-700 font-medium mb-1">Nome</label>
-          <input
-            type="text"
-            name="nome"
-            value={form.nome}
-            onChange={handleChange}
-            placeholder="Nome do serviço"
-            className="w-full border border-gray-300 rounded-md px-3 py-2"
-          />
-        </div>
+    <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
+      {/* Cabeçalho */}
+      <div className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+        <h2 className="text-lg font-bold text-white">Cadastrar Serviço</h2>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
+        >
+          ✕
+        </button>
+      </div>
 
-        <div className="flex justify-end gap-2 mt-6">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
-          >
-            Salvar
-          </button>
-        </div>
-      </form>
+      {/* Conteúdo */}
+      <div className="px-5 py-4">
+        <form onSubmit={handleSave} className="flex flex-col space-y-3">
+          <div>
+            <input
+              type="text"
+              name="nome"
+              value={form.nome}
+              onChange={handleChange}
+              placeholder="Nome do serviço"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
+            />
+          </div>
+
+          {/* Botões */}
+          <div className="flex justify-end gap-2 mt-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-gradient-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
+            >
+              Cadastrar serviço
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

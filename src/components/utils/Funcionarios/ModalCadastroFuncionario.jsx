@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import api from "../../../provider/api";
 
 const inputCls =
   "mt-1 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]";
@@ -9,28 +10,33 @@ const selectCls =
 function Field({ label, children }) {
   return (
     <div className="mb-3">
-      <label className="block text-sm font-semibold text-gray-700 mb-1">{label}</label>
+      <label className="block text-sm font-semibold text-gray-700 mb-1">
+        {label}
+      </label>
       {children}
     </div>
   );
 }
 
-function ModalCadastroFuncionario({ isOpen, onClose }) {
+export default function ModalCadastroFuncionario({ isOpen, onClose, onSuccess, usuario }) {
   const [credenciais, setCredenciais] = useState({
-    tipoUsuario: "",
-    nome: "",
-    email: "",
-    telefone: "",
+    tipoUsuario: usuario?.tipoUsuario?.id || "",
+    nome: usuario?.nome || "",
+    email: usuario?.email || "",
+    telefone: usuario?.telefone || "",
     senha: "",
-    condominio: "",
+    condominio: usuario?.condominio?.id || "",
   });
+
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [tiposUsuario, setTiposUsuario] = useState([]);
-  const [isAluno, setIsAluno] = useState(false);
+  const [isAluno, setIsAluno] = useState(usuario?.tipoUsuario?.id === 4);
   const [condominios, setCondominios] = useState([]);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  // Trava o scroll do fundo da página quando o modal abre
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
     return () => {
@@ -38,34 +44,15 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
     };
   }, [isOpen]);
 
+  // Carrega os dados das APIs e preenche/resgata o formulário ao abrir ou mudar de usuário
   useEffect(() => {
     if (isOpen) {
-      carregarTiposUsuario();
-      carregarCondominios();
+      setTiposUsuario([
+        { id: 2, cargo: "Administracao" },
+        { id: 3, cargo: "Quadra" },
+      ])
     }
-  }, [isOpen]);
-
-  async function carregarTiposUsuario() {
-    try {
-      const resposta = await fetch("http://localhost:8080/api/tipo-usuarios");
-      if (!resposta.ok) throw new Error("Erro na requisicao");
-      const dados = await resposta.json();
-      setTiposUsuario(dados);
-    } catch (e) {
-      console.error("Erro ao buscar tipos de usuario:", e);
-    }
-  }
-
-  async function carregarCondominios() {
-    try {
-      const resposta = await fetch("http://localhost:8080/api/condominios");
-      if (!resposta.ok) throw new Error("Erro na requisicao");
-      const dados = await resposta.json();
-      setCondominios(dados);
-    } catch (e) {
-      console.error("Erro ao buscar condominios:", e);
-    }
-  }
+  }, [isOpen, usuario]);
 
   function atualizarCampo(campo, valor) {
     setCredenciais((prev) => ({ ...prev, [campo]: valor }));
@@ -80,11 +67,19 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
   }
 
   function atualizarCondominio(evento) {
-    setCredenciais((prev) => ({ ...prev, condominio: Number(evento.target.value) }));
+    const valor = evento.target.value ? Number(evento.target.value) : "";
+    setCredenciais((prev) => ({ ...prev, condominio: valor }));
   }
 
   function resetFormulario() {
-    setCredenciais({ tipoUsuario: "", nome: "", email: "", telefone: "", senha: "", condominio: "" });
+    setCredenciais({
+      tipoUsuario: "",
+      nome: "",
+      email: "",
+      telefone: "",
+      senha: "",
+      condominio: "",
+    });
     setConfirmarSenha("");
     setIsAluno(false);
     setErro("");
@@ -92,86 +87,74 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
   }
 
   function validarCredenciais() {
-    if (!credenciais.nome.trim()) 
-        { setErro("Nome e obrigatorio"); return false; }
-    if (!credenciais.email.trim()) 
-        { setErro("E-mail e obrigatorio"); return false; }
+    if (!credenciais.nome.trim()) { setErro("Nome é obrigatorio"); return false; }
+    if (!credenciais.email.trim()) { setErro("E-mail é obrigatorio"); return false; }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(credenciais.email)) return setErro("E-mail inválido"), false;
+    if (!credenciais.telefone.trim()) return setErro("Telefone é obrigatório"), false;
 
-    if (!emailRegex.test(credenciais.email)) 
-        { setErro("E-mail invalido"); return false; }
-    if (!credenciais.telefone.trim()) 
-        { setErro("Telefone e obrigatorio"); return false; }
+    if (!emailRegex.test(credenciais.email)) { setErro("E-mail inválido"); return false; }
+    if (!credenciais.telefone.trim()) { setErro("Telefone é obrigatório"); return false; }
     const tel = credenciais.telefone.replace(/\D/g, "");
-    if (tel.length !== 11) 
-        { setErro("Telefone deve ter 11 digitos (DDD + numero)"); return false; }
-    if (!credenciais.senha) 
-        { setErro("Senha e obrigatoria"); return false; }
-    if (credenciais.senha.length < 6) 
-        { setErro("Senha deve ter no minimo 6 caracteres"); return false; }
-    if (!confirmarSenha) 
-        { setErro("Confirmacao de senha e obrigatoria"); return false; }
-    if (credenciais.senha !== confirmarSenha) 
-        { setErro("Senhas nao sao iguais"); return false; }
-    if (!credenciais.tipoUsuario) 
-        { setErro("Tipo de Usuario e obrigatorio"); return false; }
-    if (isAluno && !credenciais.condominio) 
-        { setErro("Condominio e obrigatorio para alunos"); return false; }
+    if (tel.length !== 11) { setErro("Telefone deve ter 11 dígitos (DDD + número)"); return false; }
+    if (!credenciais.senha) { setErro("Senha é obrigatória"); return false; }
+    if (credenciais.senha.length < 6) { setErro("Senha deve ter no mínimo 6 caracteres"); return false; }
+    if (!confirmarSenha) { setErro("Confirmação de senha é obrigatória"); return false; }
+    if (credenciais.senha !== confirmarSenha) { setErro("Senhas não são iguais"); return false; }
+    if (!credenciais.tipoUsuario) { setErro("Tipo de Usuário é obrigatório"); return false; }
+    if (isAluno && !credenciais.condominio) { setErro("Condomínio é obrigatório para alunos"); return false; }
     return true;
   }
 
-  async function cadastrarUsuario(evento) {
+  async function salvarUsuario(evento) {
     evento.preventDefault();
+    // executar validações locais antes de enviar
     if (!validarCredenciais()) return;
+
     try {
-      const resposta = await fetch("http://localhost:8080/api/usuarios", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credenciais),
-      });
-      if (!resposta.ok) {
-        const erroBackend = await resposta.json();
-        console.log("STATUS:", resposta.status);
-        console.log("ERRO DO BACKEND:", erroBackend);
-        throw new Error("Erro na requisicao");
-      }
-      await resposta.json();
-      setSucesso("Cadastro realizado com sucesso!");
+      await api.post("/usuarios", credenciais);
+      if (onSuccess) onSuccess();
       resetFormulario();
-      setTimeout(() => setSucesso(""), 10000);
     } catch (e) {
-      console.error("Erro ao cadastrar:", e);
-      setErro("Erro ao cadastrar. Tente novamente.");
+      console.error("Erro:", e);
+      setErro(
+        isEditMode ? "Erro ao atualizar usuário." : "Erro ao cadastrar usuário."
+      );
+    } finally {
+      setLoading(false);
     }
   }
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-
-        <div className="bg-[#F8821E] px-6 py-5 flex items-center justify-between shrink-0">
-          <h2 className="text-2xl font-bold text-white">Cadastrar Usuários</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
+        {/* Cabeçalho */}
+        <div className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+          <h2 className="text-lg font-bold text-white">Cadastrar Funcionário</h2>
           <button
             type="button"
-            onClick={() => { resetFormulario(); onClose(); }}
-            className="text-white text-4xl font-medium leading-none hover:text-red-200 transition"
+            onClick={() => {
+              resetFormulario();
+              onClose();
+            }}
+            className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
           >
-            x
+            ✕
           </button>
         </div>
 
-        <div className="overflow-y-auto px-6 py-5">
-          <form onSubmit={cadastrarUsuario} className="flex flex-col">
-
+        {/* Conteúdo */}
+        <div className="px-5 py-4">
+          <form onSubmit={salvarUsuario} className="flex flex-col space-y-3">
             <Field label="Nome">
               <input
                 type="text"
                 value={credenciais.nome}
                 onChange={(e) => atualizarCampo("nome", e.target.value)}
-                placeholder="Nome completo"
+                placeholder="Nome e sobrenome"
                 className={inputCls}
               />
             </Field>
@@ -201,7 +184,7 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
                 type="password"
                 value={credenciais.senha}
                 onChange={(e) => atualizarCampo("senha", e.target.value)}
-                placeholder="Minimo 6 caracteres"
+                placeholder="Mínimo 6 caracteres"
                 className={inputCls}
               />
             </Field>
@@ -210,13 +193,16 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
               <input
                 type="password"
                 value={confirmarSenha}
-                onChange={(e) => { setConfirmarSenha(e.target.value); setErro(""); }}
+                onChange={(e) => {
+                  setConfirmarSenha(e.target.value);
+                  setErro("");
+                }}
                 placeholder="Repita a senha"
                 className={inputCls}
               />
             </Field>
 
-            <Field label="Tipo de Usuario">
+            <Field label="Tipo de Usuário">
               <select
                 value={credenciais.tipoUsuario}
                 onChange={atualizarTipoUsuario}
@@ -224,42 +210,43 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
               >
                 <option value="">Selecione</option>
                 {tiposUsuario.map((tipo) => (
-                  <option key={tipo.id} value={tipo.id}>{tipo.cargo}</option>
+                  <option key={tipo.id} value={tipo.id}>
+                    {tipo.cargo}
+                  </option>
                 ))}
               </select>
             </Field>
 
             {isAluno && (
-              <Field label="Condominio">
+              <Field label="Condomínio">
                 <select
                   value={credenciais.condominio}
                   onChange={atualizarCondominio}
                   className={selectCls}
                 >
                   <option value="">Selecione</option>
-                  {condominios.map((c) => (
-                    <option key={c.id} value={c.id}>{c.nome}</option>
+                  {condominios.map((cond) => (
+                    <option key={cond.id} value={cond.id}>
+                      {cond.nome}
+                    </option>
                   ))}
                 </select>
               </Field>
             )}
 
             {erro && (
-              <p className="text-[#DC2625] text-sm text-center font-semibold mt-1 mb-2">
-                {erro}
-              </p>
+              <p className="text-red-600 text-sm text-center font-medium">{erro}</p>
             )}
             {sucesso && (
-              <p className="text-[#17A34A] text-sm text-center font-semibold mt-1 mb-2">
-                {sucesso}
-              </p>
+              <p className="text-green-600 text-sm text-center font-medium">{sucesso}</p>
             )}
 
             <button
               type="submit"
-              className="mt-2 w-full bg-[#F8821E] hover:bg-[#EA580C] text-white font-bold py-3 rounded-xl transition"
+              disabled={loading}
+              className="mt-2 w-full bg-gradient-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold py-2 rounded-lg shadow-md transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Cadastrar Funcionario
+              {loading ? "Processando..." : "Cadastrar Funcionário"}
             </button>
           </form>
         </div>
@@ -267,5 +254,3 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
     </div>
   );
 }
-
-export default ModalCadastroFuncionario;
