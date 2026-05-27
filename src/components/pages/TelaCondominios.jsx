@@ -22,12 +22,13 @@ export default function TelaCondominios() {
 
   const [condominios, setCondominios] = useState([]);
 
-  const [condominiosOriginais, setCondominiosOriginais] = useState([]);
+  const [condominiosOriginais, setCondominiosOriginais] =
+    useState([]);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [condominioParaExcluir, setCondominioParaExcluir] = useState(null);
 
-  const [selectedCondominio, setSelectedCondominio] = useState(null);
+  const [selectedCondominio, setSelectedCondominio] =
+    useState(null);
 
   const [condominioParaExcluir, setCondominioParaExcluir] =
     useState(null);
@@ -75,9 +76,11 @@ export default function TelaCondominios() {
       setIsLoading(true);
 
       if (!value.trim()) {
+
         setCondominios(
           condominiosOriginais
         );
+
         return;
       }
 
@@ -94,8 +97,7 @@ export default function TelaCondominios() {
             let fieldString = "";
 
             if (
-              typeof fieldValue ===
-              "object" &&
+              typeof fieldValue === "object" &&
               fieldValue !== null
             ) {
 
@@ -105,23 +107,20 @@ export default function TelaCondominios() {
                   : "";
 
             } else if (
-              typeof fieldValue ===
-              "string"
+              typeof fieldValue === "string"
             ) {
 
               fieldString =
                 fieldValue.toLowerCase();
 
             } else if (
-              typeof fieldValue ===
-              "number"
+              typeof fieldValue === "number"
             ) {
 
               fieldString =
                 fieldValue
                   .toString()
                   .toLowerCase();
-
             }
 
             return fieldString.includes(
@@ -170,13 +169,9 @@ export default function TelaCondominios() {
 
   };
 
-  const solicitarExclusao = (
-    condominio
-  ) => {
+  const solicitarExclusao = (condominio) => {
 
-    setCondominioParaExcluir(
-      condominio
-    );
+    setCondominioParaExcluir(condominio);
 
   };
 
@@ -186,82 +181,42 @@ export default function TelaCondominios() {
 
   };
 
-  const confirmarExclusao =
-    async () => {
+  const confirmarExclusao = async () => {
 
-      if (
-        !condominioParaExcluir?.id
-      ) {
-        return;
-      }
+    if (!condominioParaExcluir?.id) {
+      return;
+    }
 
-      try {
+    try {
 
-        await api.delete(
-          `/condominios/${condominioParaExcluir.id}`
-        );
+      await api.delete(
+        `/condominios/${condominioParaExcluir.id}`
+      );
 
-        setCondominioParaExcluir(
-          null
-        );
+      setCondominioParaExcluir(null);
 
-        await buscarDados();
+      await buscarDados();
 
-      } catch (error) {
+    } catch (error) {
 
-        console.error(
-          "Erro ao excluir condomínio:",
-          error
-        );
+      console.error(
+        "Erro ao excluir condomínio:",
+        error
+      );
 
-        window.alert(
-          "Não foi possível excluir o condomínio. Tente novamente."
-        );
+      window.alert(
+        "Não foi possível excluir o condomínio. Tente novamente."
+      );
+    }
+  };
 
-      }
-    };
-
-  const formatarValor = (
-    valor
-  ) => {
+  const formatarValor = (valor) => {
 
     if (
       valor &&
       typeof valor === "object"
     ) {
 
-      return valor.nome ?? "-";
-
-    }
-
-    return valor ?? "-";
-  };
-
-  const solicitarExclusao = (condominio) => {
-    setCondominioParaExcluir(condominio);
-  };
-
-  const cancelarExclusao = () => {
-    setCondominioParaExcluir(null);
-  };
-
-  const confirmarExclusao = async () => {
-    if (!condominioParaExcluir?.id) {
-      return;
-    }
-
-    try {
-      await api.delete(`/condominios/${condominioParaExcluir.id}`);
-      setCondominioParaExcluir(null);
-      await buscarDados();
-    } catch (error) {
-      console.error("Erro ao excluir condomínio:", error);
-      window.alert("Não foi possível excluir o condomínio. Tente novamente.");
-    }
-  };
-
-  const formatarValor = (valor) => {
-    if (valor && typeof valor === "object") {
       return valor.nome ?? "-";
     }
 
@@ -285,15 +240,9 @@ export default function TelaCondominios() {
         addLabel="Cadastrar condomínio"
         customControls={
           <SearchFilter
-            columns={
-              search_columns
-            }
-            onSearch={
-              filtrarCondominios
-            }
-            isLoading={
-              isLoading
-            }
+            columns={search_columns}
+            onSearch={filtrarCondominios}
+            isLoading={isLoading}
           />
         }
       >
@@ -301,107 +250,84 @@ export default function TelaCondominios() {
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
 
           <CondominiosTable
-            condominios={
-              condominios
-            }
+            condominios={condominios}
             onEdit={handleEdit}
-            onDelete={
-              solicitarExclusao
-            }
+            onDelete={solicitarExclusao}
           />
 
         </div>
 
-        {showModal && (
+      </PageLayout>
 
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      {showModal && (
 
-            <ModalCondominio
-              onClose={
-                handleCloseModal
-              }
-              onCreated={
-                buscarDados
-              }
-              condominio={
-                selectedCondominio
-              }
-            />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
 
-          </div>
+          <ModalCondominio
+            onClose={handleCloseModal}
+            onCreated={buscarDados}
+            condominio={selectedCondominio}
+          />
 
-        )}
+        </div>
 
-        <ConfirmationModal
-          isOpen={
-            !!condominioParaExcluir
-          }
-          title="Confirmar exclusão"
-          message="Deseja realmente excluir este condomínio?"
-          items={
-            condominioParaExcluir
-              ? [
+      )}
+
+      <ConfirmationModal
+        isOpen={!!condominioParaExcluir}
+        title="Confirmar exclusão"
+        message="Deseja realmente excluir este condomínio?"
+        items={
+          condominioParaExcluir
+            ? [
                 {
                   label: "ID",
-                  value:
-                    condominioParaExcluir.id,
+                  value: condominioParaExcluir.id,
                 },
                 {
                   label: "Nome",
-                  value:
-                    formatarValor(
-                      condominioParaExcluir.nome
-                    ),
+                  value: formatarValor(
+                    condominioParaExcluir.nome
+                  ),
                 },
                 {
                   label: "CEP",
-                  value:
-                    formatarValor(
-                      condominioParaExcluir.cep
-                    ),
+                  value: formatarValor(
+                    condominioParaExcluir.cep
+                  ),
                 },
                 {
                   label: "Rua",
-                  value:
-                    formatarValor(
-                      condominioParaExcluir.rua
-                    ),
+                  value: formatarValor(
+                    condominioParaExcluir.rua
+                  ),
                 },
                 {
                   label: "Número",
-                  value:
-                    formatarValor(
-                      condominioParaExcluir.numero
-                    ),
+                  value: formatarValor(
+                    condominioParaExcluir.numero
+                  ),
                 },
                 {
                   label: "Cidade",
-                  value:
-                    formatarValor(
-                      condominioParaExcluir.cidade
-                    ),
+                  value: formatarValor(
+                    condominioParaExcluir.cidade
+                  ),
                 },
                 {
                   label: "Bairro",
-                  value:
-                    formatarValor(
-                      condominioParaExcluir.bairro
-                    ),
+                  value: formatarValor(
+                    condominioParaExcluir.bairro
+                  ),
                 },
               ]
-              : []
-          }
-          confirmLabel="Sim, excluir"
-          cancelLabel="Não, cancelar"
-          onCancel={
-            cancelarExclusao
-          }
-          onConfirm={
-            confirmarExclusao
-          }
-        />
-
-      </PageLayout>
+            : []
+        }
+        confirmLabel="Sim, excluir"
+        cancelLabel="Não, cancelar"
+        onCancel={cancelarExclusao}
+        onConfirm={confirmarExclusao}
+      />
 
     </div>
   );

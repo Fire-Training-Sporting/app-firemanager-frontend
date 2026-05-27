@@ -15,178 +15,260 @@ const search_columns = [
 ];
 
 export default function TelaAlunos() {
+
   const [showModal, setShowModal] = useState(false);
-  const [alunoEditando, setAlunoEditando] = useState(null);
+
+  const [alunoEditando, setAlunoEditando] =
+    useState(null);
 
   const [alunos, setAlunos] = useState([]);
-  const [alunosOriginais, setAlunosOriginais] = useState([]);
+
+  const [alunosOriginais, setAlunosOriginais] =
+    useState([]);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [alunoParaExcluir, setAlunoParaExcluir] = useState(null);
 
-  const [alunoParaExcluir, setAlunoParaExcluir] = useState(null);
+  const [alunoParaExcluir, setAlunoParaExcluir] =
+    useState(null);
 
   useEffect(() => {
     buscarAlunos();
   }, []);
 
   const buscarAlunos = async () => {
+
     try {
+
       setIsLoading(true);
 
-      const resp = await api.get("/usuarios");
+      const resp =
+        await api.get("/usuarios");
 
-      const usuarios = resp.data || [];
+      const usuarios =
+        resp.data || [];
 
-      const alunosFiltrados = usuarios
-        .filter((u) => u.tipoUsuario?.cargo === "Aluno")
-        .map((u) => ({
-          ...u,
-          endereco: u.endereco || u.condominio?.nome || "",
-        }));
+      const alunosFiltrados =
+        usuarios
+          .filter(
+            (u) =>
+              u.tipoUsuario?.cargo ===
+              "Aluno"
+          )
+          .map((u) => ({
+            ...u,
+            endereco:
+              u.endereco ||
+              u.condominio?.nome ||
+              "",
+          }));
 
       setAlunos(alunosFiltrados);
-      setAlunosOriginais(alunosFiltrados);
+
+      setAlunosOriginais(
+        alunosFiltrados
+      );
 
     } catch (err) {
-      console.error("Erro ao buscar alunos:", err);
+
+      console.error(
+        "Erro ao buscar alunos:",
+        err
+      );
 
     } finally {
+
       setIsLoading(false);
+
     }
   };
 
   const handleAdd = () => {
+
     setAlunoEditando(null);
+
     setShowModal(true);
+
   };
 
   const handleEdit = (aluno) => {
+
     setAlunoEditando(aluno);
+
     setShowModal(true);
+
   };
 
-  const solicitarExclusao = (aluno) => {
+  const handleCloseModal = () => {
+
+    setShowModal(false);
+
+    setAlunoEditando(null);
+
+  };
+
+  const solicitarExclusao = (
+    aluno
+  ) => {
+
     setAlunoParaExcluir(aluno);
+
   };
 
   const cancelarExclusao = () => {
+
     setAlunoParaExcluir(null);
+
   };
 
-  const confirmarExclusao = async () => {
-    if (!alunoParaExcluir?.id) {
-      return;
-    }
+  const confirmarExclusao =
+    async () => {
 
-    try {
-      await api.delete(`/usuarios/${alunoParaExcluir.id}`);
-
-      setAlunoParaExcluir(null);
-
-      await buscarAlunos();
-
-    } catch (error) {
-      console.error("Erro ao excluir aluno:", error);
-
-      window.alert(
-        "Não foi possível excluir o aluno. Tente novamente."
-      );
-    }
-  };
-
-  const formatarValor = (valor) => {
-    if (valor && typeof valor === "object") {
-      return valor.nome ?? "-";
-    }
-
-    return valor ?? "-";
-  };
-
-  const solicitarExclusao = (aluno) => {
-    setAlunoParaExcluir(aluno);
-  };
-
-  const cancelarExclusao = () => {
-    setAlunoParaExcluir(null);
-  };
-
-  const confirmarExclusao = async () => {
-    if (!alunoParaExcluir?.id) {
-      return;
-    }
-
-    try {
-      await api.delete(`/usuarios/${alunoParaExcluir.id}`);
-      setAlunoParaExcluir(null);
-      await buscarAlunos();
-    } catch (error) {
-      console.error("Erro ao excluir aluno:", error);
-      window.alert("Não foi possível excluir o aluno. Tente novamente.");
-    }
-  };
-
-  const formatarValor = (valor) => {
-    if (valor && typeof valor === "object") {
-      return valor.nome ?? "-";
-    }
-
-    return valor ?? "-";
-  };
-
-  const filtrarAlunos = async ({ field, value }) => {
-    try {
-      setIsLoading(true);
-
-      if (!value.trim()) {
-        setAlunos(alunosOriginais);
+      if (!alunoParaExcluir?.id) {
         return;
       }
 
-      const filtrados = alunosOriginais.filter((aluno) => {
-        const fieldValue = aluno[field];
+      try {
 
-        const compareValue = value.toLowerCase();
+        await api.delete(
+          `/usuarios/${alunoParaExcluir.id}`
+        );
 
-        let fieldString = "";
+        setAlunoParaExcluir(null);
 
-        if (
-          typeof fieldValue === "object" &&
-          fieldValue !== null
-        ) {
-          fieldString = fieldValue.nome
-            ? fieldValue.nome.toLowerCase()
-            : "";
+        await buscarAlunos();
 
-        } else if (typeof fieldValue === "string") {
-          fieldString = fieldValue.toLowerCase();
+      } catch (error) {
 
-        } else if (typeof fieldValue === "number") {
-          fieldString = fieldValue
-            .toString()
-            .toLowerCase();
+        console.error(
+          "Erro ao excluir aluno:",
+          error
+        );
 
-        } else if (fieldValue instanceof Date) {
-          fieldString = fieldValue
-            .toLocaleDateString("pt-BR")
-            .toLowerCase();
-        }
+        window.alert(
+          "Não foi possível excluir o aluno. Tente novamente."
+        );
+      }
+    };
 
-        return fieldString.includes(compareValue);
-      });
+  const formatarValor = (
+    valor
+  ) => {
+
+    if (
+      valor &&
+      typeof valor === "object"
+    ) {
+
+      return valor.nome ?? "-";
+
+    }
+
+    return valor ?? "-";
+  };
+
+  const filtrarAlunos = async ({
+    field,
+    value,
+  }) => {
+
+    try {
+
+      setIsLoading(true);
+
+      if (!value.trim()) {
+
+        setAlunos(
+          alunosOriginais
+        );
+
+        return;
+      }
+
+      const filtrados =
+        alunosOriginais.filter(
+          (aluno) => {
+
+            const fieldValue =
+              aluno[field];
+
+            const compareValue =
+              value.toLowerCase();
+
+            let fieldString = "";
+
+            if (
+              typeof fieldValue ===
+                "object" &&
+              fieldValue !== null
+            ) {
+
+              fieldString =
+                fieldValue.nome
+                  ? fieldValue.nome.toLowerCase()
+                  : "";
+
+            } else if (
+              typeof fieldValue ===
+              "string"
+            ) {
+
+              fieldString =
+                fieldValue.toLowerCase();
+
+            } else if (
+              typeof fieldValue ===
+              "number"
+            ) {
+
+              fieldString =
+                fieldValue
+                  .toString()
+                  .toLowerCase();
+
+            } else if (
+              fieldValue instanceof Date
+            ) {
+
+              fieldString =
+                fieldValue
+                  .toLocaleDateString(
+                    "pt-BR"
+                  )
+                  .toLowerCase();
+            }
+
+            return fieldString.includes(
+              compareValue
+            );
+          }
+        );
 
       setAlunos(filtrados);
 
     } catch (error) {
-      console.error("Erro ao filtrar alunos:", error);
+
+      console.error(
+        "Erro ao filtrar alunos:",
+        error
+      );
 
     } finally {
+
       setIsLoading(false);
+
     }
   };
 
   return (
-    <div className={showModal ? "modal-open" : ""}>
+
+    <div
+      className={
+        showModal
+          ? "modal-open"
+          : ""
+      }
+    >
+
       <PageLayout
         title="Alunos"
         searchPlaceholder="Pesquisar aluno..."
@@ -202,26 +284,31 @@ export default function TelaAlunos() {
       >
 
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+
           <AlunosTable
             alunos={alunos}
             onDelete={solicitarExclusao}
             onEdit={handleEdit}
           />
+
         </div>
 
         {showModal && (
+
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
 
             <ModalAluno
               aluno={alunoEditando}
-              onClose={() => {
-                setShowModal(false);
-                setAlunoEditando(null);
-              }}
-              onCreated={buscarAlunos}
+              onClose={
+                handleCloseModal
+              }
+              onCreated={
+                buscarAlunos
+              }
             />
 
           </div>
+
         )}
 
         <ConfirmationModal
@@ -233,31 +320,36 @@ export default function TelaAlunos() {
               ? [
                   {
                     label: "ID",
-                    value: alunoParaExcluir.id,
+                    value:
+                      alunoParaExcluir.id,
                   },
                   {
                     label: "Nome",
-                    value: formatarValor(
-                      alunoParaExcluir.nome
-                    ),
+                    value:
+                      formatarValor(
+                        alunoParaExcluir.nome
+                      ),
                   },
                   {
                     label: "Email",
-                    value: formatarValor(
-                      alunoParaExcluir.email
-                    ),
+                    value:
+                      formatarValor(
+                        alunoParaExcluir.email
+                      ),
                   },
                   {
                     label: "Telefone",
-                    value: formatarValor(
-                      alunoParaExcluir.telefone
-                    ),
+                    value:
+                      formatarValor(
+                        alunoParaExcluir.telefone
+                      ),
                   },
                   {
                     label: "Endereço",
-                    value: formatarValor(
-                      alunoParaExcluir.endereco
-                    ),
+                    value:
+                      formatarValor(
+                        alunoParaExcluir.endereco
+                      ),
                   },
                 ]
               : []
@@ -269,6 +361,7 @@ export default function TelaAlunos() {
         />
 
       </PageLayout>
+
     </div>
   );
 }
