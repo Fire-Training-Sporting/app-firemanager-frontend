@@ -289,6 +289,11 @@ export default function ModalAluno({
             )}
           </Field>
 
+          <Field label="Senha">
+            <input name="senha" type="password" value={form.senha} onChange={handleChange} placeholder="Mínimo 6 caracteres" className={inputCls} />
+            {senhaError && <p className="text-red-600 text-sm mt-1">{senhaError}</p>}
+          </Field>
+
           <Field label="Condomínio">
             <select
               name="condominio"

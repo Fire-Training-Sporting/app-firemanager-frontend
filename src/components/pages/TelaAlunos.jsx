@@ -22,6 +22,7 @@ export default function TelaAlunos() {
   const [alunosOriginais, setAlunosOriginais] = useState([]);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [alunoParaExcluir, setAlunoParaExcluir] = useState(null);
 
   const [alunoParaExcluir, setAlunoParaExcluir] = useState(null);
 
@@ -91,6 +92,37 @@ export default function TelaAlunos() {
       window.alert(
         "Não foi possível excluir o aluno. Tente novamente."
       );
+    }
+  };
+
+  const formatarValor = (valor) => {
+    if (valor && typeof valor === "object") {
+      return valor.nome ?? "-";
+    }
+
+    return valor ?? "-";
+  };
+
+  const solicitarExclusao = (aluno) => {
+    setAlunoParaExcluir(aluno);
+  };
+
+  const cancelarExclusao = () => {
+    setAlunoParaExcluir(null);
+  };
+
+  const confirmarExclusao = async () => {
+    if (!alunoParaExcluir?.id) {
+      return;
+    }
+
+    try {
+      await api.delete(`/usuarios/${alunoParaExcluir.id}`);
+      setAlunoParaExcluir(null);
+      await buscarAlunos();
+    } catch (error) {
+      console.error("Erro ao excluir aluno:", error);
+      window.alert("Não foi possível excluir o aluno. Tente novamente.");
     }
   };
 

@@ -4,14 +4,18 @@ import api from "../../../provider/api";
 export default function ModalScheduling({ agendamento = null, onClose, onCreated }) {
   const isEditMode = !!agendamento;
 
-  const [data, setData] = useState(agendamento?.data || "");
-  const [horaInicio, setHoraInicio] = useState(agendamento?.horaInicio?.slice(0, 5) || "");
-  const [horaFim, setHoraFim] = useState(agendamento?.horaFim?.slice(0, 5) || "");
-  const [local, setLocal] = useState(agendamento?.condominio?.nome || agendamento?.condominio || "");
-  const [aluno, setAluno] = useState(agendamento?.aluno?.nome || agendamento?.aluno || "");
-  const [servico, setServico] = useState(agendamento?.servico?.titulo || agendamento?.servico || "");
-  const [funcionarios, setFuncionarios] = useState(agendamento?.funcionarios || [{ nome: "", funcao: "" }]);
-  const [observacao, setObservacao] = useState(agendamento?.observacao || "");
+  const [data, setData] = useState("");
+  const [horaInicio, setHoraInicio] = useState("");
+  const [horaFim, setHoraFim] = useState("");
+  const [local, setLocal] = useState("");
+  const [aluno, setAluno] = useState("");
+  const [servico, setServico] = useState("");
+  const [funcionarios, setFuncionarios] = useState([
+    { funcionarioId: "", funcao: "Professor" },
+    { funcionarioId: "", funcao: "Rebatedor" },
+    { funcionarioId: "", funcao: "Auxiliar" },
+  ]);
+  const [observacao, setObservacao] = useState("");
   const [condominios, setCondominios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [listaServicos, setListaServicos] = useState([]);

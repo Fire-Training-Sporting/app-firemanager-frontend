@@ -68,11 +68,7 @@ export default function TelaFuncionarios() {
         });
 
       setFuncionarios(funcionariosFiltrados);
-
-      setFuncionariosOriginais(
-        funcionariosFiltrados
-      );
-
+      setFuncionariosOriginais(funcionariosFiltrados);
     } catch (err) {
 
       console.error(

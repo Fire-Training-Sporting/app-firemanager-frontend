@@ -86,7 +86,10 @@ export default function ModalCadastroFuncionario({
     }
 
     if (isOpen) {
-      carregarDados();
+      setTiposUsuario([
+        { id: 2, cargo: "Administracao" },
+        { id: 3, cargo: "Quadra" },
+      ])
     }
 
   }, [isOpen]);

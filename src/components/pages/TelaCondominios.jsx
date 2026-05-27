@@ -25,6 +25,7 @@ export default function TelaCondominios() {
   const [condominiosOriginais, setCondominiosOriginais] = useState([]);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [condominioParaExcluir, setCondominioParaExcluir] = useState(null);
 
   const [selectedCondominio, setSelectedCondominio] = useState(null);
 
@@ -231,6 +232,37 @@ export default function TelaCondominios() {
 
       return valor.nome ?? "-";
 
+    }
+
+    return valor ?? "-";
+  };
+
+  const solicitarExclusao = (condominio) => {
+    setCondominioParaExcluir(condominio);
+  };
+
+  const cancelarExclusao = () => {
+    setCondominioParaExcluir(null);
+  };
+
+  const confirmarExclusao = async () => {
+    if (!condominioParaExcluir?.id) {
+      return;
+    }
+
+    try {
+      await api.delete(`/condominios/${condominioParaExcluir.id}`);
+      setCondominioParaExcluir(null);
+      await buscarDados();
+    } catch (error) {
+      console.error("Erro ao excluir condomínio:", error);
+      window.alert("Não foi possível excluir o condomínio. Tente novamente.");
+    }
+  };
+
+  const formatarValor = (valor) => {
+    if (valor && typeof valor === "object") {
+      return valor.nome ?? "-";
     }
 
     return valor ?? "-";
