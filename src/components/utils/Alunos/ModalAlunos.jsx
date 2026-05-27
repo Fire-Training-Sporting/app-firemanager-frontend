@@ -7,13 +7,21 @@ const inputCls =
 function Field({ label, children }) {
   return (
     <div className="mb-3">
-      <label className="block text-sm font-semibold text-gray-700 mb-1">{label}</label>
+      <label className="block text-sm font-semibold text-gray-700 mb-1">
+        {label}
+      </label>
       {children}
     </div>
   );
 }
 
-export default function ModalAluno({ onClose, onCreated }) {
+export default function ModalAluno({
+  aluno = null,
+  onClose,
+  onCreated,
+}) {
+  const isEditMode = !!aluno;
+
   const [form, setForm] = useState({
     nome: "",
     email: "",
@@ -30,12 +38,17 @@ export default function ModalAluno({ onClose, onCreated }) {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    api.get("/condominios")
+    api
+      .get("/condominios")
       .then((res) => setCondominios(res.data))
-      .catch((err) => console.error("Erro ao carregar condomínios:", err));
+      .catch((err) =>
+        console.error("Erro ao carregar condomínios:", err)
+      );
   }, []);
 
-  const validarEmail = (valor) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor);
+  const validarEmail = (valor) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor);
+
   const validarTelefone = (valor) => {
     const numeros = valor.replace(/\D/g, "");
     return numeros.length >= 10 && numeros.length <= 11;
@@ -48,26 +61,84 @@ export default function ModalAluno({ onClose, onCreated }) {
       .replace(/(\d{5})(\d)/, "$1-$2")
       .slice(0, 15);
 
+  useEffect(() => {
+    if (!aluno) {
+      setForm({
+        nome: "",
+        email: "",
+        telefone: "",
+        senha: "",
+        condominio: "",
+      });
+
+      return;
+    }
+
+    setForm({
+      nome: aluno.nome || "",
+      email: aluno.email || "",
+      telefone: aplicarMascaraTelefone(aluno.telefone || ""),
+      senha: "",
+      condominio: String(
+        aluno.condominio?.id || aluno.condominio || ""
+      ),
+    });
+  }, [aluno]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setSubmitError("");
+
     if (name === "telefone") {
       const telFormatado = aplicarMascaraTelefone(value);
-      setForm({ ...form, telefone: telFormatado });
-      setTelefoneError(telFormatado && !validarTelefone(telFormatado) ? "Digite um telefone válido." : "");
+
+      setForm({
+        ...form,
+        telefone: telFormatado,
+      });
+
+      setTelefoneError(
+        telFormatado && !validarTelefone(telFormatado)
+          ? "Digite um telefone válido."
+          : ""
+      );
+
     } else if (name === "email") {
-      setForm({ ...form, email: value });
-      setEmailError(value && !validarEmail(value) ? "Digite um e-mail válido." : "");
+      setForm({
+        ...form,
+        email: value,
+      });
+
+      setEmailError(
+        value && !validarEmail(value)
+          ? "Digite um e-mail válido."
+          : ""
+      );
+
     } else if (name === "senha") {
-      setForm({ ...form, senha: value });
-      setSenhaError(value && value.length < 6 ? "A senha deve ter no mínimo 6 caracteres." : "");
+      setForm({
+        ...form,
+        senha: value,
+      });
+
+      setSenhaError(
+        value && value.length < 6
+          ? "A senha deve ter no mínimo 6 caracteres."
+          : ""
+      );
+
     } else {
-      setForm({ ...form, [name]: value });
+      setForm({
+        ...form,
+        [name]: value,
+      });
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (
       emailError ||
       telefoneError ||
@@ -75,7 +146,7 @@ export default function ModalAluno({ onClose, onCreated }) {
       !form.nome.trim() ||
       !form.email.trim() ||
       !form.telefone.trim() ||
-      !form.senha.trim() ||
+      (!isEditMode && !form.senha.trim()) ||
       !form.condominio
     ) {
       return;
@@ -86,34 +157,57 @@ export default function ModalAluno({ onClose, onCreated }) {
       nome: form.nome.trim(),
       email: form.email.trim(),
       telefone: form.telefone.replace(/\D/g, ""),
-      senha: form.senha,
       condominio: Number(form.condominio),
     };
 
-    setIsSaving(true);
-    setSubmitError("");
+    if (form.senha.trim()) {
+      payload.senha = form.senha;
+    }
 
-    api.post("/usuarios", payload)
-      .then(() => {
-        if (onCreated) {
-          onCreated();
-        }
-        onClose();
-      })
-      .catch((error) => {
-        console.error("Erro ao cadastrar aluno:", error);
-        setSubmitError("Não foi possível cadastrar o aluno. Tente novamente.");
-      })
-      .finally(() => {
-        setIsSaving(false);
-      });
+    try {
+      setIsSaving(true);
+      setSubmitError("");
+
+      if (isEditMode) {
+        await api.patch(`/usuarios/${aluno.id}`, payload);
+      } else {
+        await api.post("/usuarios", payload);
+      }
+
+      if (onCreated) {
+        onCreated();
+      }
+
+      onClose();
+
+    } catch (error) {
+      console.error(
+        isEditMode
+          ? "Erro ao atualizar aluno:"
+          : "Erro ao cadastrar aluno:",
+        error
+      );
+
+      setSubmitError(
+        isEditMode
+          ? "Não foi possível atualizar o aluno."
+          : "Não foi possível cadastrar o aluno. Tente novamente."
+      );
+
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
+
       {/* Cabeçalho */}
       <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
-        <h2 className="text-lg font-bold text-white">Cadastrar Aluno</h2>
+        <h2 className="text-lg font-bold text-white">
+          {isEditMode ? "Editar Aluno" : "Cadastrar Aluno"}
+        </h2>
+
         <button
           type="button"
           onClick={onClose}
@@ -125,24 +219,74 @@ export default function ModalAluno({ onClose, onCreated }) {
 
       {/* Conteúdo */}
       <div className="px-5 py-4">
-        <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col space-y-3"
+        >
+
           <Field label="Nome">
-            <input name="nome" value={form.nome} onChange={handleChange} placeholder="Nome completo" className={inputCls} />
+            <input
+              name="nome"
+              value={form.nome}
+              onChange={handleChange}
+              placeholder="Nome completo"
+              className={inputCls}
+            />
           </Field>
 
           <Field label="Email">
-            <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="exemplo@email.com" className={inputCls} />
-            {emailError && <p className="text-red-600 text-sm mt-1">{emailError}</p>}
+            <input
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="exemplo@email.com"
+              className={inputCls}
+            />
+
+            {emailError && (
+              <p className="text-red-600 text-sm mt-1">
+                {emailError}
+              </p>
+            )}
           </Field>
 
           <Field label="Telefone">
-            <input name="telefone" type="tel" value={form.telefone} onChange={handleChange} placeholder="(11) 99999-9999" className={inputCls} />
-            {telefoneError && <p className="text-red-600 text-sm mt-1">{telefoneError}</p>}
+            <input
+              name="telefone"
+              type="tel"
+              value={form.telefone}
+              onChange={handleChange}
+              placeholder="(11) 99999-9999"
+              className={inputCls}
+            />
+
+            {telefoneError && (
+              <p className="text-red-600 text-sm mt-1">
+                {telefoneError}
+              </p>
+            )}
           </Field>
 
           <Field label="Senha">
-            <input name="senha" type="password" value={form.senha} onChange={handleChange} placeholder="Mínimo 6 caracteres" className={inputCls} />
-            {senhaError && <p className="text-red-600 text-sm mt-1">{senhaError}</p>}
+            <input
+              name="senha"
+              type="password"
+              value={form.senha}
+              onChange={handleChange}
+              placeholder={
+                isEditMode
+                  ? "Deixe vazio para manter a senha atual"
+                  : "Mínimo 6 caracteres"
+              }
+              className={inputCls}
+            />
+
+            {senhaError && (
+              <p className="text-red-600 text-sm mt-1">
+                {senhaError}
+              </p>
+            )}
           </Field>
 
           <Field label="Condomínio">
@@ -153,18 +297,27 @@ export default function ModalAluno({ onClose, onCreated }) {
               className={inputCls}
             >
               <option value="">Selecione</option>
+
               {condominios.map((cond) => (
-                <option key={cond.id} value={cond.id}>
+                <option
+                  key={cond.id}
+                  value={cond.id}
+                >
                   {cond.nome}
                 </option>
               ))}
             </select>
           </Field>
 
-          {submitError && <p className="text-red-600 text-sm">{submitError}</p>}
+          {submitError && (
+            <p className="text-red-600 text-sm">
+              {submitError}
+            </p>
+          )}
 
           {/* Botões */}
           <div className="flex justify-end gap-2 mt-3">
+
             <button
               type="button"
               onClick={onClose}
@@ -173,13 +326,17 @@ export default function ModalAluno({ onClose, onCreated }) {
             >
               Cancelar
             </button>
+
             <button
               type="submit"
               disabled={isSaving}
-              className="px-4 py-2 bg-linear-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
+              className="px-4 py-2 bg-linear-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSaving ? "Cadastrando..." : "Cadastrar aluno"}
+              {isSaving
+                ? (isEditMode ? "Salvando..." : "Cadastrando...")
+                : (isEditMode ? "Salvar alterações" : "Cadastrar aluno")}
             </button>
+
           </div>
         </form>
       </div>

@@ -16,9 +16,13 @@ const search_columns = [
 
 export default function TelaAlunos() {
   const [showModal, setShowModal] = useState(false);
+  const [alunoEditando, setAlunoEditando] = useState(null);
+
   const [alunos, setAlunos] = useState([]);
   const [alunosOriginais, setAlunosOriginais] = useState([]);
+
   const [isLoading, setIsLoading] = useState(false);
+
   const [alunoParaExcluir, setAlunoParaExcluir] = useState(null);
 
   useEffect(() => {
@@ -28,28 +32,38 @@ export default function TelaAlunos() {
   const buscarAlunos = async () => {
     try {
       setIsLoading(true);
+
       const resp = await api.get("/usuarios");
+
       const usuarios = resp.data || [];
+
       const alunosFiltrados = usuarios
         .filter((u) => u.tipoUsuario?.cargo === "Aluno")
         .map((u) => ({
-          id: u.id,
-          nome: u.nome,
-          email: u.email,
-          telefone: u.telefone,
+          ...u,
           endereco: u.endereco || u.condominio?.nome || "",
         }));
 
       setAlunos(alunosFiltrados);
       setAlunosOriginais(alunosFiltrados);
+
     } catch (err) {
       console.error("Erro ao buscar alunos:", err);
+
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAdd = () => setShowModal(true);
+  const handleAdd = () => {
+    setAlunoEditando(null);
+    setShowModal(true);
+  };
+
+  const handleEdit = (aluno) => {
+    setAlunoEditando(aluno);
+    setShowModal(true);
+  };
 
   const solicitarExclusao = (aluno) => {
     setAlunoParaExcluir(aluno);
@@ -66,11 +80,17 @@ export default function TelaAlunos() {
 
     try {
       await api.delete(`/usuarios/${alunoParaExcluir.id}`);
+
       setAlunoParaExcluir(null);
+
       await buscarAlunos();
+
     } catch (error) {
       console.error("Erro ao excluir aluno:", error);
-      window.alert("Não foi possível excluir o aluno. Tente novamente.");
+
+      window.alert(
+        "Não foi possível excluir o aluno. Tente novamente."
+      );
     }
   };
 
@@ -93,26 +113,41 @@ export default function TelaAlunos() {
 
       const filtrados = alunosOriginais.filter((aluno) => {
         const fieldValue = aluno[field];
+
         const compareValue = value.toLowerCase();
 
         let fieldString = "";
 
-        if (typeof fieldValue === "object" && fieldValue !== null) {
-          fieldString = fieldValue.nome ? fieldValue.nome.toLowerCase() : "";
+        if (
+          typeof fieldValue === "object" &&
+          fieldValue !== null
+        ) {
+          fieldString = fieldValue.nome
+            ? fieldValue.nome.toLowerCase()
+            : "";
+
         } else if (typeof fieldValue === "string") {
           fieldString = fieldValue.toLowerCase();
+
         } else if (typeof fieldValue === "number") {
-          fieldString = fieldValue.toString().toLowerCase();
+          fieldString = fieldValue
+            .toString()
+            .toLowerCase();
+
         } else if (fieldValue instanceof Date) {
-          fieldString = fieldValue.toLocaleDateString("pt-BR").toLowerCase();
+          fieldString = fieldValue
+            .toLocaleDateString("pt-BR")
+            .toLowerCase();
         }
 
         return fieldString.includes(compareValue);
       });
 
       setAlunos(filtrados);
+
     } catch (error) {
       console.error("Erro ao filtrar alunos:", error);
+
     } finally {
       setIsLoading(false);
     }
@@ -133,15 +168,27 @@ export default function TelaAlunos() {
           />
         }
       >
+
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-          <AlunosTable alunos={alunos} onDelete={solicitarExclusao} />
+          <AlunosTable
+            alunos={alunos}
+            onDelete={solicitarExclusao}
+            onEdit={handleEdit}
+          />
         </div>
+
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+
             <ModalAluno
-              onClose={() => setShowModal(false)}
+              aluno={alunoEditando}
+              onClose={() => {
+                setShowModal(false);
+                setAlunoEditando(null);
+              }}
               onCreated={buscarAlunos}
             />
+
           </div>
         )}
 
@@ -149,18 +196,46 @@ export default function TelaAlunos() {
           isOpen={!!alunoParaExcluir}
           title="Confirmar exclusão"
           message="Deseja realmente excluir este aluno?"
-          items={alunoParaExcluir ? [
-            { label: "ID", value: alunoParaExcluir.id },
-            { label: "Nome", value: formatarValor(alunoParaExcluir.nome) },
-            { label: "Email", value: formatarValor(alunoParaExcluir.email) },
-            { label: "Telefone", value: formatarValor(alunoParaExcluir.telefone) },
-            { label: "Endereço", value: formatarValor(alunoParaExcluir.endereco) },
-          ] : []}
+          items={
+            alunoParaExcluir
+              ? [
+                  {
+                    label: "ID",
+                    value: alunoParaExcluir.id,
+                  },
+                  {
+                    label: "Nome",
+                    value: formatarValor(
+                      alunoParaExcluir.nome
+                    ),
+                  },
+                  {
+                    label: "Email",
+                    value: formatarValor(
+                      alunoParaExcluir.email
+                    ),
+                  },
+                  {
+                    label: "Telefone",
+                    value: formatarValor(
+                      alunoParaExcluir.telefone
+                    ),
+                  },
+                  {
+                    label: "Endereço",
+                    value: formatarValor(
+                      alunoParaExcluir.endereco
+                    ),
+                  },
+                ]
+              : []
+          }
           confirmLabel="Sim, excluir"
           cancelLabel="Não, cancelar"
           onCancel={cancelarExclusao}
           onConfirm={confirmarExclusao}
         />
+
       </PageLayout>
     </div>
   );
