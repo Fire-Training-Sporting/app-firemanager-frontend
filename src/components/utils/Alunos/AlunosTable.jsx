@@ -10,6 +10,7 @@ export function AlunosTable({
 }) {
   const ITEMS_PER_PAGE = 20;
   const showActions = sessionStorage.getItem("cargo") !== "Professor";
+  const showSaldos = sessionStorage.getItem("cargo") !== "Professor";
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -68,17 +69,21 @@ export function AlunosTable({
                 Endereço
               </AlunosTh>
 
-              <AlunosTh className="text-left w-32">
-                Tênis
-              </AlunosTh>
+              {showSaldos && (
+                <>
+                  <AlunosTh className="text-left w-32">
+                    Tênis
+                  </AlunosTh>
 
-              <AlunosTh className="text-left w-40">
-                Beach Tennis
-              </AlunosTh>
+                  <AlunosTh className="text-left w-40">
+                    Beach Tennis
+                  </AlunosTh>
 
-              <AlunosTh className="text-left w-32">
-                Funcional
-              </AlunosTh>
+                  <AlunosTh className="text-left w-32">
+                    Funcional
+                  </AlunosTh>
+                </>
+              )}
 
               {showActions && (
                 <AlunosTh className="text-left w-40">
@@ -99,12 +104,13 @@ export function AlunosTable({
                   onEdit={() => onEdit(aluno)}
                   onAddSaldo={() => onAddSaldo(aluno)}
                   showActions={showActions}
+                  showSaldos={showSaldos}
                 />
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={showActions ? 9 : 8}
+                  colSpan={showSaldos ? 9 : 5}
                   className="p-4 text-center text-gray-500"
                 >
                   Nenhum aluno encontrado.

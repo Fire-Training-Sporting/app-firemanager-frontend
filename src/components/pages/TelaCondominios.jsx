@@ -10,7 +10,7 @@ const search_columns = [
   { label: "ID", value: "id" },
   { label: "Nome", value: "nome" },
   { label: "CEP", value: "cep" },
-  { label: "Rua", value: "rua" },
+  { label: "Logradouro", value: "logradouro" },
   { label: "Número", value: "numero" },
   { label: "Cidade", value: "cidade" },
   { label: "Bairro", value: "bairro" },
@@ -89,7 +89,9 @@ export default function TelaCondominios() {
           (condominio) => {
 
             const fieldValue =
-              condominio[field];
+              field === "logradouro"
+                ? (condominio.logradouro ?? condominio.rua)
+                : condominio[field];
 
             const compareValue =
               value.toLowerCase();
@@ -297,9 +299,9 @@ export default function TelaCondominios() {
                   ),
                 },
                 {
-                  label: "Rua",
+                  label: "Logradouro",
                   value: formatarValor(
-                    condominioParaExcluir.rua
+                    condominioParaExcluir.logradouro ?? condominioParaExcluir.rua
                   ),
                 },
                 {

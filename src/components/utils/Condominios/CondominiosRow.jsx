@@ -2,6 +2,7 @@ export function CondominiosRow({
   id,
   nome,
   cep,
+  logradouro,
   rua,
   numero,
   cidade,
@@ -28,7 +29,7 @@ export function CondominiosRow({
       </td>
 
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">
-        {rua}
+        {logradouro ?? rua}
       </td>
 
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">

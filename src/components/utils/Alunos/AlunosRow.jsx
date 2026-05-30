@@ -9,6 +9,7 @@ export function AlunosRow({
   onEdit = () => {},
   onAddSaldo = () => {},
   showActions = true,
+  showSaldos = true,
 }) {
 
   const saldoTenis = saldosPorServico["Tênis"] ?? 0;
@@ -38,23 +39,27 @@ export function AlunosRow({
         {endereco}
       </td>
 
-      <td className="px-4 py-3 text-gray-800 font-semibold text-sm align-middle">
-        <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">
-          {saldoTenis}
-        </span>
-      </td>
+      {showSaldos && (
+        <>
+          <td className="px-4 py-3 text-gray-800 font-semibold text-sm align-middle">
+            <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-amber-800">
+              {saldoTenis}
+            </span>
+          </td>
 
-      <td className="px-4 py-3 text-gray-800 font-semibold text-sm align-middle">
-        <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-1 text-orange-800">
-          {saldoBeachTennis}
-        </span>
-      </td>
+          <td className="px-4 py-3 text-gray-800 font-semibold text-sm align-middle">
+            <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-1 text-orange-800">
+              {saldoBeachTennis}
+            </span>
+          </td>
 
-      <td className="px-4 py-3 text-gray-800 font-semibold text-sm align-middle">
-        <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-800">
-          {saldoFuncional}
-        </span>
-      </td>
+          <td className="px-4 py-3 text-gray-800 font-semibold text-sm align-middle">
+            <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-800">
+              {saldoFuncional}
+            </span>
+          </td>
+        </>
+      )}
 
       {showActions && (
         <td className="px-4 py-3 text-center align-middle">
