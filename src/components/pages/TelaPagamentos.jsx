@@ -163,6 +163,8 @@ function HistoricoAulasTable({ aulas, loading }) {
 }
 
 export function TelaPagamentos() {
+    const role = sessionStorage.getItem("cargo") || "";
+    const isAdmin = ["adm", "root", "administracao"].includes(role.toLowerCase());
     const hoje = useMemo(() => {
         const data = new Date();
         const mes = String(data.getMonth() + 1).padStart(2, "0");
@@ -175,21 +177,56 @@ export function TelaPagamentos() {
     const [erroData, setErroData] = useState("");
     const [agendamentos, setAgendamentos] = useState([]);
     const [saldoProfessor, setSaldoProfessor] = useState(null);
+    const [funcionarios, setFuncionarios] = useState([]);
+    const [funcionarioSelecionadoId, setFuncionarioSelecionadoId] = useState("");
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        async function carregarDadosBackend() {
-            const professorId = getUsuarioId();
+    const usuarioLogadoId = getUsuarioId();
+    const usuarioAlvoId = isAdmin ? funcionarioSelecionadoId : usuarioLogadoId;
 
-            if (!professorId) {
-                console.warn("Usuário logado sem id de professor disponível.");
-                setLoading(false);
+    useEffect(() => {
+        async function carregarFuncionarios() {
+            if (!isAdmin) {
                 return;
             }
 
             try {
+                const responseUsuarios = await api.get("/usuarios");
+                const listaFuncionarios = Array.isArray(responseUsuarios.data)
+                    ? responseUsuarios.data.filter((usuario) =>
+                        ["professor", "rebatedor", "auxiliar"].includes(
+                            usuario.tipoUsuario?.cargo?.toLowerCase()
+                        )
+                    )
+                    : [];
+
+                setFuncionarios(listaFuncionarios);
+
+                if (!funcionarioSelecionadoId && listaFuncionarios.length > 0) {
+                    setFuncionarioSelecionadoId(String(listaFuncionarios[0].id));
+                }
+            } catch (error) {
+                console.error("Erro ao buscar funcionários para pagamentos:", error);
+            }
+        }
+
+        carregarFuncionarios();
+    }, [isAdmin, funcionarioSelecionadoId]);
+
+    useEffect(() => {
+        async function carregarDadosBackend() {
+            if (!usuarioAlvoId) {
+                setAgendamentos([]);
+                setSaldoProfessor(null);
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+
+            try {
                 const [responseSaldo, responseAgendamentos] = await Promise.all([
-                    api.get(`/saldos/professor/${professorId}`),
+                    api.get(`/saldos/professor/${usuarioAlvoId}`),
                     api.get("/agendamentos"),
                 ]);
 
@@ -206,7 +243,7 @@ export function TelaPagamentos() {
         }
 
         carregarDadosBackend();
-    }, []);
+    }, [usuarioAlvoId]);
 
     useEffect(() => {
         if (dataInicio && dataFim && dataInicio > dataFim) {
@@ -216,8 +253,12 @@ export function TelaPagamentos() {
         }
     }, [dataInicio, dataFim]);
 
-    const usuarioId = getUsuarioId();
-    const nomeProfessor = saldoProfessor?.professor?.nome ?? "Professor";
+    const funcionarioSelecionado = funcionarios.find((usuario) => String(usuario.id) === String(funcionarioSelecionadoId));
+    const nomeProfessor = saldoProfessor?.professor?.nome ?? funcionarioSelecionado?.nome ?? "Professor";
+
+    function handleFuncionarioChange(event) {
+        setFuncionarioSelecionadoId(event.target.value);
+    }
 
     function campoCorrespondeUsuario(campo) {
         if (!campo) return false;
@@ -257,7 +298,7 @@ export function TelaPagamentos() {
             const participa = campoCorrespondeUsuario(agendamento?.professor) || campoCorrespondeUsuario(agendamento?.rebatedor) || campoCorrespondeUsuario(agendamento?.auxiliar);
             return participa;
         });
-    }, [agendamentos, dataInicio, dataFim, erroData, usuarioId, nomeProfessor]);
+    }, [agendamentos, dataInicio, dataFim, erroData, usuarioAlvoId, nomeProfessor]);
 
     const totalAgendamentos = agendamentosFiltrados.length;
     const confirmados = agendamentosFiltrados.filter((agendamento) => String(agendamento?.status ?? "").toLowerCase().includes("confirm")).length;
@@ -289,6 +330,7 @@ export function TelaPagamentos() {
                                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
                             />
                         </div>
+
                         <div className="flex flex-col gap-1">
                             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Data Final</label>
                             <input
@@ -300,6 +342,25 @@ export function TelaPagamentos() {
                                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
                             />
                         </div>
+
+                        {isAdmin && (
+                            <div className="flex flex-col gap-1 min-w-70">
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Funcionário</label>
+                                <select
+                                    value={funcionarioSelecionadoId}
+                                    onChange={handleFuncionarioChange}
+                                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
+                                >
+                                    <option value="">Selecione um funcionário</option>
+                                    {funcionarios.map((funcionario) => (
+                                        <option key={funcionario.id} value={funcionario.id}>
+                                            {funcionario.nome}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
                         {(dataInicio || dataFim) && (
                             <button
                                 type="button"
