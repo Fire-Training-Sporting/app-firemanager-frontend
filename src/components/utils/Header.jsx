@@ -30,7 +30,6 @@ export default function Header() {
   const navItems = (() => {
     switch (role) {
       case "root":
-      case "Administracao":
         return [
           "Agendamentos",
           "Alunos",
@@ -39,6 +38,15 @@ export default function Header() {
           "Serviços",
           "Pagamentos",
           "Dashboard",
+        ];
+      case "Administracao":
+        return [
+          "Agendamentos",
+          "Alunos",
+          "Funcionários",
+          "Condomínios",
+          "Serviços",
+          "Pagamentos",
         ];
       case "Professor":
         return ["Agendamentos", "Alunos", "Condomínios", "Pagamentos"];
