@@ -1,164 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Header from "../utils/Header";
-
-const aulasBase = [
-    {
-        id: 1180,
-        aluno: "Marina Souza",
-        data: "2026-04-16",
-        horaInicio: "10:00",
-        horaFim: "11:00",
-        condominio: "Residencial Atlântico",
-        professor: "Carlos Henrique",
-        rebatedor: "Felipe Costa",
-        auxiliar: "-",
-        servico: "Tênis",
-        funcao: "Professor",
-        status: "Confirmada",
-        saldo: 1,
-    },
-    {
-        id: 1181,
-        aluno: "João Pedro",
-        data: "2026-04-17",
-        horaInicio: "13:00",
-        horaFim: "14:00",
-        condominio: "Residencial Atlântico",
-        professor: "Carlos Henrique",
-        rebatedor: "Felipe Costa",
-        auxiliar: "Lucas Rocha",
-        servico: "Beach Tennis",
-        funcao: "Rebatedor",
-        status: "Cancelada",
-        saldo: 0,
-    },
-    {
-        id: 1182,
-        aluno: "Ana Clara",
-        data: "2026-04-20",
-        horaInicio: "16:00",
-        horaFim: "17:00",
-        condominio: "Condomínio Green Park",
-        professor: "Carlos Henrique",
-        rebatedor: "-",
-        auxiliar: "Lucas Rocha",
-        servico: "Tênis",
-        funcao: "Professor",
-        status: "Confirmada",
-        saldo: 1,
-    },
-    {
-        id: 1183,
-        aluno: "Bruno Lima",
-        data: "2026-04-24",
-        horaInicio: "09:00",
-        horaFim: "10:00",
-        condominio: "Condomínio Green Park",
-        professor: "Carlos Henrique",
-        rebatedor: "Felipe Costa",
-        auxiliar: "-",
-        servico: "Beach Tennis",
-        funcao: "Rebatedor",
-        status: "Confirmada",
-        saldo: 1,
-    },
-    {
-        id: 1184,
-        aluno: "Larissa Alves",
-        data: "2026-05-03",
-        horaInicio: "08:00",
-        horaFim: "09:00",
-        condominio: "Residencial Oceano",
-        professor: "Carlos Henrique",
-        rebatedor: "Felipe Costa",
-        auxiliar: "Lucas Rocha",
-        servico: "Tênis",
-        funcao: "Professor",
-        status: "Confirmada",
-        saldo: 1,
-    },
-    {
-        id: 1185,
-        aluno: "Eduarda Martins",
-        data: "2026-05-05",
-        horaInicio: "11:00",
-        horaFim: "12:00",
-        condominio: "Residencial Oceano",
-        professor: "Carlos Henrique",
-        rebatedor: "-",
-        auxiliar: "Lucas Rocha",
-        servico: "Personal",
-        funcao: "Auxiliar",
-        status: "Confirmada",
-        saldo: 1,
-    },
-    {
-        id: 1186,
-        aluno: "Pedro Henrique",
-        data: "2026-05-10",
-        horaInicio: "15:00",
-        horaFim: "16:00",
-        condominio: "Residencial Atlântico",
-        professor: "Carlos Henrique",
-        rebatedor: "Felipe Costa",
-        auxiliar: "-",
-        servico: "Tênis",
-        funcao: "Professor",
-        status: "Cancelada",
-        saldo: 0,
-    },
-    {
-        id: 1187,
-        aluno: "Camila Ribeiro",
-        data: "2026-05-12",
-        horaInicio: "10:00",
-        horaFim: "11:00",
-        condominio: "Residencial Atlântico",
-        professor: "Carlos Henrique",
-        rebatedor: "Felipe Costa",
-        auxiliar: "Lucas Rocha",
-        servico: "Beach Tennis",
-        funcao: "Professor",
-        status: "Confirmada",
-        saldo: 1,
-    },
-    {
-        id: 1188,
-        aluno: "Gustavo Nunes",
-        data: "2026-05-15",
-        horaInicio: "09:00",
-        horaFim: "10:00",
-        condominio: "Condomínio Green Park",
-        professor: "Carlos Henrique",
-        rebatedor: "Felipe Costa",
-        auxiliar: "-",
-        servico: "Tênis",
-        funcao: "Rebatedor",
-        status: "Pendente",
-        saldo: 0,
-    },
-    {
-        id: 1189,
-        aluno: "Patrícia Gomes",
-        data: "2026-05-19",
-        horaInicio: "17:00",
-        horaFim: "18:00",
-        condominio: "Residencial Oceano",
-        professor: "Carlos Henrique",
-        rebatedor: "-",
-        auxiliar: "Lucas Rocha",
-        servico: "Personal",
-        funcao: "Auxiliar",
-        status: "Confirmada",
-        saldo: 1,
-    },
-];
-
-const statusColor = {
-    Confirmada: "bg-green-100 text-green-700",
-    Pendente: "bg-[#ffd700]/25 text-[#b88600]",
-    Cancelada: "bg-red-100 text-red-700",
-};
+import api from "../../provider/api";
 
 function formatarData(isoDate) {
     if (!isoDate) return "-";
@@ -182,6 +24,19 @@ function formatarValor(valor) {
         return "-";
     }
 
+    if (Array.isArray(valor)) {
+        return valor
+            .map((item) => {
+                if (item && typeof item === "object") {
+                    return item.nome ?? item.nomeCompleto ?? item.aluno?.nome ?? "-";
+                }
+
+                return item ?? "-";
+            })
+            .filter((item) => item !== "-")
+            .join(", ") || "-";
+    }
+
     if (typeof valor === "object") {
         return valor.nome ?? valor.descricao ?? valor.titulo ?? "-";
     }
@@ -189,7 +44,22 @@ function formatarValor(valor) {
     return String(valor);
 }
 
-function HistoricoAulasTable({ aulas }) {
+function getUsuarioId() {
+    const usuarioString = sessionStorage.getItem("usuario");
+
+    if (!usuarioString) {
+        return null;
+    }
+
+    try {
+        const usuario = JSON.parse(usuarioString);
+        return sessionStorage.getItem("userId") ?? usuario?.userId ?? usuario?.id ?? null;
+    } catch {
+        return sessionStorage.getItem("userId");
+    }
+}
+
+function HistoricoAulasTable({ aulas, loading }) {
     const ITEMS_PER_PAGE = 5;
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -210,14 +80,13 @@ function HistoricoAulasTable({ aulas }) {
 
     return (
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-            <div className="flex justify-between items-center mb-4 gap-4">
+            <div className="flex justify-between items-center mb-4 gap-4 flex-wrap">
                 <h2 className="text-sm font-semibold text-gray-700">
                     Histórico de aulas no período
                     <span className="ml-2 text-xs text-gray-400 font-normal">
-                        ({totalItems} registro{totalItems !== 1 ? "s" : ""})
+                        ({loading ? "carregando" : `${totalItems} registro${totalItems !== 1 ? "s" : ""}`})
                     </span>
                 </h2>
-                <p className="text-xs text-gray-500">Tabela paginada no mesmo padrão visual de agendamentos.</p>
             </div>
 
             <div className="w-full overflow-x-auto">
@@ -234,27 +103,29 @@ function HistoricoAulasTable({ aulas }) {
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Professor</th>
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Rebatedor</th>
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Auxiliar</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Status</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white">
-                            {pageItems.length > 0 ? (
-                                pageItems.map((aula) => (
-                                    <tr key={aula.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-3 text-sm text-gray-700">{aula.id}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{aula.aluno}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarData(aula.data)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarHora(aula.horaInicio)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarHora(aula.horaFim)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(aula.condominio)}</td>
-                                        <td className="px-4 py-3 text-sm text-blue-600 font-medium">{aula.professor}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(aula.rebatedor)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(aula.auxiliar)}</td>
+                            {!loading && pageItems.length > 0 ? (
+                                pageItems.map((agendamento) => (
+                                    <tr key={agendamento.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-3 text-sm text-gray-700">{agendamento.id}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(agendamento.aluno)}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarData(agendamento.data)}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarHora(agendamento.horaInicio)}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarHora(agendamento.horaFim)}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(agendamento.condominio)}</td>
+                                        <td className="px-4 py-3 text-sm text-blue-600 font-medium">{formatarValor(agendamento.professor)}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(agendamento.rebatedor)}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(agendamento.auxiliar)}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(agendamento.status)}</td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={9} className="p-6 text-center text-gray-500">
-                                        Nenhuma aula encontrada para o período selecionado.
+                                    <td colSpan={10} className="p-6 text-center text-gray-500">
+                                        Nenhum agendamento encontrado para o período selecionado.
                                     </td>
                                 </tr>
                             )}
@@ -292,10 +163,6 @@ function HistoricoAulasTable({ aulas }) {
 }
 
 export function TelaPagamentos() {
-    const [dataInicio, setDataInicio] = useState("");
-    const [dataFim, setDataFim] = useState("");
-    const [erroData, setErroData] = useState("");
-
     const hoje = useMemo(() => {
         const data = new Date();
         const mes = String(data.getMonth() + 1).padStart(2, "0");
@@ -303,42 +170,103 @@ export function TelaPagamentos() {
         return `${data.getFullYear()}-${mes}-${dia}`;
     }, []);
 
+    const [dataInicio, setDataInicio] = useState(hoje);
+    const [dataFim, setDataFim] = useState(hoje);
+    const [erroData, setErroData] = useState("");
+    const [agendamentos, setAgendamentos] = useState([]);
+    const [saldoProfessor, setSaldoProfessor] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function carregarDadosBackend() {
+            const professorId = getUsuarioId();
+
+            if (!professorId) {
+                console.warn("Usuário logado sem id de professor disponível.");
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const [responseSaldo, responseAgendamentos] = await Promise.all([
+                    api.get(`/saldos/professor/${professorId}`),
+                    api.get("/agendamentos"),
+                ]);
+
+                console.log("Saldo do professor:", responseSaldo.data);
+                console.log("Agendamentos:", responseAgendamentos.data);
+
+                setSaldoProfessor(responseSaldo.data);
+                setAgendamentos(Array.isArray(responseAgendamentos.data) ? responseAgendamentos.data : []);
+            } catch (error) {
+                console.error("Erro ao buscar dados do backend:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        carregarDadosBackend();
+    }, []);
+
     useEffect(() => {
         if (dataInicio && dataFim && dataInicio > dataFim) {
             setErroData("A data inicial não pode ser maior que a data final.");
-        } else if (dataFim && dataFim > hoje) {
-            setErroData("A data final não pode ser maior que hoje.");
         } else {
             setErroData("");
         }
-    }, [dataInicio, dataFim, hoje]);
+    }, [dataInicio, dataFim]);
 
-    const aulasFiltradas = useMemo(() => {
+    const usuarioId = getUsuarioId();
+    const nomeProfessor = saldoProfessor?.professor?.nome ?? "Professor";
+
+    function campoCorrespondeUsuario(campo) {
+        if (!campo) return false;
+
+        try {
+            if (typeof campo === "object") {
+                const ids = [campo.id, campo._id, campo.userId, campo.professorId, campo.usuarioId];
+                for (const id of ids) {
+                    if (id != null && String(id) === String(usuarioId)) return true;
+                }
+
+                // comparar por nome quando não houver id
+                const nome = campo.nome ?? campo.nomeCompleto ?? campo.name ?? campo.fullName;
+                if (nome && String(nome).trim() === String(nomeProfessor).trim()) return true;
+                return false;
+            }
+
+            // campo é string/number: comparar diretamente com id ou com nome
+            if (String(campo) === String(usuarioId)) return true;
+            if (String(campo).trim() === String(nomeProfessor).trim()) return true;
+            return false;
+        } catch {
+            return false;
+        }
+    }
+
+    const agendamentosFiltrados = useMemo(() => {
         if (erroData) return [];
 
-        return aulasBase.filter((aula) => {
-            if (dataInicio && aula.data < dataInicio) return false;
-            if (dataFim && aula.data > dataFim) return false;
-            return true;
-        });
-    }, [dataInicio, dataFim, erroData]);
+        return agendamentos.filter((agendamento) => {
+            const dataAgendamento = String(agendamento?.data ?? "").slice(0, 10);
 
-    const saldoTotal = useMemo(
-        () => aulasFiltradas.reduce((soma, aula) => soma + aula.saldo, 0),
-        [aulasFiltradas]
-    );
-    const aulasComoProfessor = useMemo(
-        () => aulasFiltradas.filter((aula) => String(aula.funcao).toLowerCase() === "professor").length,
-        [aulasFiltradas]
-    );
-    const aulasComoRebatedor = useMemo(
-        () => aulasFiltradas.filter((aula) => String(aula.funcao).toLowerCase() === "rebatedor").length,
-        [aulasFiltradas]
-    );
-    const aulasComoAuxiliar = useMemo(
-        () => aulasFiltradas.filter((aula) => String(aula.funcao).toLowerCase() === "auxiliar").length,
-        [aulasFiltradas]
-    );
+            if (dataInicio && dataAgendamento < dataInicio) return false;
+            if (dataFim && dataAgendamento > dataFim) return false;
+
+            // só incluir agendamentos em que o usuário participa (professor, rebatedor ou auxiliar)
+            const participa = campoCorrespondeUsuario(agendamento?.professor) || campoCorrespondeUsuario(agendamento?.rebatedor) || campoCorrespondeUsuario(agendamento?.auxiliar);
+            return participa;
+        });
+    }, [agendamentos, dataInicio, dataFim, erroData, usuarioId, nomeProfessor]);
+
+    const totalAgendamentos = agendamentosFiltrados.length;
+    const confirmados = agendamentosFiltrados.filter((agendamento) => String(agendamento?.status ?? "").toLowerCase().includes("confirm")).length;
+    const pendentes = agendamentosFiltrados.filter((agendamento) => String(agendamento?.status ?? "").toLowerCase().includes("pend")).length;
+    const cancelados = agendamentosFiltrados.filter((agendamento) => String(agendamento?.status ?? "").toLowerCase().includes("cancel")).length;
+
+    const aulasComoProfessorCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.professor)).length;
+    const aulasComoRebatedorCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.rebatedor)).length;
+    const aulasComoAuxiliarCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.auxiliar)).length;
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col overflow-hidden">
@@ -347,8 +275,7 @@ export function TelaPagamentos() {
             <div className="flex-1 min-h-0 px-6 py-4 flex flex-col gap-3 overflow-hidden xl:px-8">
                 <div className="flex justify-between items-center gap-4 flex-wrap shrink-0">
                     <div>
-                        <h1 className="font-bold text-xl text-gray-900 mb-0.5 xl:text-2xl">Aulas do professor</h1>
-                        <p className="text-sm text-gray-500">Resumo do período com indicadores e histórico detalhado</p>
+                        <h1 className="font-bold text-xl text-gray-900 mb-0.5 xl:text-2xl">Suas aulas</h1>
                     </div>
 
                     <div className="flex gap-2 items-end flex-wrap justify-end">
@@ -357,7 +284,7 @@ export function TelaPagamentos() {
                             <input
                                 type="date"
                                 value={dataInicio}
-                                max={dataFim || hoje}
+                                max={dataFim || undefined}
                                 onChange={(e) => setDataInicio(e.target.value)}
                                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
                             />
@@ -368,7 +295,7 @@ export function TelaPagamentos() {
                                 type="date"
                                 value={dataFim}
                                 min={dataInicio}
-                                max={hoje}
+                                
                                 onChange={(e) => setDataFim(e.target.value)}
                                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
                             />
@@ -392,10 +319,10 @@ export function TelaPagamentos() {
 
                 <div className="grid grid-cols-2 gap-3 xl:grid-cols-4 shrink-0">
                     {[
-                        { label: "Saldo total", value: saldoTotal },
-                        { label: "Aulas como professor", value: aulasComoProfessor },
-                        { label: "Aulas como rebatedor", value: aulasComoRebatedor },
-                        { label: "Aulas como auxiliar", value: aulasComoAuxiliar },
+                        { label: "Total de aulas", value: totalAgendamentos },
+                        { label: "Aulas como professor", value: aulasComoProfessorCount },
+                        { label: "Aulas como rebatedor", value: aulasComoRebatedorCount },
+                        { label: "Aulas como auxiliar", value: aulasComoAuxiliarCount },
                     ].map((kpi, index) => (
                         <div key={index} className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-200">
                             <p className="text-[11px] text-gray-500 mb-1.5 leading-tight">{kpi.label}</p>
@@ -405,7 +332,7 @@ export function TelaPagamentos() {
                 </div>
 
                 <div className="flex-1 min-h-0 overflow-hidden">
-                    <HistoricoAulasTable aulas={aulasFiltradas} />
+                    <HistoricoAulasTable aulas={agendamentosFiltrados} loading={loading} />
                 </div>
             </div>
         </div>
