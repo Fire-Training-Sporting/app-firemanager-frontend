@@ -138,6 +138,7 @@ export default function TelaAgendamentos() {
     horaFim: formatarHora(agendamento?.horaFim),
     condominio: extrairId(agendamento?.condominio),
     aluno: extrairId(agendamento?.aluno),
+    alunos: agendamento?.alunos || [],
     servico: extrairId(agendamento?.servico),
     professor: extrairId(agendamento?.professor),
     rebatedor: extrairId(agendamento?.rebatedor),
@@ -146,6 +147,9 @@ export default function TelaAgendamentos() {
     nomes: {
       condominio: extrairNome(agendamento?.condominio),
       aluno: extrairNome(agendamento?.aluno),
+        alunos: Array.isArray(agendamento?.alunos)
+          ? agendamento.alunos.map((item) => extrairNome(item))
+          : [],
       servico: extrairNome(agendamento?.servico),
       professor: extrairNome(agendamento?.professor),
       rebatedor: extrairNome(agendamento?.rebatedor),
@@ -183,6 +187,19 @@ export default function TelaAgendamentos() {
   };
 
   const formatarValor = (valor) => {
+    if (Array.isArray(valor)) {
+      return valor
+        .map((item) => {
+          if (item && typeof item === "object") {
+            return item.nome ?? item.nomeCompleto ?? item.aluno?.nome ?? "-";
+          }
+
+          return item ?? "-";
+        })
+        .filter((item) => item !== "-")
+        .join(", ") || "-";
+    }
+
     if (valor && typeof valor === "object") {
       return valor.nome ?? "-";
     }
