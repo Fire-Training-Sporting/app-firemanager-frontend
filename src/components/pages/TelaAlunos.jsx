@@ -3,8 +3,11 @@ import PageLayout from "../utils/PageLayout";
 import SearchFilter from "../utils/SearchFilter";
 import { AlunosTable } from "../utils/Alunos/AlunosTable";
 import ModalAluno from "../utils/Alunos/ModalAlunos";
+import ModalSaldo from "../utils/Alunos/ModalSaldo";
 import ConfirmationModal from "../utils/ConfirmationModal";
 import api from "../../provider/api";
+
+const saldoServicesOrder = ["Tênis", "Beach Tennis", "Funcional"];
 
 const search_columns = [
   { label: "ID", value: "id" },
@@ -31,6 +34,9 @@ export default function TelaAlunos() {
   const [alunoParaExcluir, setAlunoParaExcluir] =
     useState(null);
 
+  const [alunoParaSaldo, setAlunoParaSaldo] =
+    useState(null);
+
   useEffect(() => {
     buscarAlunos();
   }, []);
@@ -41,11 +47,72 @@ export default function TelaAlunos() {
 
       setIsLoading(true);
 
-      const resp =
-        await api.get("/usuarios");
+      const [usuariosResp, servicosResp, saldosResp] =
+        await Promise.all([
+          api.get("/usuarios"),
+          api.get("/servicos").catch(() => ({ data: [] })),
+          api.get("/saldos").catch(() => ({ data: [] })),
+        ]);
 
-      const usuarios =
-        resp.data || [];
+      const usuarios = usuariosResp.data || [];
+      const servicos = servicosResp.data || [];
+      const saldos = saldosResp.data || [];
+
+      const servicosPorId = servicos.reduce((mapa, servico) => {
+        mapa[String(servico.id)] = servico.nome;
+        return mapa;
+      }, {});
+
+      const getSaldoAlunoId = (saldo) =>
+        String(
+          saldo.aluno?.id ??
+          saldo.fk_usuario?.id ??
+          saldo.fk_usuario ??
+          saldo.usuario?.id ??
+          saldo.usuario ??
+          saldo.aluno ??
+          ""
+        );
+
+      const getSaldoServicoId = (saldo) =>
+        String(
+          saldo.servico?.id ??
+          saldo.fk_servico?.id ??
+          saldo.fk_servico ??
+          saldo.servico_id ??
+          saldo.servico ??
+          ""
+        );
+
+      const saldoPorAluno = saldos.reduce((mapa, saldo) => {
+        const alunoId = getSaldoAlunoId(saldo);
+        const servicoId = getSaldoServicoId(saldo);
+        const servicoNome =
+          saldo.servico?.nome ??
+          saldo.fk_servico?.nome ??
+          servicosPorId[servicoId] ??
+          "";
+
+        if (!alunoId || !servicoNome) {
+          return mapa;
+        }
+
+        if (!mapa[alunoId]) {
+          mapa[alunoId] = {
+            "Tênis": 0,
+            "Beach Tennis": 0,
+            "Funcional": 0,
+          };
+        }
+
+        if (saldoServicesOrder.includes(servicoNome)) {
+          mapa[alunoId][servicoNome] =
+            (mapa[alunoId][servicoNome] || 0) +
+            Number(saldo.quantidade || 0);
+        }
+
+        return mapa;
+      }, {});
 
       const alunosFiltrados =
         usuarios
@@ -60,6 +127,17 @@ export default function TelaAlunos() {
               u.endereco ||
               u.condominio?.nome ||
               "",
+            saldosPorServico:
+              saldoPorAluno[String(u.id)] || {
+                "Tênis": 0,
+                "Beach Tennis": 0,
+                "Funcional": 0,
+              },
+            saldoTotal: saldoServicesOrder.reduce(
+              (total, servico) =>
+                total + (saldoPorAluno[String(u.id)]?.[servico] || 0),
+              0,
+            ),
           }));
 
       setAlunos(alunosFiltrados);
@@ -98,11 +176,23 @@ export default function TelaAlunos() {
 
   };
 
+  const handleAddSaldo = (aluno) => {
+
+    setAlunoParaSaldo(aluno);
+
+  };
+
   const handleCloseModal = () => {
 
     setShowModal(false);
 
     setAlunoEditando(null);
+
+  };
+
+  const handleCloseSaldoModal = () => {
+
+    setAlunoParaSaldo(null);
 
   };
 
@@ -289,6 +379,7 @@ export default function TelaAlunos() {
             alunos={alunos}
             onDelete={solicitarExclusao}
             onEdit={handleEdit}
+            onAddSaldo={handleAddSaldo}
           />
 
         </div>
@@ -305,6 +396,19 @@ export default function TelaAlunos() {
               onCreated={
                 buscarAlunos
               }
+            />
+
+          </div>
+
+        )}
+
+        {alunoParaSaldo && (
+
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+
+            <ModalSaldo
+              aluno={alunoParaSaldo}
+              onClose={handleCloseSaldoModal}
             />
 
           </div>

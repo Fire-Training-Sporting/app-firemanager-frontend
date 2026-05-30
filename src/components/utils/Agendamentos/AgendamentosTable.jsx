@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import {AgendamentosRow} from "./AgendamentosRow";
 import AgendamentosTh from "./AgendamentosTh";
 
-export function AgendamentosTable({ agendamentos = [], onEdit, onDelete }) {
+export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDelete }) {
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
+  const showActions = sessionStorage.getItem("cargo") !== "Professor";
 
   const totalItems = agendamentos.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
@@ -39,7 +40,7 @@ export function AgendamentosTable({ agendamentos = [], onEdit, onDelete }) {
               <AgendamentosTh>Rebatedor</AgendamentosTh>
               <AgendamentosTh>Auxiliar</AgendamentosTh>
               <AgendamentosTh>Status</AgendamentosTh>
-              <AgendamentosTh className="w-40">Ações</AgendamentosTh>
+              {showActions && <AgendamentosTh className="w-40">Ações</AgendamentosTh>}
             </tr>
           </thead>
           <tbody className="bg-white">
@@ -49,12 +50,14 @@ export function AgendamentosTable({ agendamentos = [], onEdit, onDelete }) {
                   key={agendamento.id}
                   {...agendamento}
                   onEdit={() => onEdit(agendamento)}
+                  onConfirm={() => onConfirm(agendamento)}
                   onDelete={() => onDelete(agendamento.id)}
+                  showActions={showActions}
                 />
               ))
             ) : (
               <tr>
-                <td colSpan={11} className="p-4 text-center text-gray-500">
+                <td colSpan={showActions ? 11 : 10} className="p-4 text-center text-gray-500">
                   Nenhum agendamento encontrado.
                 </td>
               </tr>

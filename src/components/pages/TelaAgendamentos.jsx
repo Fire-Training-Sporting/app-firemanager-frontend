@@ -15,6 +15,74 @@ const search_columns = [
   { label: "Status", value: "status" },
 ];
 
+function getUsuarioLogado() {
+  const usuarioString = sessionStorage.getItem("usuario");
+
+  if (!usuarioString) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(usuarioString);
+  } catch {
+    return null;
+  }
+}
+
+function getUsuarioId(usuario) {
+  return sessionStorage.getItem("userId") ?? usuario?.userId ?? usuario?.id ?? null;
+}
+
+function getItemId(value) {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  if (typeof value === "object") {
+    return value.id ?? value.codigo ?? value.value ?? null;
+  }
+
+  return value;
+}
+
+function normalizarCargo(cargo) {
+  return String(cargo ?? "").trim().toLowerCase();
+}
+
+function usuarioPodeVerAgendamento(agendamento, cargo, usuarioId) {
+  const cargoNormalizado = normalizarCargo(cargo);
+
+  if (cargoNormalizado === "root" || cargoNormalizado === "administracao") {
+    return true;
+  }
+
+  if (!usuarioId) {
+    return false;
+  }
+
+  const usuarioIdString = String(usuarioId);
+
+  if (cargoNormalizado === "professor") {
+    return [agendamento?.professor, agendamento?.rebatedor, agendamento?.auxiliar].some(
+      (participante) => String(getItemId(participante) ?? "") === usuarioIdString
+    );
+  }
+
+  if (cargoNormalizado === "aluno") {
+    const alunoPrincipal = String(getItemId(agendamento?.aluno) ?? "") === usuarioIdString;
+    const alunosGrupo = Array.isArray(agendamento?.alunos)
+      && agendamento.alunos.some((item) => String(getItemId(item) ?? "") === usuarioIdString);
+
+    return alunoPrincipal || alunosGrupo;
+  }
+
+  return false;
+}
+
+function filtrarAgendamentosPorCargo(agendamentos, cargo, usuarioId) {
+  return (agendamentos || []).filter((agendamento) => usuarioPodeVerAgendamento(agendamento, cargo, usuarioId));
+}
+
 export default function TelaAgendamentos() {
   const [showModal, setShowModal] = useState(false);
   const [editAgendamento, setEditAgendamento] = useState(null);
@@ -22,6 +90,10 @@ export default function TelaAgendamentos() {
   const [agendamentosOriginais, setAgendamentosOriginais] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [agendamentoParaExcluir, setAgendamentoParaExcluir] = useState(null);
+  const [agendamentoParaConfirmar, setAgendamentoParaConfirmar] = useState(null);
+  const usuarioLogado = getUsuarioLogado();
+  const cargo = sessionStorage.getItem("cargo");
+  const usuarioId = getUsuarioId(usuarioLogado);
 
   useEffect(() => {
     buscarDados();
@@ -31,8 +103,14 @@ export default function TelaAgendamentos() {
     try {
       setIsLoading(true);
       const response = await api.get("/agendamentos");
-      setAgendamentos(response.data);
-      setAgendamentosOriginais(response.data);
+      const agendamentosPermitidos = filtrarAgendamentosPorCargo(
+        response.data,
+        cargo,
+        usuarioId
+      );
+
+      setAgendamentos(agendamentosPermitidos);
+      setAgendamentosOriginais(agendamentosPermitidos);
     } catch (error) {
       console.error("Erro ao buscar agendamentos:", error);
     } finally {
@@ -138,6 +216,7 @@ export default function TelaAgendamentos() {
     horaFim: formatarHora(agendamento?.horaFim),
     condominio: extrairId(agendamento?.condominio),
     aluno: extrairId(agendamento?.aluno),
+    alunos: agendamento?.alunos || [],
     servico: extrairId(agendamento?.servico),
     professor: extrairId(agendamento?.professor),
     rebatedor: extrairId(agendamento?.rebatedor),
@@ -146,6 +225,9 @@ export default function TelaAgendamentos() {
     nomes: {
       condominio: extrairNome(agendamento?.condominio),
       aluno: extrairNome(agendamento?.aluno),
+        alunos: Array.isArray(agendamento?.alunos)
+          ? agendamento.alunos.map((item) => extrairNome(item))
+          : [],
       servico: extrairNome(agendamento?.servico),
       professor: extrairNome(agendamento?.professor),
       rebatedor: extrairNome(agendamento?.rebatedor),
@@ -167,6 +249,33 @@ export default function TelaAgendamentos() {
     setAgendamentoParaExcluir(null);
   };
 
+  const solicitarConfirmacao = (agendamento) => {
+    setAgendamentoParaConfirmar(agendamento);
+  };
+
+  const cancelarConfirmacao = () => {
+    setAgendamentoParaConfirmar(null);
+  };
+
+  const confirmarAgendamento = async () => {
+    if (!agendamentoParaConfirmar?.id) {
+      return;
+    }
+
+    try {
+      await api.patch(`/agendamentos/status/${agendamentoParaConfirmar.id}`, {
+        status: "confirmado",
+        observacao: agendamentoParaConfirmar.observacao || "",
+      });
+
+      setAgendamentoParaConfirmar(null);
+      await buscarDados();
+    } catch (error) {
+      console.error("Erro ao confirmar agendamento:", error);
+      window.alert("Não foi possível confirmar o agendamento. Tente novamente.");
+    }
+  };
+
   const confirmarExclusao = async () => {
     if (!agendamentoParaExcluir?.id) {
       return;
@@ -183,6 +292,19 @@ export default function TelaAgendamentos() {
   };
 
   const formatarValor = (valor) => {
+    if (Array.isArray(valor)) {
+      return valor
+        .map((item) => {
+          if (item && typeof item === "object") {
+            return item.nome ?? item.nomeCompleto ?? item.aluno?.nome ?? "-";
+          }
+
+          return item ?? "-";
+        })
+        .filter((item) => item !== "-")
+        .join(", ") || "-";
+    }
+
     if (valor && typeof valor === "object") {
       return valor.nome ?? "-";
     }
@@ -210,6 +332,7 @@ export default function TelaAgendamentos() {
         <AgendamentosTable
           agendamentos={agendamentos}
           onEdit={editarDados}
+          onConfirm={solicitarConfirmacao}
           onDelete={solicitarExclusao}
         />
       </div>
@@ -242,6 +365,27 @@ export default function TelaAgendamentos() {
         cancelLabel="Não, cancelar"
         onCancel={cancelarExclusao}
         onConfirm={confirmarExclusao}
+      />
+
+      <ConfirmationModal
+        isOpen={!!agendamentoParaConfirmar}
+        title="Confirmar agendamento"
+        message="Deseja confirmar este agendamento no sistema?"
+        items={agendamentoParaConfirmar ? [
+          { label: "ID", value: agendamentoParaConfirmar.id },
+          { label: "Aluno", value: formatarValor(agendamentoParaConfirmar.aluno) },
+          { label: "Data", value: formatarValor(agendamentoParaConfirmar.data) },
+          { label: "Hora início", value: formatarValor(agendamentoParaConfirmar.horaInicio) },
+          { label: "Hora fim", value: formatarValor(agendamentoParaConfirmar.horaFim) },
+          { label: "Condomínio", value: formatarValor(agendamentoParaConfirmar.condominio) },
+          { label: "Professor", value: formatarValor(agendamentoParaConfirmar.professor) },
+          { label: "Status atual", value: formatarValor(agendamentoParaConfirmar.status) },
+        ] : []}
+        confirmLabel="Sim, confirmar"
+        cancelLabel="Não, cancelar"
+        variant="success"
+        onCancel={cancelarConfirmacao}
+        onConfirm={confirmarAgendamento}
       />
     </PageLayout>
   </div>

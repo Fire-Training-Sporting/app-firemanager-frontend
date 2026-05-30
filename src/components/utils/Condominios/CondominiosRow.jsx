@@ -2,12 +2,14 @@ export function CondominiosRow({
   id,
   nome,
   cep,
+  logradouro,
   rua,
   numero,
   cidade,
   bairro,
   onEdit = () => { },
   onDelete = () => { },
+  showActions = true,
 }) {
 
   return (
@@ -27,7 +29,7 @@ export function CondominiosRow({
       </td>
 
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">
-        {rua}
+        {logradouro ?? rua}
       </td>
 
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">
@@ -42,6 +44,7 @@ export function CondominiosRow({
         {bairro}
       </td>
 
+      {showActions && (
       <td className="px-4 py-3 text-center align-middle">
 
         <div className="flex justify-center gap-2">
@@ -63,6 +66,7 @@ export function CondominiosRow({
         </div>
 
       </td>
+      )}
 
     </tr>
   );

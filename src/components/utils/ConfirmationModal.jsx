@@ -18,6 +18,11 @@ export default function ConfirmationModal({
       ? "bg-linear-to-r from-red-600 to-red-500"
       : "bg-linear-to-r from-[#F8821E] to-[#EA580C]";
 
+  const confirmButtonClassName =
+    variant === "success"
+      ? "rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-green-700"
+      : "rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-red-700";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-md overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl">
@@ -62,7 +67,7 @@ export default function ConfirmationModal({
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-red-700"
+            className={confirmButtonClassName}
           >
             {confirmLabel}
           </button>

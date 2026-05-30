@@ -11,7 +11,7 @@ const routeMap = {
   Serviços: "/servicos",
   Dashboard: "/dashboard",
   Perfil: "/alunos",
-  Pagamento: "/pagamento",
+  Pagamentos: "/pagamento",
 };
 
 export default function Header() {
@@ -30,6 +30,15 @@ export default function Header() {
   const navItems = (() => {
     switch (role) {
       case "root":
+        return [
+          "Agendamentos",
+          "Alunos",
+          "Funcionários",
+          "Condomínios",
+          "Serviços",
+          "Pagamentos",
+          "Dashboard",
+        ];
       case "Administracao":
         return [
           "Agendamentos",
@@ -37,10 +46,10 @@ export default function Header() {
           "Funcionários",
           "Condomínios",
           "Serviços",
-          "Dashboard",
+          "Pagamentos",
         ];
       case "Professor":
-        return ["Agendamentos", "Alunos", "Condomínios", "Pagamento"];
+        return ["Agendamentos", "Alunos", "Condomínios", "Pagamentos"];
       case "Aluno":
         return ["Agendamentos", "Perfil"];
       default:
@@ -73,7 +82,7 @@ export default function Header() {
         </div>
       </div>
       {/* Navigation bar */}
-      <nav className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] flex gap-2 px-8 py-2">
+      <nav className="bg-linear-to-r from-[#F8821E] to-[#EA580C] flex gap-2 px-8 py-2">
         {navItems.map((item) => (
           <NavLink key={item} to={routeMap[item]}>
             {item}

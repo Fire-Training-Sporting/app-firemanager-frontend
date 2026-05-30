@@ -9,6 +9,7 @@ export function CondominiosTable({
 }) {
 
   const ITEMS_PER_PAGE = 20;
+  const showActions = sessionStorage.getItem("cargo") !== "Professor";
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -72,7 +73,7 @@ export function CondominiosTable({
               </CondominiosTh>
 
               <CondominiosTh>
-                Rua
+                Logradouro
               </CondominiosTh>
 
               <CondominiosTh>
@@ -87,9 +88,11 @@ export function CondominiosTable({
                 Bairro
               </CondominiosTh>
 
-              <CondominiosTh className="w-40">
-                Ações
-              </CondominiosTh>
+              {showActions && (
+                <CondominiosTh className="w-40">
+                  Ações
+                </CondominiosTh>
+              )}
 
             </tr>
 
@@ -106,6 +109,7 @@ export function CondominiosTable({
                   {...cond}
                   onEdit={() => onEdit(cond)}
                   onDelete={() => onDelete(cond)}
+                  showActions={showActions}
                 />
 
               ))
@@ -115,7 +119,7 @@ export function CondominiosTable({
               <tr>
 
                 <td
-                  colSpan={8}
+                  colSpan={showActions ? 8 : 7}
                   className="p-4 text-center text-gray-500"
                 >
                   Nenhum condomínio encontrado.

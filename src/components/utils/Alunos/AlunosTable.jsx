@@ -6,8 +6,13 @@ export function AlunosTable({
   alunos = [],
   onDelete = () => {},
   onEdit = () => {},
+  onAddSaldo = () => {},
 }) {
   const ITEMS_PER_PAGE = 20;
+  const cargo = sessionStorage.getItem("cargo");
+  const showContato = cargo !== "Professor";
+  const showActions = sessionStorage.getItem("cargo") !== "Professor";
+  const showSaldos = sessionStorage.getItem("cargo") !== "Professor";
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -54,21 +59,43 @@ export function AlunosTable({
                 Nome
               </AlunosTh>
 
-              <AlunosTh className="text-left">
-                Email
-              </AlunosTh>
+              {showContato && (
+                <>
+                  <AlunosTh className="text-left">
+                    Email
+                  </AlunosTh>
 
-              <AlunosTh className="text-left">
-                Telefone
-              </AlunosTh>
+                  <AlunosTh className="text-left">
+                    Telefone
+                  </AlunosTh>
+                </>
+              )}
 
               <AlunosTh className="text-left">
                 Endereço
               </AlunosTh>
 
-              <AlunosTh className="text-left w-40">
-                Ações
-              </AlunosTh>
+              {showSaldos && (
+                <>
+                  <AlunosTh className="text-left w-32">
+                    Tênis
+                  </AlunosTh>
+
+                  <AlunosTh className="text-left w-40">
+                    Beach Tennis
+                  </AlunosTh>
+
+                  <AlunosTh className="text-left w-32">
+                    Funcional
+                  </AlunosTh>
+                </>
+              )}
+
+              {showActions && (
+                <AlunosTh className="text-left w-40">
+                  Ações
+                </AlunosTh>
+              )}
 
             </tr>
           </thead>
@@ -81,12 +108,20 @@ export function AlunosTable({
                   {...aluno}
                   onDelete={() => onDelete(aluno)}
                   onEdit={() => onEdit(aluno)}
+                  onAddSaldo={() => onAddSaldo(aluno)}
+                  showActions={showActions}
+                  showSaldos={showSaldos}
+                  showContato={showContato}
                 />
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={
+                    (showContato ? 5 : 3) +
+                    (showSaldos ? 3 : 0) +
+                    (showActions ? 1 : 0)
+                  }
                   className="p-4 text-center text-gray-500"
                 >
                   Nenhum aluno encontrado.
