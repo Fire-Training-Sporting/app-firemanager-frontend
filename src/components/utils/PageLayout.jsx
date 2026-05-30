@@ -13,6 +13,8 @@ export default function PageLayout({
   contentClassName = "w-full",
   allowOverflow = false,
   customControls = null,
+  showSearch = true,
+  showAddButton = true,
 }) {
   const role = sessionStorage.getItem("cargo");
 
@@ -25,7 +27,7 @@ export default function PageLayout({
           <div className={`flex flex-row items-center mb-4 ${controlsClassName}`}>
             {customControls ? (
               <div className="flex-1">{customControls}</div>
-            ) : (
+            ) : showSearch ? (
               <div className="flex flex-row gap-2 items-center">
                 <input
                   type="text"
@@ -34,8 +36,10 @@ export default function PageLayout({
                   className="border border-gray-300 rounded-md px-4 py-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 w-70"
                 />
               </div>
+            ) : (
+              <div className="flex-1" />
             )}
-            { (role === "root" || role === "Administracao") && (
+            {showAddButton && (role === "root" || role === "Administracao") && (
               <button
                 className="bg-[#2563EA] hover:bg-[#1E40AF] text-white px-6 py-2 rounded-md font-semibold shadow-md transition-all duration-150"
                 onClick={onAdd}
