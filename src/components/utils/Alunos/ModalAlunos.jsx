@@ -33,6 +33,7 @@ export default function ModalAluno({
   const [emailError, setEmailError] = useState("");
   const [telefoneError, setTelefoneError] = useState("");
   const [senhaError, setSenhaError] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
   const [condominios, setCondominios] = useState([]);
   const [submitError, setSubmitError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -83,6 +84,8 @@ export default function ModalAluno({
         aluno.condominio?.id || aluno.condominio || ""
       ),
     });
+
+    setConfirmarSenha("");
   }, [aluno]);
 
   const handleChange = (e) => {
@@ -128,6 +131,9 @@ export default function ModalAluno({
           : ""
       );
 
+    } else if (name === "confirmarSenha") {
+      setConfirmarSenha(value);
+
     } else {
       setForm({
         ...form,
@@ -152,6 +158,18 @@ export default function ModalAluno({
       return;
     }
 
+    if (form.senha.trim()) {
+      if (!confirmarSenha.trim()) {
+        setSubmitError("Confirme a senha.");
+        return;
+      }
+
+      if (form.senha !== confirmarSenha) {
+        setSubmitError("As senhas não conferem.");
+        return;
+      }
+    }
+
     const payload = {
       tipoUsuario: 4,
       nome: form.nome.trim(),
@@ -169,7 +187,7 @@ export default function ModalAluno({
       setSubmitError("");
 
       if (isEditMode) {
-        await api.patch(`/usuarios/${aluno.id}`, payload);
+        await api.put(`/usuarios/${aluno.id}`, payload);
       } else {
         await api.post("/usuarios", payload);
       }
@@ -289,9 +307,15 @@ export default function ModalAluno({
             )}
           </Field>
 
-          <Field label="Senha">
-            <input name="senha" type="password" value={form.senha} onChange={handleChange} placeholder="Mínimo 6 caracteres" className={inputCls} />
-            {senhaError && <p className="text-red-600 text-sm mt-1">{senhaError}</p>}
+          <Field label="Confirmar Senha">
+            <input
+              name="confirmarSenha"
+              type="password"
+              value={confirmarSenha}
+              onChange={handleChange}
+              placeholder="Repita a senha"
+              className={inputCls}
+            />
           </Field>
 
           <Field label="Condomínio">
