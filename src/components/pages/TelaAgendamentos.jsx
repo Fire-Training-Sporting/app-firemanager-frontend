@@ -15,6 +15,74 @@ const search_columns = [
   { label: "Status", value: "status" },
 ];
 
+function getUsuarioLogado() {
+  const usuarioString = sessionStorage.getItem("usuario");
+
+  if (!usuarioString) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(usuarioString);
+  } catch {
+    return null;
+  }
+}
+
+function getUsuarioId(usuario) {
+  return sessionStorage.getItem("userId") ?? usuario?.userId ?? usuario?.id ?? null;
+}
+
+function getItemId(value) {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  if (typeof value === "object") {
+    return value.id ?? value.codigo ?? value.value ?? null;
+  }
+
+  return value;
+}
+
+function normalizarCargo(cargo) {
+  return String(cargo ?? "").trim().toLowerCase();
+}
+
+function usuarioPodeVerAgendamento(agendamento, cargo, usuarioId) {
+  const cargoNormalizado = normalizarCargo(cargo);
+
+  if (cargoNormalizado === "root" || cargoNormalizado === "administracao") {
+    return true;
+  }
+
+  if (!usuarioId) {
+    return false;
+  }
+
+  const usuarioIdString = String(usuarioId);
+
+  if (cargoNormalizado === "professor") {
+    return [agendamento?.professor, agendamento?.rebatedor, agendamento?.auxiliar].some(
+      (participante) => String(getItemId(participante) ?? "") === usuarioIdString
+    );
+  }
+
+  if (cargoNormalizado === "aluno") {
+    const alunoPrincipal = String(getItemId(agendamento?.aluno) ?? "") === usuarioIdString;
+    const alunosGrupo = Array.isArray(agendamento?.alunos)
+      && agendamento.alunos.some((item) => String(getItemId(item) ?? "") === usuarioIdString);
+
+    return alunoPrincipal || alunosGrupo;
+  }
+
+  return false;
+}
+
+function filtrarAgendamentosPorCargo(agendamentos, cargo, usuarioId) {
+  return (agendamentos || []).filter((agendamento) => usuarioPodeVerAgendamento(agendamento, cargo, usuarioId));
+}
+
 export default function TelaAgendamentos() {
   const [showModal, setShowModal] = useState(false);
   const [editAgendamento, setEditAgendamento] = useState(null);
@@ -23,6 +91,9 @@ export default function TelaAgendamentos() {
   const [isLoading, setIsLoading] = useState(false);
   const [agendamentoParaExcluir, setAgendamentoParaExcluir] = useState(null);
   const [agendamentoParaConfirmar, setAgendamentoParaConfirmar] = useState(null);
+  const usuarioLogado = getUsuarioLogado();
+  const cargo = sessionStorage.getItem("cargo");
+  const usuarioId = getUsuarioId(usuarioLogado);
 
   useEffect(() => {
     buscarDados();
@@ -32,8 +103,14 @@ export default function TelaAgendamentos() {
     try {
       setIsLoading(true);
       const response = await api.get("/agendamentos");
-      setAgendamentos(response.data);
-      setAgendamentosOriginais(response.data);
+      const agendamentosPermitidos = filtrarAgendamentosPorCargo(
+        response.data,
+        cargo,
+        usuarioId
+      );
+
+      setAgendamentos(agendamentosPermitidos);
+      setAgendamentosOriginais(agendamentosPermitidos);
     } catch (error) {
       console.error("Erro ao buscar agendamentos:", error);
     } finally {
