@@ -9,6 +9,8 @@ export function AlunosTable({
   onAddSaldo = () => {},
 }) {
   const ITEMS_PER_PAGE = 20;
+  const cargo = sessionStorage.getItem("cargo");
+  const showContato = cargo !== "Professor";
   const showActions = sessionStorage.getItem("cargo") !== "Professor";
   const showSaldos = sessionStorage.getItem("cargo") !== "Professor";
 
@@ -57,13 +59,17 @@ export function AlunosTable({
                 Nome
               </AlunosTh>
 
-              <AlunosTh className="text-left">
-                Email
-              </AlunosTh>
+              {showContato && (
+                <>
+                  <AlunosTh className="text-left">
+                    Email
+                  </AlunosTh>
 
-              <AlunosTh className="text-left">
-                Telefone
-              </AlunosTh>
+                  <AlunosTh className="text-left">
+                    Telefone
+                  </AlunosTh>
+                </>
+              )}
 
               <AlunosTh className="text-left">
                 Endereço
@@ -105,12 +111,17 @@ export function AlunosTable({
                   onAddSaldo={() => onAddSaldo(aluno)}
                   showActions={showActions}
                   showSaldos={showSaldos}
+                  showContato={showContato}
                 />
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={showSaldos ? 9 : 5}
+                  colSpan={
+                    (showContato ? 5 : 3) +
+                    (showSaldos ? 3 : 0) +
+                    (showActions ? 1 : 0)
+                  }
                   className="p-4 text-center text-gray-500"
                 >
                   Nenhum aluno encontrado.
