@@ -73,7 +73,7 @@ export function CondominiosTable({
               </CondominiosTh>
 
               <CondominiosTh>
-                Rua
+                Logradouro
               </CondominiosTh>
 
               <CondominiosTh>
