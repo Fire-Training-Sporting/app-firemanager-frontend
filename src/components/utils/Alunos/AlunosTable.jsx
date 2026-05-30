@@ -6,6 +6,7 @@ export function AlunosTable({
   alunos = [],
   onDelete = () => {},
   onEdit = () => {},
+  onAddSaldo = () => {},
 }) {
   const ITEMS_PER_PAGE = 20;
 
@@ -66,6 +67,18 @@ export function AlunosTable({
                 Endereço
               </AlunosTh>
 
+              <AlunosTh className="text-left w-32">
+                Tênis
+              </AlunosTh>
+
+              <AlunosTh className="text-left w-40">
+                Beach Tennis
+              </AlunosTh>
+
+              <AlunosTh className="text-left w-32">
+                Funcional
+              </AlunosTh>
+
               <AlunosTh className="text-left w-40">
                 Ações
               </AlunosTh>
@@ -81,12 +94,13 @@ export function AlunosTable({
                   {...aluno}
                   onDelete={() => onDelete(aluno)}
                   onEdit={() => onEdit(aluno)}
+                  onAddSaldo={() => onAddSaldo(aluno)}
                 />
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={9}
                   className="p-4 text-center text-gray-500"
                 >
                   Nenhum aluno encontrado.
