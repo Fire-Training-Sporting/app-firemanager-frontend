@@ -8,6 +8,7 @@ export function AlunosRow({
   onDelete = () => {},
   onEdit = () => {},
   onAddSaldo = () => {},
+  showContato = true,
   showActions = true,
   showSaldos = true,
 }) {
@@ -27,13 +28,17 @@ export function AlunosRow({
         {nome}
       </td>
 
-      <td className="px-4 py-3 text-gray-700 font-normal text-sm align-middle">
-        {email}
-      </td>
+      {showContato && (
+        <>
+          <td className="px-4 py-3 text-gray-700 font-normal text-sm align-middle">
+            {email}
+          </td>
 
-      <td className="px-4 py-3 text-gray-700 font-normal text-sm align-middle">
-        {telefone}
-      </td>
+          <td className="px-4 py-3 text-gray-700 font-normal text-sm align-middle">
+            {telefone}
+          </td>
+        </>
+      )}
 
       <td className="px-4 py-3 text-gray-700 font-normal text-sm align-middle">
         {endereco}
