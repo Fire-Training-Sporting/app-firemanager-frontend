@@ -39,9 +39,9 @@ export default function TelaServicos() {
     try {
       const novoStatus = !servico.ativo;
 
-      await api.put(`/servicos/${servico.id}`, {
-        ...servico,
-        ativo: novoStatus,
+      await api.patch(`/servicos/${servico.id}`, {
+        nome: servico.nome,
+        ativo: novoStatus ? 1 : 0,
       });
 
       const listaAtualizada = servicos.map((item) =>

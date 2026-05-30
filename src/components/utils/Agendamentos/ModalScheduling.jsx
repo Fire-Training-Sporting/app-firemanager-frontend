@@ -126,7 +126,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
 
   const formatarHoraPayload = (hora) => (hora ? `${hora.slice(0, 5)}:00` : null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!horaInicio || !horaFim) {
@@ -145,11 +145,14 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
     const funcionarioRebatedor = funcionarios.find((item) => item.funcao === "Rebatedor" && item.funcionarioId);
     const funcionarioAuxiliar = funcionarios.find((item) => item.funcao === "Auxiliar" && item.funcionarioId);
 
+    const alunosIds = alunosSelecionados
+      .map((item) => Number(item.alunoId))
+      .filter(Boolean);
+
     const agendamentoData = {
-      alunos: alunosSelecionados
-        .map(a => a.alunoId)
-        .filter(Boolean)
-        .map(Number),
+      aluno: alunosIds[0] ?? null,
+      alunos: alunosIds,
+      tipo: alunosIds.length > 1 ? "GRUPO" : "INDIVIDUAL",
       professor: funcionarioProfessor?.funcionarioId ? Number(funcionarioProfessor.funcionarioId) : null,
       auxiliar: funcionarioAuxiliar?.funcionarioId ? Number(funcionarioAuxiliar.funcionarioId) : null,
       rebatedor: funcionarioRebatedor?.funcionarioId ? Number(funcionarioRebatedor.funcionarioId) : null,
@@ -164,12 +167,12 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
     try {
       setLoading(true);
       if (isEditMode) {
-        api.patch(`/agendamentos/${agendamento.id}`, agendamentoData);
+        await api.patch(`/agendamentos/${agendamento.id}`, agendamentoData);
         if (onCreated) {
           onCreated();
         }
       } else {
-        api.post("/agendamentos", agendamentoData);
+        await api.post("/agendamentos", agendamentoData);
         if (onCreated) {
           onCreated();
         }
