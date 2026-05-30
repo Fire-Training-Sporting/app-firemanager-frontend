@@ -1,9 +1,14 @@
-export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, aluno, alunos, professor, rebatedor, auxiliar, status, onEdit, onDelete }) {
+export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, aluno, alunos, professor, rebatedor, auxiliar, status, onEdit, onConfirm, onDelete }) {
+  const statusNormalizado = String(status || "").trim().toLowerCase();
   const statusStyle = {
-    Confirmada: "bg-green-100 text-green-700",
-    Pendente: "bg-yellow-100 text-yellow-700",
-    Cancelada: "bg-red-100 text-red-700",
-  }[status] || "bg-gray-100 text-gray-700";
+    confirmado: "bg-green-100 text-green-700",
+    pendente: "bg-yellow-100 text-yellow-700",
+    cancelado: "bg-red-100 text-red-700",
+  }[statusNormalizado] || "bg-gray-100 text-gray-700";
+
+  const statusLabel = statusNormalizado
+    ? statusNormalizado.charAt(0).toUpperCase() + statusNormalizado.slice(1)
+    : "-";
 
   // Tratar como será exibido o valor, considerando que pode ser um objeto ou uma string
   const getDisplayValue = (value) => {
@@ -84,13 +89,20 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">{getDisplayValue(auxiliar)}</td>
       <td className="px-4 py-2 text-sm font-semibold align-middle">
         <span className={`px-3 py-1 rounded-full ${statusStyle}`}>
-          {status}
+          {statusLabel}
         </span>
       </td>
       <td className="px-4 py-3 text-center align-middle">
         <div className="flex justify-center gap-2">
-          <button className="px-4 py-2 bg-green-600 text-white text-xs rounded-md hover:bg-green-700 shadow-sm transition-all">
-            Confirmar
+          <button
+            className={`px-4 py-2 text-xs rounded-md shadow-sm transition-all disabled:cursor-not-allowed ${statusNormalizado === "confirmado"
+              ? "bg-gray-400 text-gray-100 hover:bg-gray-400 disabled:bg-gray-400"
+              : "bg-green-600 text-white hover:bg-green-700 disabled:bg-green-300"
+            }`}
+            onClick={onConfirm}
+            disabled={statusNormalizado !== "pendente"}
+          >
+            {statusNormalizado === "pendente" ? "Confirmar" : statusLabel}
           </button>
           <button
             className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"

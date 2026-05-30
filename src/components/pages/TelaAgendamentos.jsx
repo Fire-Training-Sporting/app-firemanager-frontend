@@ -22,6 +22,7 @@ export default function TelaAgendamentos() {
   const [agendamentosOriginais, setAgendamentosOriginais] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [agendamentoParaExcluir, setAgendamentoParaExcluir] = useState(null);
+  const [agendamentoParaConfirmar, setAgendamentoParaConfirmar] = useState(null);
 
   useEffect(() => {
     buscarDados();
@@ -171,6 +172,33 @@ export default function TelaAgendamentos() {
     setAgendamentoParaExcluir(null);
   };
 
+  const solicitarConfirmacao = (agendamento) => {
+    setAgendamentoParaConfirmar(agendamento);
+  };
+
+  const cancelarConfirmacao = () => {
+    setAgendamentoParaConfirmar(null);
+  };
+
+  const confirmarAgendamento = async () => {
+    if (!agendamentoParaConfirmar?.id) {
+      return;
+    }
+
+    try {
+      await api.patch(`/agendamentos/status/${agendamentoParaConfirmar.id}`, {
+        status: "confirmado",
+        observacao: agendamentoParaConfirmar.observacao || "",
+      });
+
+      setAgendamentoParaConfirmar(null);
+      await buscarDados();
+    } catch (error) {
+      console.error("Erro ao confirmar agendamento:", error);
+      window.alert("Não foi possível confirmar o agendamento. Tente novamente.");
+    }
+  };
+
   const confirmarExclusao = async () => {
     if (!agendamentoParaExcluir?.id) {
       return;
@@ -227,6 +255,7 @@ export default function TelaAgendamentos() {
         <AgendamentosTable
           agendamentos={agendamentos}
           onEdit={editarDados}
+          onConfirm={solicitarConfirmacao}
           onDelete={solicitarExclusao}
         />
       </div>
@@ -259,6 +288,27 @@ export default function TelaAgendamentos() {
         cancelLabel="Não, cancelar"
         onCancel={cancelarExclusao}
         onConfirm={confirmarExclusao}
+      />
+
+      <ConfirmationModal
+        isOpen={!!agendamentoParaConfirmar}
+        title="Confirmar agendamento"
+        message="Deseja confirmar este agendamento no sistema?"
+        items={agendamentoParaConfirmar ? [
+          { label: "ID", value: agendamentoParaConfirmar.id },
+          { label: "Aluno", value: formatarValor(agendamentoParaConfirmar.aluno) },
+          { label: "Data", value: formatarValor(agendamentoParaConfirmar.data) },
+          { label: "Hora início", value: formatarValor(agendamentoParaConfirmar.horaInicio) },
+          { label: "Hora fim", value: formatarValor(agendamentoParaConfirmar.horaFim) },
+          { label: "Condomínio", value: formatarValor(agendamentoParaConfirmar.condominio) },
+          { label: "Professor", value: formatarValor(agendamentoParaConfirmar.professor) },
+          { label: "Status atual", value: formatarValor(agendamentoParaConfirmar.status) },
+        ] : []}
+        confirmLabel="Sim, confirmar"
+        cancelLabel="Não, cancelar"
+        variant="success"
+        onCancel={cancelarConfirmacao}
+        onConfirm={confirmarAgendamento}
       />
     </PageLayout>
   </div>
