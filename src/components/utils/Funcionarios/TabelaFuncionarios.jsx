@@ -4,6 +4,7 @@ import TableBase from '../TableBase';
 export default function TabelaFuncionarios({ funcionarios = [], onEdit = () => {}, onDelete = () => {} }) {
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
+  const showActions = sessionStorage.getItem("cargo") !== "Professor";
 
   const totalItems = funcionarios.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
@@ -27,7 +28,10 @@ export default function TabelaFuncionarios({ funcionarios = [], onEdit = () => {
     { label: 'Email', key: 'email', className: 'text-left' },
     { label: 'Telefone', key: 'telefone', className: 'text-left' },
     { label: 'Tipo', key: 'tipoUsuario', className: 'text-left', render: (row) => (row.tipoUsuario?.cargo || row.perfil || '') },
-    {
+  ];
+
+  if (showActions) {
+    columns.push({
       label: 'Ações',
       key: 'acoes',
       className: 'text-center w-40',
@@ -37,8 +41,8 @@ export default function TabelaFuncionarios({ funcionarios = [], onEdit = () => {
           <button onClick={() => onDelete(row)} className="px-4 py-2 bg-[#DC2625] text-white text-xs font-medium rounded-md hover:bg-[#B91C1C] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer">Excluir</button>
         </div>
       ),
-    },
-  ];
+    });
+  }
 
   return (
     <div className="w-full">

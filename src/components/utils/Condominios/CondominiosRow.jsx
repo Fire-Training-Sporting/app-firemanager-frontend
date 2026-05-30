@@ -8,6 +8,7 @@ export function CondominiosRow({
   bairro,
   onEdit = () => { },
   onDelete = () => { },
+  showActions = true,
 }) {
 
   return (
@@ -42,6 +43,7 @@ export function CondominiosRow({
         {bairro}
       </td>
 
+      {showActions && (
       <td className="px-4 py-3 text-center align-middle">
 
         <div className="flex justify-center gap-2">
@@ -63,6 +65,7 @@ export function CondominiosRow({
         </div>
 
       </td>
+      )}
 
     </tr>
   );

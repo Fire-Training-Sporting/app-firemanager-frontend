@@ -1,4 +1,4 @@
-export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, aluno, alunos, professor, rebatedor, auxiliar, status, onEdit, onConfirm, onDelete }) {
+export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, aluno, alunos, professor, rebatedor, auxiliar, status, onEdit, onConfirm, onDelete, showActions = true }) {
   const statusNormalizado = String(status || "").trim().toLowerCase();
   const statusStyle = {
     confirmado: "bg-green-100 text-green-700",
@@ -92,32 +92,34 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
           {statusLabel}
         </span>
       </td>
-      <td className="px-4 py-3 text-center align-middle">
-        <div className="flex justify-center gap-2">
-          <button
-            className={`px-4 py-2 text-xs rounded-md shadow-sm transition-all disabled:cursor-not-allowed ${statusNormalizado === "confirmado"
-              ? "bg-gray-400 text-gray-100 hover:bg-gray-400 disabled:bg-gray-400"
-              : "bg-green-600 text-white hover:bg-green-700 disabled:bg-green-300"
-            }`}
-            onClick={onConfirm}
-            disabled={statusNormalizado !== "pendente"}
-          >
-            {statusNormalizado === "pendente" ? "Confirmar" : statusLabel}
-          </button>
-          <button
-            className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
-            onClick={onEdit}
-          >
-            Editar
-          </button>
-          <button
-            className="px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 shadow-sm transition-all"
-            onClick={onDelete}
-          >
-            Excluir
-          </button>
-        </div>
-      </td>
+      {showActions && (
+        <td className="px-4 py-3 text-center align-middle">
+          <div className="flex justify-center gap-2">
+            <button
+              className={`px-4 py-2 text-xs rounded-md shadow-sm transition-all disabled:cursor-not-allowed ${statusNormalizado === "confirmado"
+                ? "bg-gray-400 text-gray-100 hover:bg-gray-400 disabled:bg-gray-400"
+                : "bg-green-600 text-white hover:bg-green-700 disabled:bg-green-300"
+              }`}
+              onClick={onConfirm}
+              disabled={statusNormalizado !== "pendente"}
+            >
+              {statusNormalizado === "pendente" ? "Confirmar" : statusLabel}
+            </button>
+            <button
+              className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
+              onClick={onEdit}
+            >
+              Editar
+            </button>
+            <button
+              className="px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 shadow-sm transition-all"
+              onClick={onDelete}
+            >
+              Excluir
+            </button>
+          </div>
+        </td>
+      )}
     </tr>
   );
 }

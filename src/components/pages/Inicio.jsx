@@ -37,6 +37,11 @@ const cols = ["Data", "HorÃ¡rio", "Quadra", "Prof", "Reba", "Aux", "Status", "AÃ
 
 function Inicio() {
   const [agendamentos, setAgendamentos] = useState(mockData);
+  const showActions = sessionStorage.getItem("cargo") !== "Professor";
+  const tableCols = showActions ? cols : cols.slice(0, -1);
+  const gridTemplate = showActions
+    ? "grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_220px]"
+    : "grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr]";
 
   const total = agendamentos.length;
   const confirmados = agendamentos.filter((a) => a.status.toLowerCase().trim() === "confirmado").length;
@@ -61,8 +66,8 @@ function Inicio() {
       </div>
 
       <TableBase>
-        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_220px] gap-2 mb-4">
-          {cols.map((col) => (
+        <div className={`grid ${gridTemplate} gap-2 mb-4`}>
+          {tableCols.map((col) => (
             <div key={col} className="text-xl bg-[#363636] p-3 rounded-lg text-center font-semibold">
               {col}
             </div>
@@ -73,7 +78,7 @@ function Inicio() {
           {agendamentos.map((ag, index) => {
             const bg = index % 2 === 0 ? "bg-[#F99A4D]" : "bg-[#F8821E]";
             return (
-              <div key={ag.id} className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_220px] gap-3 items-center">
+              <div key={ag.id} className={`grid ${gridTemplate} gap-3 items-center`}>
                 <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{ag.data}</div>
                 <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{ag.horario}</div>
                 <div className={`text-xl ${bg} p-3 rounded-lg text-center font-semibold`}>{ag.quadra}</div>
@@ -83,22 +88,24 @@ function Inicio() {
                 <div className={`text-xl ${getStatusColor(ag.status)} p-3 rounded-lg text-center font-semibold text-white`}>
                   {capitalize(ag.status)}
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleConfirm(ag.id)}
-                    disabled={ag.status.toLowerCase().trim() === "confirmado"}
-                    className="flex-1 bg-[#17A34A] hover:bg-[#166534] text-white px-4 py-3 rounded-lg font-semibold text-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Confirmar
-                  </button>
-                  <button
-                    onClick={() => handleCancel(ag.id)}
-                    disabled={ag.status.toLowerCase().trim() === "cancelado"}
-                    className="flex-1 bg-[#DC2625] hover:bg-[#B91C1C] text-white px-4 py-3 rounded-lg font-semibold text-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Cancelar
-                  </button>
-                </div>
+                {showActions && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleConfirm(ag.id)}
+                      disabled={ag.status.toLowerCase().trim() === "confirmado"}
+                      className="flex-1 bg-[#17A34A] hover:bg-[#166534] text-white px-4 py-3 rounded-lg font-semibold text-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Confirmar
+                    </button>
+                    <button
+                      onClick={() => handleCancel(ag.id)}
+                      disabled={ag.status.toLowerCase().trim() === "cancelado"}
+                      className="flex-1 bg-[#DC2625] hover:bg-[#B91C1C] text-white px-4 py-3 rounded-lg font-semibold text-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}

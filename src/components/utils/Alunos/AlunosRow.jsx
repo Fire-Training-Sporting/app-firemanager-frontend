@@ -8,6 +8,7 @@ export function AlunosRow({
   onDelete = () => {},
   onEdit = () => {},
   onAddSaldo = () => {},
+  showActions = true,
 }) {
 
   const saldoTenis = saldosPorServico["Tênis"] ?? 0;
@@ -55,41 +56,43 @@ export function AlunosRow({
         </span>
       </td>
 
-      <td className="px-4 py-3 text-center align-middle">
-        <div className="flex justify-center gap-2">
+      {showActions && (
+        <td className="px-4 py-3 text-center align-middle">
+          <div className="flex justify-center gap-2">
 
-          <button
-            onClick={(event) => {
-              event.stopPropagation();
-              onAddSaldo();
-            }}
-            className="px-4 py-2 bg-[#16A34A] text-white text-xs font-medium rounded-md hover:bg-[#15803D] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
-          >
-            Saldo
-          </button>
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                onAddSaldo();
+              }}
+              className="px-4 py-2 bg-[#16A34A] text-white text-xs font-medium rounded-md hover:bg-[#15803D] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
+            >
+              Saldo
+            </button>
 
-          <button
-            onClick={(event) => {
-              event.stopPropagation();
-              onEdit();
-            }}
-            className="px-4 py-2 bg-[#2563EA] text-white text-xs font-medium rounded-md hover:bg-[#1E40AF] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
-          >
-            Editar
-          </button>
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                onEdit();
+              }}
+              className="px-4 py-2 bg-[#2563EA] text-white text-xs font-medium rounded-md hover:bg-[#1E40AF] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
+            >
+              Editar
+            </button>
 
-          <button
-            onClick={(event) => {
-              event.stopPropagation();
-              onDelete();
-            }}
-            className="px-4 py-2 bg-[#DC2625] text-white text-xs font-medium rounded-md hover:bg-[#B91C1C] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
-          >
-            Excluir
-          </button>
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                onDelete();
+              }}
+              className="px-4 py-2 bg-[#DC2625] text-white text-xs font-medium rounded-md hover:bg-[#B91C1C] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
+            >
+              Excluir
+            </button>
 
-        </div>
-      </td>
+          </div>
+        </td>
+      )}
 
     </tr>
   );

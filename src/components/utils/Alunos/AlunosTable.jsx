@@ -9,6 +9,7 @@ export function AlunosTable({
   onAddSaldo = () => {},
 }) {
   const ITEMS_PER_PAGE = 20;
+  const showActions = sessionStorage.getItem("cargo") !== "Professor";
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -79,9 +80,11 @@ export function AlunosTable({
                 Funcional
               </AlunosTh>
 
-              <AlunosTh className="text-left w-40">
-                Ações
-              </AlunosTh>
+              {showActions && (
+                <AlunosTh className="text-left w-40">
+                  Ações
+                </AlunosTh>
+              )}
 
             </tr>
           </thead>
@@ -95,12 +98,13 @@ export function AlunosTable({
                   onDelete={() => onDelete(aluno)}
                   onEdit={() => onEdit(aluno)}
                   onAddSaldo={() => onAddSaldo(aluno)}
+                  showActions={showActions}
                 />
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={showActions ? 9 : 8}
                   className="p-4 text-center text-gray-500"
                 >
                   Nenhum aluno encontrado.
