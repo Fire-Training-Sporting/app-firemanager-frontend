@@ -4,6 +4,7 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
     confirmado: "bg-green-100 text-green-700",
     pendente: "bg-yellow-100 text-yellow-700",
     cancelado: "bg-red-100 text-red-700",
+    finalizado: "bg-[#F8821E] text-white",
   }[statusNormalizado] || "bg-gray-100 text-gray-700";
 
   const statusLabel = statusNormalizado
@@ -136,18 +137,22 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
                   }
                 })()}
 
-                <button
-                  className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
-                  onClick={onEdit}
-                >
-                  Editar
-                </button>
-                <button
-                  className="px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 shadow-sm transition-all"
-                  onClick={onDelete}
-                >
-                  Excluir
-                </button>
+                {statusNormalizado !== "cancelado" && (
+                  <>
+                    <button
+                      className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
+                      onClick={onEdit}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 shadow-sm transition-all"
+                      onClick={onDelete}
+                    >
+                      Cancelar
+                    </button>
+                  </>
+                )}
               </>
             )}
           </div>

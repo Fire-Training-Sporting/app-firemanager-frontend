@@ -89,7 +89,9 @@ export default function TelaAgendamentos() {
   const [agendamentos, setAgendamentos] = useState([]);
   const [agendamentosOriginais, setAgendamentosOriginais] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [agendamentoParaExcluir, setAgendamentoParaExcluir] = useState(null);
+  const [agendamentoParaCancelar, setAgendamentoParaCancelar] = useState(null);
+  const [observacaoCancelamento, setObservacaoCancelamento] = useState("");
+  const [erroCancelamento, setErroCancelamento] = useState("");
   const [agendamentoParaConfirmar, setAgendamentoParaConfirmar] = useState(null);
   const [agendamentoParaFinalizar, setAgendamentoParaFinalizar] = useState(null);
   const usuarioLogado = getUsuarioLogado();
@@ -241,13 +243,17 @@ export default function TelaAgendamentos() {
     setShowModal(true);
   };
 
-  const solicitarExclusao = (id) => {
+  const solicitarCancelamento = (id) => {
     const agendamento = agendamentos.find((item) => item.id === id);
-    setAgendamentoParaExcluir(agendamento ?? { id });
+    setAgendamentoParaCancelar(agendamento ?? { id });
+    setObservacaoCancelamento(agendamento?.observacao ?? "");
+    setErroCancelamento("");
   };
 
-  const cancelarExclusao = () => {
-    setAgendamentoParaExcluir(null);
+  const cancelarCancelamento = () => {
+    setAgendamentoParaCancelar(null);
+    setObservacaoCancelamento("");
+    setErroCancelamento("");
   };
 
   const solicitarConfirmacao = (agendamento) => {
@@ -309,18 +315,30 @@ export default function TelaAgendamentos() {
     setAgendamentoParaFinalizar(null);
   };
 
-  const confirmarExclusao = async () => {
-    if (!agendamentoParaExcluir?.id) {
+  const confirmarCancelamento = async () => {
+    if (!agendamentoParaCancelar?.id) {
+      return;
+    }
+
+    const observacao = observacaoCancelamento.trim();
+
+    if (!observacao) {
+      setErroCancelamento("A observação é obrigatória para cancelar o agendamento.");
       return;
     }
 
     try {
-      await api.delete(`/agendamentos/${agendamentoParaExcluir.id}`);
-      setAgendamentoParaExcluir(null);
+      await api.patch(`/agendamentos/status/${agendamentoParaCancelar.id}`, {
+        status: "cancelado",
+        observacao,
+      });
+      setAgendamentoParaCancelar(null);
+      setObservacaoCancelamento("");
+      setErroCancelamento("");
       await buscarDados();
     } catch (error) {
-      console.error("Erro ao excluir agendamento:", error);
-      window.alert("Não foi possível excluir o agendamento. Tente novamente.");
+      console.error("Erro ao cancelar agendamento:", error);
+      window.alert("Não foi possível cancelar o agendamento. Tente novamente.");
     }
   };
 
@@ -366,7 +384,7 @@ export default function TelaAgendamentos() {
           agendamentos={agendamentos}
           onEdit={editarDados}
           onConfirm={solicitarConfirmacao}
-          onDelete={solicitarExclusao}
+          onDelete={solicitarCancelamento}
           onFinalize={solicitarFinalizacao}
         />
       </div>
@@ -380,26 +398,47 @@ export default function TelaAgendamentos() {
       )}
 
       <ConfirmationModal
-        isOpen={!!agendamentoParaExcluir}
-        title="Confirmar exclusão"
-        message="Deseja realmente excluir este agendamento?"
-        items={agendamentoParaExcluir ? [
-          { label: "ID", value: agendamentoParaExcluir.id },
-          { label: "Aluno", value: formatarValor(agendamentoParaExcluir.aluno) },
-          { label: "Data", value: formatarValor(agendamentoParaExcluir.data) },
-          { label: "Hora início", value: formatarValor(agendamentoParaExcluir.horaInicio) },
-          { label: "Hora fim", value: formatarValor(agendamentoParaExcluir.horaFim) },
-          { label: "Condomínio", value: formatarValor(agendamentoParaExcluir.condominio) },
-          { label: "Professor", value: formatarValor(agendamentoParaExcluir.professor) },
-          { label: "Rebatedor", value: formatarValor(agendamentoParaExcluir.rebatedor) },
-          { label: "Auxiliar", value: formatarValor(agendamentoParaExcluir.auxiliar) },
-          { label: "Status", value: formatarValor(agendamentoParaExcluir.status) },
+        isOpen={!!agendamentoParaCancelar}
+        title="Cancelar agendamento"
+        message="Informe uma observação para registrar o motivo do cancelamento."
+        items={agendamentoParaCancelar ? [
+          { label: "ID", value: agendamentoParaCancelar.id },
+          { label: "Aluno", value: formatarValor(agendamentoParaCancelar.aluno) },
+          { label: "Data", value: formatarValor(agendamentoParaCancelar.data) },
+          { label: "Hora início", value: formatarValor(agendamentoParaCancelar.horaInicio) },
+          { label: "Hora fim", value: formatarValor(agendamentoParaCancelar.horaFim) },
+          { label: "Condomínio", value: formatarValor(agendamentoParaCancelar.condominio) },
+          { label: "Professor", value: formatarValor(agendamentoParaCancelar.professor) },
+          { label: "Rebatedor", value: formatarValor(agendamentoParaCancelar.rebatedor) },
+          { label: "Auxiliar", value: formatarValor(agendamentoParaCancelar.auxiliar) },
+          { label: "Status", value: formatarValor(agendamentoParaCancelar.status) },
         ] : []}
-        confirmLabel="Sim, excluir"
-        cancelLabel="Não, cancelar"
-        onCancel={cancelarExclusao}
-        onConfirm={confirmarExclusao}
-      />
+        confirmLabel="Sim, cancelar"
+        cancelLabel="Não, voltar"
+        confirmDisabled={!observacaoCancelamento.trim()}
+        onCancel={cancelarCancelamento}
+        onConfirm={confirmarCancelamento}
+      >
+        <div className="space-y-2">
+          <label htmlFor="observacao-cancelamento" className="block text-sm font-medium text-gray-700">
+            Observação
+          </label>
+          <textarea
+            id="observacao-cancelamento"
+            value={observacaoCancelamento}
+            onChange={(e) => {
+              setObservacaoCancelamento(e.target.value);
+              if (erroCancelamento) {
+                setErroCancelamento("");
+              }
+            }}
+            rows={4}
+            placeholder="Ex.: Chuva forte"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+          />
+          {erroCancelamento && <p className="text-sm text-red-600">{erroCancelamento}</p>}
+        </div>
+      </ConfirmationModal>
 
       <ConfirmationModal
         isOpen={!!agendamentoParaConfirmar}
