@@ -11,7 +11,7 @@ const search_columns = [
   { label: "Nome", value: "nome" },
   { label: "Email", value: "email" },
   { label: "Telefone", value: "telefone" },
-  { label: "Tipo", value: "perfil" },
+  { label: "Tipo", value: "tipoUsuario.cargo" },
 ];
 
 export default function TelaFuncionarios() {
@@ -97,59 +97,48 @@ export default function TelaFuncionarios() {
         return;
       }
 
+      function getFieldValue(obj, path) {
+        if (!path) return undefined;
+        const parts = path.split(".");
+        let cur = obj;
+        for (const p of parts) {
+          if (cur == null) return undefined;
+          cur = cur[p];
+        }
+        return cur;
+      }
+
       const filtrados =
-        funcionariosOriginais.filter(
-          (funcionario) => {
+        funcionariosOriginais.filter((funcionario) => {
+          const fieldValue = getFieldValue(funcionario, field);
 
-            const fieldValue =
-              funcionario[field];
+          const compareValue = value.toLowerCase().trim();
 
-            const compareValue =
-              value.toLowerCase();
+          let fieldString = "";
 
-            let fieldString = "";
-
-            if (
-              typeof fieldValue === "object" &&
-              fieldValue !== null
-            ) {
-
-              fieldString =
-                fieldValue.nome
-                  ? fieldValue.nome.toLowerCase()
-                  : "";
-
-            } else if (
-              typeof fieldValue === "string"
-            ) {
-
-              fieldString =
-                fieldValue.toLowerCase();
-
-            } else if (
-              typeof fieldValue === "number"
-            ) {
-
-              fieldString =
-                fieldValue
-                  .toString()
-                  .toLowerCase();
-
-            } else if (
-              fieldValue instanceof Date
-            ) {
-
-              fieldString =
-                fieldValue
-                  .toLocaleDateString("pt-BR")
-                  .toLowerCase();
+          if (typeof fieldValue === "object" && fieldValue !== null) {
+            if (fieldValue.nome) {
+              fieldString = String(fieldValue.nome).toLowerCase();
+            } else if (fieldValue.cargo) {
+              fieldString = String(fieldValue.cargo).toLowerCase();
+            } else if (fieldValue.perfil) {
+              fieldString = String(fieldValue.perfil).toLowerCase();
+            } else {
+              fieldString = Object.values(fieldValue)
+                .filter((v) => v != null)
+                .join(" ")
+                .toLowerCase();
             }
-
-            return fieldString.includes(
-              compareValue
-            );
+          } else if (typeof fieldValue === "string") {
+            fieldString = fieldValue.toLowerCase();
+          } else if (typeof fieldValue === "number") {
+            fieldString = fieldValue.toString().toLowerCase();
+          } else if (fieldValue instanceof Date) {
+            fieldString = fieldValue.toLocaleDateString("pt-BR").toLowerCase();
           }
-        );
+
+          return fieldString.includes(compareValue);
+        });
 
       setFuncionarios(filtrados);
 
