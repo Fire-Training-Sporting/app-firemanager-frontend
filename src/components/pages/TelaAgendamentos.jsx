@@ -347,7 +347,7 @@ export default function TelaAgendamentos() {
       return valor
         .map((item) => {
           if (item && typeof item === "object") {
-            return item.nome ?? item.nomeCompleto ?? item.aluno?.nome ?? "-";
+            return item.nome ?? item.nomeCompleto ?? item.descricao ?? item.titulo ?? item.razaoSocial ?? item.aluno?.nome ?? "-";
           }
 
           return item ?? "-";
@@ -357,7 +357,7 @@ export default function TelaAgendamentos() {
     }
 
     if (valor && typeof valor === "object") {
-      return valor.nome ?? "-";
+      return valor.nome ?? valor.nomeCompleto ?? valor.descricao ?? valor.titulo ?? valor.razaoSocial ?? valor.aluno?.nome ?? "-";
     }
 
     return valor ?? "-";
@@ -467,7 +467,7 @@ export default function TelaAgendamentos() {
         message="Deseja marcar este agendamento como finalizado? Esta ação não pode ser desfeita."
         items={agendamentoParaFinalizar ? [
           { label: "ID", value: agendamentoParaFinalizar.id },
-          { label: "Aluno", value: formatarValor(agendamentoParaFinalizar.aluno) },
+          { label: "Aluno", value: formatarValor(agendamentoParaFinalizar.alunos?.length ? agendamentoParaFinalizar.alunos : agendamentoParaFinalizar.aluno) },
           { label: "Data", value: formatarValor(agendamentoParaFinalizar.data) },
           { label: "Hora fim", value: formatarValor(agendamentoParaFinalizar.horaFim) },
           { label: "Status atual", value: formatarValor(agendamentoParaFinalizar.status) },
