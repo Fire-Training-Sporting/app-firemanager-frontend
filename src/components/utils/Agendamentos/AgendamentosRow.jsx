@@ -1,4 +1,4 @@
-export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, aluno, alunos, professor, rebatedor, auxiliar, status, onEdit, onConfirm, onDelete, showActions = true }) {
+export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, aluno, alunos, professor, rebatedor, auxiliar, status, onEdit, onConfirm, onDelete, onFinalize, showActions = true }) {
   const statusNormalizado = String(status || "").trim().toLowerCase();
   const statusStyle = {
     confirmado: "bg-green-100 text-green-700",
@@ -95,28 +95,61 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
       {showActions && (
         <td className="px-4 py-3 text-center align-middle">
           <div className="flex justify-center gap-2">
-            <button
-              className={`px-4 py-2 text-xs rounded-md shadow-sm transition-all disabled:cursor-not-allowed ${statusNormalizado === "confirmado"
-                ? "bg-gray-400 text-gray-100 hover:bg-gray-400 disabled:bg-gray-400"
-                : "bg-green-600 text-white hover:bg-green-700 disabled:bg-green-300"
-              }`}
-              onClick={onConfirm}
-              disabled={statusNormalizado !== "pendente"}
-            >
-              {statusNormalizado === "pendente" ? "Confirmar" : statusLabel}
-            </button>
-            <button
-              className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
-              onClick={onEdit}
-            >
-              Editar
-            </button>
-            <button
-              className="px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 shadow-sm transition-all"
-              onClick={onDelete}
-            >
-              Excluir
-            </button>
+            {statusNormalizado === "finalizado" ? null : (
+              <>
+                {statusNormalizado === "pendente" && (
+                  <button
+                    className="px-4 py-2 text-xs rounded-md shadow-sm transition-all bg-green-600 text-white hover:bg-green-700"
+                    onClick={onConfirm}
+                  >
+                    Confirmar
+                  </button>
+                )}
+
+                {statusNormalizado === "confirmado" && (() => {
+                  try {
+                    const parsedDate = parseDate(data);
+                    let end = null;
+                    if (parsedDate) {
+                      end = new Date(parsedDate.getTime());
+                      if (typeof horaFim === 'string' && horaFim.length) {
+                        const parts = horaFim.split(':');
+                        const hh = Number(parts[0] ?? 0);
+                        const mm = Number(parts[1] ?? 0);
+                        end.setHours(hh, mm, 0, 0);
+                      }
+                    }
+                    const now = new Date();
+                    const podeFinalizar = end && now > end;
+
+                    return (
+                      <button
+                        className={`px-4 py-2 text-xs rounded-md shadow-sm transition-all ${podeFinalizar ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-700 cursor-not-allowed'}`}
+                        onClick={onFinalize}
+                        disabled={!podeFinalizar}
+                      >
+                        Finalizar
+                      </button>
+                    );
+                  } catch (e) {
+                    return null;
+                  }
+                })()}
+
+                <button
+                  className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
+                  onClick={onEdit}
+                >
+                  Editar
+                </button>
+                <button
+                  className="px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 shadow-sm transition-all"
+                  onClick={onDelete}
+                >
+                  Excluir
+                </button>
+              </>
+            )}
           </div>
         </td>
       )}

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {AgendamentosRow} from "./AgendamentosRow";
 import AgendamentosTh from "./AgendamentosTh";
 
-export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDelete }) {
+export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDelete, onFinalize }) {
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
   const showActions = sessionStorage.getItem("cargo") !== "Professor";
@@ -52,6 +52,7 @@ export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDele
                   onEdit={() => onEdit(agendamento)}
                   onConfirm={() => onConfirm(agendamento)}
                   onDelete={() => onDelete(agendamento.id)}
+                  onFinalize={() => onFinalize && onFinalize(agendamento)}
                   showActions={showActions}
                 />
               ))

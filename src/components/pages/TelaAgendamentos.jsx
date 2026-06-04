@@ -91,6 +91,7 @@ export default function TelaAgendamentos() {
   const [isLoading, setIsLoading] = useState(false);
   const [agendamentoParaExcluir, setAgendamentoParaExcluir] = useState(null);
   const [agendamentoParaConfirmar, setAgendamentoParaConfirmar] = useState(null);
+  const [agendamentoParaFinalizar, setAgendamentoParaFinalizar] = useState(null);
   const usuarioLogado = getUsuarioLogado();
   const cargo = sessionStorage.getItem("cargo");
   const usuarioId = getUsuarioId(usuarioLogado);
@@ -253,6 +254,10 @@ export default function TelaAgendamentos() {
     setAgendamentoParaConfirmar(agendamento);
   };
 
+  const solicitarFinalizacao = (agendamento) => {
+    setAgendamentoParaFinalizar(agendamento);
+  };
+
   const cancelarConfirmacao = () => {
     setAgendamentoParaConfirmar(null);
   };
@@ -274,6 +279,34 @@ export default function TelaAgendamentos() {
       console.error("Erro ao confirmar agendamento:", error);
       window.alert("Não foi possível confirmar o agendamento. Tente novamente.");
     }
+  };
+
+  const finalizarAgendamento = async (agendamento) => {
+    if (!agendamento?.id) return;
+
+    try {
+      setIsLoading(true);
+      await api.patch(`/agendamentos/status/${agendamento.id}`, {
+        status: "finalizado",
+        observacao: agendamento.observacao || "",
+      });
+      await buscarDados();
+    } catch (error) {
+      console.error("Erro ao finalizar agendamento:", error);
+      window.alert("Não foi possível finalizar o agendamento. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const cancelarFinalizacao = () => {
+    setAgendamentoParaFinalizar(null);
+  };
+
+  const confirmarFinalizacao = async () => {
+    if (!agendamentoParaFinalizar?.id) return;
+    await finalizarAgendamento(agendamentoParaFinalizar);
+    setAgendamentoParaFinalizar(null);
   };
 
   const confirmarExclusao = async () => {
@@ -334,6 +367,7 @@ export default function TelaAgendamentos() {
           onEdit={editarDados}
           onConfirm={solicitarConfirmacao}
           onDelete={solicitarExclusao}
+          onFinalize={solicitarFinalizacao}
         />
       </div>
 
@@ -386,6 +420,24 @@ export default function TelaAgendamentos() {
         variant="success"
         onCancel={cancelarConfirmacao}
         onConfirm={confirmarAgendamento}
+      />
+
+      <ConfirmationModal
+        isOpen={!!agendamentoParaFinalizar}
+        title="Finalizar agendamento"
+        message="Deseja marcar este agendamento como finalizado? Esta ação não pode ser desfeita."
+        items={agendamentoParaFinalizar ? [
+          { label: "ID", value: agendamentoParaFinalizar.id },
+          { label: "Aluno", value: formatarValor(agendamentoParaFinalizar.aluno) },
+          { label: "Data", value: formatarValor(agendamentoParaFinalizar.data) },
+          { label: "Hora fim", value: formatarValor(agendamentoParaFinalizar.horaFim) },
+          { label: "Status atual", value: formatarValor(agendamentoParaFinalizar.status) },
+        ] : []}
+        confirmLabel="Sim, finalizar"
+        cancelLabel="Não, cancelar"
+        variant="success"
+        onCancel={cancelarFinalizacao}
+        onConfirm={confirmarFinalizacao}
       />
     </PageLayout>
   </div>
