@@ -3,9 +3,11 @@ export default function ConfirmationModal({
   title = "Confirmar ação",
   message,
   items = [],
+  children,
   confirmLabel = "Confirmar",
   cancelLabel = "Cancelar",
   variant = "danger",
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }) {
@@ -54,6 +56,8 @@ export default function ConfirmationModal({
               </table>
             </div>
           )}
+
+          {children}
         </div>
 
         <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 px-5 py-4">
@@ -67,7 +71,8 @@ export default function ConfirmationModal({
           <button
             type="button"
             onClick={onConfirm}
-            className={confirmButtonClassName}
+            disabled={confirmDisabled}
+            className={`${confirmButtonClassName} ${confirmDisabled ? "cursor-not-allowed opacity-50" : ""}`}
           >
             {confirmLabel}
           </button>

@@ -73,6 +73,12 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
     nome: getNome(item),
   }));
 
+  // Mostrar apenas serviços ativos (evita selecionar serviços indisponíveis)
+  // assume que o backend define `ativo` como booleano
+  const servicosAtivos = listaServicos
+    .filter((s) => s.ativo === true)
+    .map((item) => ({ id: String(getId(item)), nome: getNome(item) }));
+
   useEffect(() => {
     if (!agendamento) {
       setData("");
@@ -311,7 +317,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 onChange={(e) => setServico(e.target.value)}
               >
                 <option value="">Selecione</option>
-                {servicos.map((s) => (
+                {servicosAtivos.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.nome}
                   </option>
