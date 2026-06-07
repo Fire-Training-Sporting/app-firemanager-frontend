@@ -138,7 +138,7 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
                 })()}
 
                 <button
-                  className="px-4 py-2 bg-slate-600 text-white text-xs rounded-md hover:bg-slate-700 shadow-sm transition-all"
+                  className="px-4 py-2 bg-blue-700 text-white text-xs rounded-md hover:bg-blue-800 shadow-sm transition-all"
                   onClick={onViewDetails}
                 >
                   Detalhes
@@ -146,12 +146,6 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
 
                 {statusNormalizado !== "cancelado" && (
                   <>
-                    <button
-                      className="px-4 py-2 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 shadow-sm transition-all"
-                      onClick={onViewDetails}
-                    >
-                      Detalhes
-                    </button>
                     <button
                       className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
                       onClick={onEdit}
