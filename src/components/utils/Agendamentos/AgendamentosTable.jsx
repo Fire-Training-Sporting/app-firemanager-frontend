@@ -12,7 +12,42 @@ export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDele
 
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const pageItems = agendamentos.slice(startIndex, endIndex);
+  const parseDateTime = (dateValue, timeValue) => {
+    if (!dateValue) return null;
+    try {
+      if (dateValue instanceof Date) {
+        if (timeValue) {
+          const parts = String(timeValue).split(":");
+          const d = new Date(dateValue.getTime());
+          d.setHours(Number(parts[0] || 0), Number(parts[1] || 0), 0, 0);
+          return d;
+        }
+        return dateValue;
+      }
+
+      const dateStr = String(dateValue).trim();
+      let iso = dateStr.includes("T") ? dateStr : dateStr.replace(" ", "T");
+      if (timeValue) {
+        const t = String(timeValue).trim();
+        if (t) iso = `${dateStr}T${t}`;
+      }
+      const d = new Date(iso);
+      return isNaN(d) ? null : d;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const sortedAgendamentos = [...agendamentos].sort((a, b) => {
+    const da = parseDateTime(a?.data, a?.horaInicio);
+    const db = parseDateTime(b?.data, b?.horaInicio);
+    if (da && db) return da.getTime() - db.getTime();
+    if (da && !db) return -1;
+    if (!da && db) return 1;
+    return 0;
+  });
+
+  const pageItems = sortedAgendamentos.slice(startIndex, endIndex);
 
   const goPrev = () => setCurrentPage((p) => Math.max(1, p - 1));
   const goNext = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
