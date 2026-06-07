@@ -157,6 +157,12 @@ export function AgendamentosRow({
                 {statusNormalizado !== "cancelado" && (
                   <>
                     <button
+                      className="px-4 py-2 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 shadow-sm transition-all"
+                      onClick={onViewDetails}
+                    >
+                      Detalhes
+                    </button>
+                    <button
                       className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
                       onClick={onEdit}
                     >
