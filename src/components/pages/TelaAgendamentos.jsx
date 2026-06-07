@@ -3,6 +3,7 @@ import PageLayout from '../utils/PageLayout';
 import SearchFilter from '../utils/SearchFilter';
 import { AgendamentosTable } from '../utils/Agendamentos/AgendamentosTable';
 import ModalScheduling from '../utils/Agendamentos/ModalScheduling';
+import ModalAgendamentoDetalhes from '../utils/Agendamentos/ModalAgendamentoDetalhes';
 import ConfirmationModal from '../utils/ConfirmationModal';
 import api from "../../provider/api";
 
@@ -91,6 +92,7 @@ export default function TelaAgendamentos() {
   const [isLoading, setIsLoading] = useState(false);
   const [agendamentoParaExcluir, setAgendamentoParaExcluir] = useState(null);
   const [agendamentoParaConfirmar, setAgendamentoParaConfirmar] = useState(null);
+  const [agendamentoDetalhes, setAgendamentoDetalhes] = useState(null);
   const usuarioLogado = getUsuarioLogado();
   const cargo = sessionStorage.getItem("cargo");
   const usuarioId = getUsuarioId(usuarioLogado);
@@ -121,7 +123,7 @@ export default function TelaAgendamentos() {
   const filtrarAgendamentos = async ({ field, value }) => {
     try {
       setIsLoading(true);
-      
+
       if (!value.trim()) {
         setAgendamentos(agendamentosOriginais);
         return;
@@ -209,6 +211,10 @@ export default function TelaAgendamentos() {
     return String(valor).slice(0, 5);
   };
 
+  const visualizarDetalhes = (agendamento) => {
+    setAgendamentoDetalhes(agendamento);
+  };
+
   const normalizarAgendamentoParaModal = (agendamento) => ({
     id: agendamento?.id ?? null,
     data: formatarData(agendamento?.data),
@@ -225,9 +231,9 @@ export default function TelaAgendamentos() {
     nomes: {
       condominio: extrairNome(agendamento?.condominio),
       aluno: extrairNome(agendamento?.aluno),
-        alunos: Array.isArray(agendamento?.alunos)
-          ? agendamento.alunos.map((item) => extrairNome(item))
-          : [],
+      alunos: Array.isArray(agendamento?.alunos)
+        ? agendamento.alunos.map((item) => extrairNome(item))
+        : [],
       servico: extrairNome(agendamento?.servico),
       professor: extrairNome(agendamento?.professor),
       rebatedor: extrairNome(agendamento?.rebatedor),
@@ -313,81 +319,89 @@ export default function TelaAgendamentos() {
   };
 
   return (
-  <div className={showModal ? "modal-open" : ""}>
-    <PageLayout
-      title="Agendamentos"
-      searchPlaceholder="Pesquisar agendamento..."
-      onSearch={buscarDados}
-      onAdd={adicionarDados}
-      addLabel="Agendar serviço"
-      customControls={
-        <SearchFilter
-          columns={search_columns}
-          onSearch={filtrarAgendamentos}
-          isLoading={isLoading}
-        />
-      }
-    >
-      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-        <AgendamentosTable
-          agendamentos={agendamentos}
-          onEdit={editarDados}
-          onConfirm={solicitarConfirmacao}
-          onDelete={solicitarExclusao}
-        />
-      </div>
+    <div className={showModal ? "modal-open" : ""}>
+      <PageLayout
+        title="Agendamentos"
+        searchPlaceholder="Pesquisar agendamento..."
+        onSearch={buscarDados}
+        onAdd={adicionarDados}
+        addLabel="Agendar serviço"
+        customControls={
+          <SearchFilter
+            columns={search_columns}
+            onSearch={filtrarAgendamentos}
+            isLoading={isLoading}
+          />
+        }
+      >
+        <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+          <AgendamentosTable
+            agendamentos={agendamentos}
+            onEdit={editarDados}
+            onConfirm={solicitarConfirmacao}
+            onDelete={solicitarExclusao}
+            onViewDetails={visualizarDetalhes}
+          />
+        </div>
 
-      {showModal && (
-        <ModalScheduling 
-          agendamento={editAgendamento}
-          onClose={() => setShowModal(false)} 
-          onCreated={buscarDados} 
+        {showModal && (
+          <ModalScheduling
+            agendamento={editAgendamento}
+            onClose={() => setShowModal(false)}
+            onCreated={buscarDados}
+          />
+        )}
+
+        {agendamentoDetalhes && (
+          <ModalAgendamentoDetalhes
+            agendamento={agendamentoDetalhes}
+            onClose={() => setAgendamentoDetalhes(null)}
+          />
+        )}
+
+        <ConfirmationModal
+          isOpen={!!agendamentoParaExcluir}
+          title="Confirmar exclusão"
+          message="Deseja realmente excluir este agendamento?"
+          items={agendamentoParaExcluir ? [
+            { label: "ID", value: agendamentoParaExcluir.id },
+            { label: "Aluno", value: formatarValor(agendamentoParaExcluir.aluno) },
+            { label: "Data", value: formatarValor(agendamentoParaExcluir.data) },
+            { label: "Hora início", value: formatarValor(agendamentoParaExcluir.horaInicio) },
+            { label: "Hora fim", value: formatarValor(agendamentoParaExcluir.horaFim) },
+            { label: "Condomínio", value: formatarValor(agendamentoParaExcluir.condominio) },
+            { label: "Professor", value: formatarValor(agendamentoParaExcluir.professor) },
+            { label: "Rebatedor", value: formatarValor(agendamentoParaExcluir.rebatedor) },
+            { label: "Auxiliar", value: formatarValor(agendamentoParaExcluir.auxiliar) },
+            { label: "Status", value: formatarValor(agendamentoParaExcluir.status) },
+          ] : []}
+          confirmLabel="Sim, excluir"
+          cancelLabel="Não, cancelar"
+          onCancel={cancelarExclusao}
+          onConfirm={confirmarExclusao}
         />
-      )}
 
-      <ConfirmationModal
-        isOpen={!!agendamentoParaExcluir}
-        title="Confirmar exclusão"
-        message="Deseja realmente excluir este agendamento?"
-        items={agendamentoParaExcluir ? [
-          { label: "ID", value: agendamentoParaExcluir.id },
-          { label: "Aluno", value: formatarValor(agendamentoParaExcluir.aluno) },
-          { label: "Data", value: formatarValor(agendamentoParaExcluir.data) },
-          { label: "Hora início", value: formatarValor(agendamentoParaExcluir.horaInicio) },
-          { label: "Hora fim", value: formatarValor(agendamentoParaExcluir.horaFim) },
-          { label: "Condomínio", value: formatarValor(agendamentoParaExcluir.condominio) },
-          { label: "Professor", value: formatarValor(agendamentoParaExcluir.professor) },
-          { label: "Rebatedor", value: formatarValor(agendamentoParaExcluir.rebatedor) },
-          { label: "Auxiliar", value: formatarValor(agendamentoParaExcluir.auxiliar) },
-          { label: "Status", value: formatarValor(agendamentoParaExcluir.status) },
-        ] : []}
-        confirmLabel="Sim, excluir"
-        cancelLabel="Não, cancelar"
-        onCancel={cancelarExclusao}
-        onConfirm={confirmarExclusao}
-      />
-
-      <ConfirmationModal
-        isOpen={!!agendamentoParaConfirmar}
-        title="Confirmar agendamento"
-        message="Deseja confirmar este agendamento no sistema?"
-        items={agendamentoParaConfirmar ? [
-          { label: "ID", value: agendamentoParaConfirmar.id },
-          { label: "Aluno", value: formatarValor(agendamentoParaConfirmar.aluno) },
-          { label: "Data", value: formatarValor(agendamentoParaConfirmar.data) },
-          { label: "Hora início", value: formatarValor(agendamentoParaConfirmar.horaInicio) },
-          { label: "Hora fim", value: formatarValor(agendamentoParaConfirmar.horaFim) },
-          { label: "Condomínio", value: formatarValor(agendamentoParaConfirmar.condominio) },
-          { label: "Professor", value: formatarValor(agendamentoParaConfirmar.professor) },
-          { label: "Status atual", value: formatarValor(agendamentoParaConfirmar.status) },
-        ] : []}
-        confirmLabel="Sim, confirmar"
-        cancelLabel="Não, cancelar"
-        variant="success"
-        onCancel={cancelarConfirmacao}
-        onConfirm={confirmarAgendamento}
-      />
-    </PageLayout>
-  </div>
-);
+        <ConfirmationModal
+          isOpen={!!agendamentoParaConfirmar}
+          title="Confirmar agendamento"
+          message="Deseja confirmar este agendamento no sistema?"
+          items={agendamentoParaConfirmar ? [
+            { label: "ID", value: agendamentoParaConfirmar.id },
+            { label: "Aluno", value: formatarValor(agendamentoParaConfirmar.aluno) },
+            { label: "Data", value: formatarValor(agendamentoParaConfirmar.data) },
+            { label: "Hora início", value: formatarValor(agendamentoParaConfirmar.horaInicio) },
+            { label: "Hora fim", value: formatarValor(agendamentoParaConfirmar.horaFim) },
+            { label: "Condomínio", value: formatarValor(agendamentoParaConfirmar.condominio) },
+            { label: "Professor", value: formatarValor(agendamentoParaConfirmar.professor) },
+            { label: "Status atual", value: formatarValor(agendamentoParaConfirmar.status) },
+          ] : []}
+          confirmLabel="Sim, confirmar"
+          cancelLabel="Não, cancelar"
+          variant="success"
+          onCancel={cancelarConfirmacao}
+          onConfirm={confirmarAgendamento}
+        />
+      </PageLayout>
+    </div>
+  );
 }
