@@ -22,6 +22,8 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
   const [usuarios, setUsuarios] = useState([]);
   const [listaServicos, setListaServicos] = useState([]);
   const [erroHorario, setErroHorario] = useState("");
+  const [erroFuncionario, setErroFuncionario] = useState("");
+  const [erroAlunos, setErroAlunos] = useState("");
   const [loading, setLoading] = useState(false);
   const podeAdicionarFuncionario = funcionarios.length < 3;
 
@@ -94,6 +96,8 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       ]);
       setObservacao("");
       setErroHorario("");
+      setErroFuncionario("");
+      setErroAlunos("");
       return;
     }
 
@@ -112,11 +116,17 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
     ]);
     setObservacao(agendamento.observacao || "");
     setErroHorario("");
+    setErroFuncionario("");
+    setErroAlunos("");
   }, [agendamento]);
 
   const addFuncionario = () => {
     if (funcionarios.length < 3) {
       setFuncionarios([...funcionarios, { funcionarioId: "", funcao: "" }]);
+      setErroFuncionario("");
+    } else {
+      setErroFuncionario("Limite máximo de 3 funcionários atingido");
+      setTimeout(() => setErroFuncionario(""), 3000);
     }
   };
 
@@ -192,7 +202,13 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
   };
 
   const addAluno = () => {
-    setAlunosSelecionados([...alunosSelecionados, { alunoId: "" }]);
+    if (alunosSelecionados.length < 4) {
+      setAlunosSelecionados([...alunosSelecionados, { alunoId: "" }]);
+      setErroAlunos("");
+    } else {
+      setErroAlunos("Limite máximo de 4 alunos atingido");
+      setTimeout(() => setErroAlunos(""), 3000);
+    }
   };
 
   const updateAluno = (index, value) => {
@@ -340,13 +356,21 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 </div>
               ))}
 
-              <button
-                type="button"
-                onClick={addAluno}
-                className="mt-1 px-3 py-1 text-xs rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200"
-              >
-                + Adicionar aluno
-              </button>
+              {alunosSelecionados.length < 4 && (
+                <button
+                  type="button"
+                  onClick={addAluno}
+                  className="mt-1 px-3 py-1 text-xs rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200"
+                >
+                  + Adicionar aluno
+                </button>
+              )}
+
+              {erroAlunos && (
+                <div className="mt-2 px-3 py-2 rounded-md bg-red-100 text-red-700 text-xs font-medium">
+                  {erroAlunos}
+                </div>
+              )}
             </div>
 
             {/* FUNCIONÁRIOS */}
@@ -404,6 +428,12 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 >
                   + Adicionar funcionário
                 </button>
+              )}
+
+              {erroFuncionario && (
+                <div className="mt-2 px-3 py-2 rounded-md bg-red-100 text-red-700 text-xs font-medium">
+                  {erroFuncionario}
+                </div>
               )}
             </div>
 

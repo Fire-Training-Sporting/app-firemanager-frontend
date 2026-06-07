@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import {AgendamentosRow} from "./AgendamentosRow";
+import { AgendamentosRow } from "./AgendamentosRow";
 import AgendamentosTh from "./AgendamentosTh";
 
+export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDelete, onViewDetails }) {
 export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDelete, onFinalize }) {
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,6 +53,7 @@ export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDele
                   onEdit={() => onEdit(agendamento)}
                   onConfirm={() => onConfirm(agendamento)}
                   onDelete={() => onDelete(agendamento.id)}
+                  onViewDetails={() => onViewDetails(agendamento)}
                   onFinalize={() => onFinalize && onFinalize(agendamento)}
                   showActions={showActions}
                 />
