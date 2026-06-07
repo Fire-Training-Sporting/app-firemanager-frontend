@@ -79,63 +79,63 @@ function HistoricoAulasTable({ aulas, loading }) {
     const goNext = () => setCurrentPage((page) => Math.min(totalPages, page + 1));
 
     return (
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
-            <div className="flex justify-between items-center mb-4 gap-4 flex-wrap">
-                <h2 className="text-sm font-semibold text-gray-700">
-                    Histórico de aulas no período
-                    <span className="ml-2 text-xs text-gray-400 font-normal">
-                        ({loading ? "carregando" : `${totalItems} registro${totalItems !== 1 ? "s" : ""}`})
-                    </span>
-                </h2>
-            </div>
-
-            <div className="w-full overflow-x-auto">
-                <div className="h-fit">
-                    <table className="w-full border-separate border-spacing-0 rounded-lg">
-                        <thead className="sticky top-0 z-10 bg-white">
-                            <tr className="border-b-2 border-gray-200">
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">ID</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Aluno</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Data</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Hora Início</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Hora Fim</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Condomínio</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Professor</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Rebatedor</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Auxiliar</th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white">
-                            {!loading && pageItems.length > 0 ? (
-                                pageItems.map((agendamento) => (
-                                    <tr key={agendamento.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-3 text-sm text-gray-700">{agendamento.id}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(agendamento.aluno)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarData(agendamento.data)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarHora(agendamento.horaInicio)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarHora(agendamento.horaFim)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(agendamento.condominio)}</td>
-                                        <td className="px-4 py-3 text-sm text-blue-600 font-medium">{formatarValor(agendamento.professor)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(agendamento.rebatedor)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(agendamento.auxiliar)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-700">{formatarValor(agendamento.status)}</td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={10} className="p-6 text-center text-gray-500">
-                                        Nenhum agendamento encontrado para o período selecionado.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-slate-50 px-5 py-4 border-b border-slate-200">
+                <div className="flex justify-between items-center gap-4 flex-wrap">
+                    <h2 className="text-sm font-semibold text-slate-700 ">
+                        Histórico de aulas no período
+                        <span className="ml-2 text-xs text-slate-400 font-normal">
+                            ({loading ? "carregando" : `${totalItems} registro${totalItems !== 1 ? "s" : ""}`})
+                        </span>
+                    </h2>
                 </div>
             </div>
 
-            <div className="flex items-center justify-between gap-4 px-0 pt-3 border-t mt-4">
-                <div className="text-xs text-gray-600">
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-200">
+                    <thead className="bg-slate-50">
+                        <tr className="border-b border-slate-200">
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">ID</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Aluno</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Data</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Hora Início</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Hora Fim</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Condomínio</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Professor</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Rebatedor</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Auxiliar</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white">
+                        {!loading && pageItems.length > 0 ? (
+                            pageItems.map((agendamento) => (
+                                <tr key={agendamento.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                    <td className="px-4 py-3 text-sm text-slate-700">{agendamento.id}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.aluno)}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-700">{formatarData(agendamento.data)}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-700">{formatarHora(agendamento.horaInicio)}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-700">{formatarHora(agendamento.horaFim)}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.condominio)}</td>
+                                    <td className="px-4 py-3 text-sm text-sky-600 font-medium">{formatarValor(agendamento.professor)}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.rebatedor)}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.auxiliar)}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.status)}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={10} className="p-6 text-center text-gray-500">
+                                    Nenhum agendamento encontrado para o período selecionado.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            <div className="flex items-center justify-between gap-4 px-5 pt-4 border-t border-slate-200 mt-4 mb-4">
+                <div className="text-xs text-slate-500">
                     Mostrando {totalItems === 0 ? 0 : startIndex + 1}-{Math.min(totalItems, endIndex)} de {totalItems}
                 </div>
                 <div className="flex items-center gap-2">
@@ -267,7 +267,7 @@ export function TelaPagamentos() {
             if (typeof campo === "object") {
                 const ids = [campo.id, campo._id, campo.userId, campo.professorId, campo.usuarioId];
                 for (const id of ids) {
-                    if (id != null && String(id) === String(usuarioId)) return true;
+                    if (id != null && String(id) === String(usuarioLogadoId)) return true;
                 }
 
                 // comparar por nome quando não houver id
@@ -277,7 +277,7 @@ export function TelaPagamentos() {
             }
 
             // campo é string/number: comparar diretamente com id ou com nome
-            if (String(campo) === String(usuarioId)) return true;
+            if (String(campo) === String(usuarioLogadoId)) return true;
             if (String(campo).trim() === String(nomeProfessor).trim()) return true;
             return false;
         } catch {
@@ -310,46 +310,53 @@ export function TelaPagamentos() {
     const aulasComoAuxiliarCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.auxiliar)).length;
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col overflow-hidden">
+        <div className="min-h-screen bg-gray-50 flex flex-col overflow-hidden ">
             <Header />
 
-            <div className="flex-1 min-h-0 px-6 py-4 flex flex-col gap-3 overflow-hidden xl:px-8">
-                <div className="flex justify-between items-center gap-4 flex-wrap shrink-0">
+            <div className="mx-auto w-full max-w-screen-2xl px-4 py-6">
+                <div className="mb-6">
+                    <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-2">Suas aulas</h1>
+                    <p className="text-sm text-slate-500">Visualize pagamentos e histórico de aulas por período.</p>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
                     <div>
-                        <h1 className="font-bold text-xl text-gray-900 mb-0.5 xl:text-2xl">Suas aulas</h1>
+                        <h2 className="text-lg font-semibold text-slate-800">Filtrar por período</h2>
+                        <p className="text-sm text-slate-500">Selecione o intervalo de datas para atualizar os resultados.</p>
                     </div>
 
-                    <div className="flex gap-2 items-end flex-wrap justify-end">
+                    <div className="flex flex-wrap items-center gap-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Data Inicial</label>
+                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Data inicial</label>
                             <input
                                 type="date"
                                 value={dataInicio}
                                 max={dataFim || undefined}
                                 onChange={(e) => setDataInicio(e.target.value)}
-                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
+                                className="outline-none text-sm bg-transparent text-slate-700"
                             />
                         </div>
 
+                        <div className="h-10 w-px bg-slate-200" />
+
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Data Final</label>
+                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Data final</label>
                             <input
                                 type="date"
                                 value={dataFim}
                                 min={dataInicio}
-                                
                                 onChange={(e) => setDataFim(e.target.value)}
-                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
+                                className="outline-none text-sm bg-transparent text-slate-700"
                             />
                         </div>
 
                         {isAdmin && (
-                            <div className="flex flex-col gap-1 min-w-70">
-                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Funcionário</label>
+                            <div className="flex flex-col gap-1 w-56">
+                                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Funcionário</label>
                                 <select
                                     value={funcionarioSelecionadoId}
                                     onChange={handleFuncionarioChange}
-                                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 bg-white"
+                                    className="outline-none text-sm bg-transparent text-slate-700"
                                 >
                                     <option value="">Selecione um funcionário</option>
                                     {funcionarios.map((funcionario) => (
@@ -361,38 +368,41 @@ export function TelaPagamentos() {
                             </div>
                         )}
 
-                        {(dataInicio || dataFim) && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setDataInicio("");
-                                    setDataFim("");
-                                }}
-                                className="px-3 py-2 text-xs text-gray-500 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors bg-white"
-                            >
-                                Limpar
-                            </button>
-                        )}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setDataInicio("");
+                                setDataFim("");
+                            }}
+                            className="rounded-xl bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-all duration-300 hover:bg-slate-300"
+                        >
+                            Limpar
+                        </button>
                     </div>
                 </div>
 
-                {erroData && <div className="mt-2 text-xs text-red-600 font-semibold">{erroData}</div>}
+                {erroData && <div className="mb-4 text-sm text-red-600 font-semibold">{erroData}</div>}
 
-                <div className="grid grid-cols-2 gap-3 xl:grid-cols-4 shrink-0">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch mb-6">
                     {[
                         { label: "Total de aulas", value: totalAgendamentos },
                         { label: "Aulas como professor", value: aulasComoProfessorCount },
                         { label: "Aulas como rebatedor", value: aulasComoRebatedorCount },
                         { label: "Aulas como auxiliar", value: aulasComoAuxiliarCount },
                     ].map((kpi, index) => (
-                        <div key={index} className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-200">
-                            <p className="text-[11px] text-gray-500 mb-1.5 leading-tight">{kpi.label}</p>
-                            <p className="text-2xl font-bold text-gray-900 xl:text-3xl">{kpi.value}</p>
+                        <div key={index} className="relative overflow-hidden rounded-[28px] bg-linear-to-br from-white to-slate-50 p-4 border border-slate-200 shadow-sm h-36 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-orange-100 opacity-60" />
+                            <div className="relative">
+                                <p className="text-[10px] uppercase tracking-[0.25em] text-slate-400 font-medium">{kpi.label}</p>
+                                <p className="mt-3 text-4xl font-black tracking-tight text-slate-900">{kpi.value}</p>
+                            </div>
+                            <div className="relative flex items-center gap-2 text-[11px] text-slate-500">
+                                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700 font-semibold">Último período</span>
+                            </div>
                         </div>
                     ))}
                 </div>
-
-                <div className="flex-1 min-h-0 overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden w-full h-full">
                     <HistoricoAulasTable aulas={agendamentosFiltrados} loading={loading} />
                 </div>
             </div>
