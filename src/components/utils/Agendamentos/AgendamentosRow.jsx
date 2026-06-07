@@ -108,33 +108,34 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
                 )}
 
                 {statusNormalizado === "confirmado" && (() => {
-                  try {
-                    const parsedDate = parseDate(data);
-                    let end = null;
-                    if (parsedDate) {
-                      end = new Date(parsedDate.getTime());
-                      if (typeof horaFim === 'string' && horaFim.length) {
-                        const parts = horaFim.split(':');
-                        const hh = Number(parts[0] ?? 0);
-                        const mm = Number(parts[1] ?? 0);
-                        end.setHours(hh, mm, 0, 0);
+                    try {
+                      const parsedDate = parseDate(data);
+                      let end = null;
+                      if (parsedDate) {
+                        end = new Date(parsedDate.getTime());
+                        if (typeof horaFim === 'string' && horaFim.length) {
+                          const parts = horaFim.split(':');
+                          const hh = Number(parts[0] ?? 0);
+                          const mm = Number(parts[1] ?? 0);
+                          end.setHours(hh, mm, 0, 0);
+                        }
                       }
-                    }
-                    const now = new Date();
-                    const podeFinalizar = end && now > end;
+                      const now = new Date();
+                      const podeFinalizar = end && now > end;
 
-                    return (
-                      <button
-                        className={`px-4 py-2 text-xs rounded-md shadow-sm transition-all ${podeFinalizar ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-700 cursor-not-allowed'}`}
-                        onClick={onFinalize}
-                        disabled={!podeFinalizar}
-                      >
-                        Finalizar
-                      </button>
-                    );
-                  } catch (e) {
-                    return null;
-                  }
+                      if (!podeFinalizar) return null;
+
+                      return (
+                        <button
+                          className="px-4 py-2 text-xs rounded-md shadow-sm transition-all bg-green-600 text-white hover:bg-green-700"
+                          onClick={onFinalize}
+                        >
+                          Finalizar
+                        </button>
+                      );
+                    } catch (e) {
+                      return null;
+                    }
                 })()}
 
                 <button
@@ -146,12 +147,6 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
 
                 {statusNormalizado !== "cancelado" && (
                   <>
-                    <button
-                      className="px-4 py-2 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 shadow-sm transition-all"
-                      onClick={onViewDetails}
-                    >
-                      Detalhes
-                    </button>
                     <button
                       className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
                       onClick={onEdit}
