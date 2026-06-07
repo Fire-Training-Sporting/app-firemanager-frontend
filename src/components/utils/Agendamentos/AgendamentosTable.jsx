@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { AgendamentosRow } from "./AgendamentosRow";
 import AgendamentosTh from "./AgendamentosTh";
 
-export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDelete, onViewDetails }) {
-export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDelete, onFinalize }) {
+export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDelete, onViewDetails, onFinalize }) {
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
   const showActions = sessionStorage.getItem("cargo") !== "Professor";
