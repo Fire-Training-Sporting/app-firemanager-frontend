@@ -201,12 +201,12 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       if (isEditMode) {
         await api.patch(`/agendamentos/${agendamento.id}`, agendamentoData);
         if (onCreated) {
-          onCreated();
+          onCreated(isEditMode ? "updated" : "created");
         }
       } else {
         await api.post("/agendamentos", agendamentoData);
         if (onCreated) {
-          onCreated();
+          onCreated(isEditMode ? "updated" : "created");
         }
       }
       onClose();

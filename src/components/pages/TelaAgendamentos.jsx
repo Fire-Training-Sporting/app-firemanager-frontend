@@ -91,6 +91,8 @@ export default function TelaAgendamentos() {
   const [agendamentos, setAgendamentos] = useState([]);
   const [agendamentosOriginais, setAgendamentosOriginais] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [sucessoAgendamento, setSucessoAgendamento] = useState("");
+  const [sucessoVisivel, setSucessoVisivel] = useState(false);
   const [agendamentoParaConfirmar, setAgendamentoParaConfirmar] = useState(null);
   const [agendamentoDetalhes, setAgendamentoDetalhes] = useState(null);
   const [agendamentoParaCancelar, setAgendamentoParaCancelar] = useState(null);
@@ -219,6 +221,26 @@ export default function TelaAgendamentos() {
     setAgendamentoDetalhes(agendamento);
   };
 
+  const exibirSucesso = (mensagem) => {
+    setSucessoAgendamento(mensagem);
+    setSucessoVisivel(true);
+
+    window.clearTimeout(exibirSucesso.timeoutId);
+    exibirSucesso.timeoutId = window.setTimeout(() => {
+      setSucessoAgendamento("");
+      setSucessoVisivel(false);
+    }, 7000);
+  };
+
+  const handleAgendamentoSalvo = (acao = "created") => {
+    exibirSucesso(
+      acao === "updated"
+        ? "Agendamento atualizado com sucesso"
+        : "Agendamento cadastrado com sucesso"
+    );
+    buscarDados();
+  };
+
   const normalizarAgendamentoParaModal = (agendamento) => ({
     id: agendamento?.id ?? null,
     data: formatarData(agendamento?.data),
@@ -286,6 +308,7 @@ export default function TelaAgendamentos() {
         observacao: agendamentoParaConfirmar.observacao || "",
       });
 
+      exibirSucesso("Agendamento confirmado com sucesso");
       setAgendamentoParaConfirmar(null);
       await buscarDados();
     } catch (error) {
@@ -311,6 +334,8 @@ export default function TelaAgendamentos() {
         status: "cancelado",
         observacao,
       });
+
+      exibirSucesso("Agendamento cancelado com sucesso");
       setAgendamentoParaCancelar(null);
       setObservacaoCancelamento("");
       setErroCancelamento("");
@@ -334,6 +359,8 @@ export default function TelaAgendamentos() {
         status: "finalizado",
         observacao: agendamentoParaFinalizar.observacao || "",
       });
+
+      exibirSucesso("Agendamento finalizado com sucesso");
       setAgendamentoParaFinalizar(null);
       await buscarDados();
     } catch (error) {
@@ -380,6 +407,12 @@ export default function TelaAgendamentos() {
         />
       }
     >
+      <AlertMessage
+        variant="success"
+        message={sucessoVisivel ? sucessoAgendamento : ""}
+        className="fixed right-4 top-30 z-60 w-[min(420px,calc(100vw-2rem))] shadow-lg"
+      />
+
       <div className="bg-white rounded-lg shadow-md border overflow-hidden">
         <AgendamentosTable
           agendamentos={agendamentos}
@@ -395,7 +428,7 @@ export default function TelaAgendamentos() {
         <ModalScheduling
           agendamento={editAgendamento}
           onClose={() => setShowModal(false)}
-          onCreated={buscarDados}
+          onCreated={handleAgendamentoSalvo}
         />
       )}
 
