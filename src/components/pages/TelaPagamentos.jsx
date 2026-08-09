@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Header from "../utils/Header";
+import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
 
 function formatarData(isoDate) {
@@ -381,7 +382,7 @@ export function TelaPagamentos() {
                     </div>
                 </div>
 
-                {erroData && <div className="mb-4 text-sm text-red-600 font-semibold">{erroData}</div>}
+                <AlertMessage variant="error" message={erroData} />
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch mb-6">
                     {[

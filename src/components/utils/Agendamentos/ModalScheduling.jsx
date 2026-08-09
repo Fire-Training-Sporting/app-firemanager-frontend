@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../../../provider/api";
+import AlertMessage from "../AlertMessage";
 
 export default function ModalScheduling({ agendamento = null, onClose, onCreated }) {
   const isEditMode = !!agendamento;
@@ -21,9 +22,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
   const [condominios, setCondominios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [listaServicos, setListaServicos] = useState([]);
-  const [erroHorario, setErroHorario] = useState("");
-  const [erroFuncionario, setErroFuncionario] = useState("");
-  const [erroAlunos, setErroAlunos] = useState("");
+  const [mensagemValidacao, setMensagemValidacao] = useState("");
   const [loading, setLoading] = useState(false);
   const podeAdicionarFuncionario = funcionarios.length < 3;
 
@@ -95,9 +94,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
         { funcionarioId: "", funcao: "Auxiliar" },
       ]);
       setObservacao("");
-      setErroHorario("");
-      setErroFuncionario("");
-      setErroAlunos("");
+      setMensagemValidacao("");
       return;
     }
 
@@ -115,18 +112,18 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       { funcionarioId: String(agendamento.auxiliar || ""), funcao: "Auxiliar" },
     ]);
     setObservacao(agendamento.observacao || "");
-    setErroHorario("");
-    setErroFuncionario("");
-    setErroAlunos("");
+    setMensagemValidacao("");
   }, [agendamento]);
+
+  const mostrarErroValidacao = (mensagem) => {
+    setMensagemValidacao(mensagem);
+  };
 
   const addFuncionario = () => {
     if (funcionarios.length < 3) {
       setFuncionarios([...funcionarios, { funcionarioId: "", funcao: "" }]);
-      setErroFuncionario("");
     } else {
-      setErroFuncionario("Limite máximo de 3 funcionários atingido");
-      setTimeout(() => setErroFuncionario(""), 3000);
+      mostrarErroValidacao("Erro: Limite máximo de 3 funcionários atingido.");
     }
   };
 
@@ -145,17 +142,30 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!data) {
+      mostrarErroValidacao("Erro: Informe a data do agendamento.");
+      return;
+    }
+
     if (!horaInicio || !horaFim) {
-      setErroHorario("Informe os horários de início e término.");
+      mostrarErroValidacao("Erro: Informe os horários de início e término.");
       return;
     }
 
     if (horaFim <= horaInicio) {
-      setErroHorario("A hora de término deve ser maior que a hora de início.");
+      mostrarErroValidacao("Erro: Horário de início deve ser ANTES do horário final.");
       return;
     }
 
-    setErroHorario("");
+    if (!local) {
+      mostrarErroValidacao("Erro: Selecione um condomínio.");
+      return;
+    }
+
+    if (!servico) {
+      mostrarErroValidacao("Erro: Selecione um serviço.");
+      return;
+    }
 
     const funcionarioProfessor = funcionarios.find((item) => item.funcao === "Professor" && item.funcionarioId);
     const funcionarioRebatedor = funcionarios.find((item) => item.funcao === "Rebatedor" && item.funcionarioId);
@@ -164,6 +174,11 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
     const alunosIds = alunosSelecionados
       .map((item) => Number(item.alunoId))
       .filter(Boolean);
+
+    if (alunosIds.length === 0) {
+      mostrarErroValidacao("Erro: Selecione ao menos um aluno.");
+      return;
+    }
 
     const agendamentoData = {
       aluno: alunosIds[0] ?? null,
@@ -182,6 +197,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
 
     try {
       setLoading(true);
+      setMensagemValidacao("");
       if (isEditMode) {
         await api.patch(`/agendamentos/${agendamento.id}`, agendamentoData);
         if (onCreated) {
@@ -204,10 +220,8 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
   const addAluno = () => {
     if (alunosSelecionados.length < 4) {
       setAlunosSelecionados([...alunosSelecionados, { alunoId: "" }]);
-      setErroAlunos("");
     } else {
-      setErroAlunos("Limite máximo de 4 alunos atingido");
-      setTimeout(() => setErroAlunos(""), 3000);
+      mostrarErroValidacao("Erro: Limite máximo de 4 alunos atingido.");
     }
   };
 
@@ -242,6 +256,8 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
 
         {/* FORM */}
         <div className="overflow-y-auto px-4 py-3">
+          <AlertMessage variant="error" message={mensagemValidacao} />
+
           <form
             onSubmit={handleSubmit}
             className="grid grid-cols-1 md:grid-cols-2 gap-3"
@@ -366,11 +382,6 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 </button>
               )}
 
-              {erroAlunos && (
-                <div className="mt-2 px-3 py-2 rounded-md bg-red-100 text-red-700 text-xs font-medium">
-                  {erroAlunos}
-                </div>
-              )}
             </div>
 
             {/* FUNCIONÁRIOS */}
@@ -430,11 +441,6 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 </button>
               )}
 
-              {erroFuncionario && (
-                <div className="mt-2 px-3 py-2 rounded-md bg-red-100 text-red-700 text-xs font-medium">
-                  {erroFuncionario}
-                </div>
-              )}
             </div>
 
             {/* OBSERVAÇÃO */}

@@ -5,6 +5,7 @@ import { AgendamentosTable } from '../utils/Agendamentos/AgendamentosTable';
 import ModalScheduling from '../utils/Agendamentos/ModalScheduling';
 import ModalAgendamentoDetalhes from '../utils/Agendamentos/ModalAgendamentoDetalhes';
 import ConfirmationModal from '../utils/ConfirmationModal';
+import AlertMessage from '../utils/AlertMessage';
 import api from "../../provider/api";
 
 const search_columns = [
@@ -467,7 +468,7 @@ export default function TelaAgendamentos() {
             placeholder="Ex.: Chuva forte"
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
           />
-          {erroCancelamento && <p className="text-sm text-red-600">{erroCancelamento}</p>}
+          <AlertMessage variant="error" message={erroCancelamento} />
         </div>
       </ConfirmationModal>
 
