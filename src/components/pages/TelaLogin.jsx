@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import logoFire from "../../assets/logo2.png";
 import emailIcon from "../../assets/email.png";
 import lockIcon from "../../assets/lock.png";
@@ -7,19 +8,12 @@ import visibilityIcon from "../../assets/visibility.png";
 import visibilityOffIcon from "../../assets/visibility-off.png";
 import InputComponent from "../utils/InputComponent";
 import { BtnGreen } from "../utils/Buttons/BtnGreen";
-
-const API_URL = "http://localhost:8080";
+import AlertMessage from "../utils/AlertMessage";
+import api from "../../provider/api";
 
 export async function login(email, senha) {
-    const response = await fetch(`${API_URL}/api/usuarios/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, senha }),
-    });
-
-    if (!response.ok) throw new Error("Credenciais inválidas");
-
-    const data = await response.json();
+    const response = await api.post("/usuarios/login", { email, senha });
+    const data = response.data;
 
     sessionStorage.setItem("token", data.token);
     sessionStorage.setItem("cargo", data.cargo);
@@ -27,7 +21,8 @@ export async function login(email, senha) {
     return data;
 }
 
-export function TelaLogin({ onLoginSucesso }) {
+export function TelaLogin() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [erro, setErro] = useState("");
@@ -39,9 +34,14 @@ export function TelaLogin({ onLoginSucesso }) {
         setLoading(true);
         try {
             await login(email, senha);
-            onLoginSucesso();
+            navigate("/agendamentos");
         } catch (e) {
-            setErro("Email ou senha inválidos");
+            setErro(
+                e?.response?.data?.message ||
+                e?.response?.data?.error ||
+                e?.message ||
+                "Email ou senha inválidos"
+            );
         } finally {
             setLoading(false);
         }
@@ -104,7 +104,7 @@ export function TelaLogin({ onLoginSucesso }) {
                             inputClassName="w-full rounded-[9px] border-0 bg-[#e6e7ed] py-[0.88rem] pl-11 pr-12 text-base text-[#1f1f1f] outline-none focus:ring-3 focus:ring-white/25"
                         />
 
-                        {erro && <p className="mt-2 text-red-400 text-sm">{erro}</p>}
+                        <AlertMessage variant="error" message={erro} className="mt-2 mb-0" />
 
                         <BtnGreen
                             content={(

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import api from "../../../provider/api";
+import AlertMessage from "../AlertMessage";
 
 const inputCls =
   "mt-1 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]";
@@ -9,13 +11,23 @@ const selectCls =
 function Field({ label, children }) {
   return (
     <div className="mb-3">
-      <label className="block text-sm font-semibold text-gray-700 mb-1">{label}</label>
+      <label className="block text-sm font-semibold text-gray-700 mb-1">
+        {label}
+      </label>
       {children}
     </div>
   );
 }
 
-function ModalCadastroFuncionario({ isOpen, onClose }) {
+export default function ModalCadastroFuncionario({
+  isOpen,
+  onClose,
+  onSuccess,
+  usuario = null,
+}) {
+
+  const isEditMode = !!usuario;
+
   const [credenciais, setCredenciais] = useState({
     tipoUsuario: "",
     nome: "",
@@ -24,154 +36,417 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
     senha: "",
     condominio: "",
   });
+
   const [confirmarSenha, setConfirmarSenha] = useState("");
+
   const [tiposUsuario, setTiposUsuario] = useState([]);
+
   const [isAluno, setIsAluno] = useState(false);
+
   const [condominios, setCondominios] = useState([]);
+
   const [erro, setErro] = useState("");
+
   const [sucesso, setSucesso] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
+  const [emailError, setEmailError] = useState("");
+
+  const [telefoneError, setTelefoneError] = useState("");
+
+  const [senhaError, setSenhaError] = useState("");
+
+  // trava scroll
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
+
     return () => {
       document.body.style.overflow = "auto";
     };
   }, [isOpen]);
 
+  // carregar dados
   useEffect(() => {
-    if (isOpen) {
-      carregarTiposUsuario();
-      carregarCondominios();
+    async function carregarDados() {
+      try {
+
+        const response = await api.get("/condominios");
+
+        setCondominios(response.data || []);
+
+        setTiposUsuario([
+          { id: 2, cargo: "Administracao" },
+          { id: 3, cargo: "Quadra" },
+          { id: 4, cargo: "Aluno" },
+        ]);
+
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+      }
     }
+
+    if (isOpen) {
+      setTiposUsuario([
+        { id: 2, cargo: "Administracao" },
+        { id: 3, cargo: "Quadra" },
+      ])
+    }
+
   }, [isOpen]);
 
-  async function carregarTiposUsuario() {
-    try {
-      const resposta = await fetch("http://localhost:8080/api/tipo-usuarios");
-      if (!resposta.ok) throw new Error("Erro na requisicao");
-      const dados = await resposta.json();
-      setTiposUsuario(dados);
-    } catch (e) {
-      console.error("Erro ao buscar tipos de usuario:", e);
-    }
-  }
+  // preencher edição
+  useEffect(() => {
 
-  async function carregarCondominios() {
-    try {
-      const resposta = await fetch("http://localhost:8080/api/condominios");
-      if (!resposta.ok) throw new Error("Erro na requisicao");
-      const dados = await resposta.json();
-      setCondominios(dados);
-    } catch (e) {
-      console.error("Erro ao buscar condominios:", e);
+    if (!usuario) {
+      resetFormulario();
+      return;
     }
-  }
+
+    const tipoId =
+      usuario.tipoUsuario?.id ||
+      usuario.tipoUsuario ||
+      "";
+
+    const condominioId =
+      usuario.condominio?.id ||
+      usuario.condominio ||
+      "";
+
+    setCredenciais({
+      tipoUsuario: tipoId,
+      nome: usuario.nome || "",
+      email: usuario.email || "",
+      telefone: usuario.telefone || "",
+      senha: "",
+      condominio: condominioId,
+    });
+
+    setIsAluno(Number(tipoId) === 4);
+
+  }, [usuario]);
+
+  const validarEmail = (valor) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor);
+
+  const validarTelefone = (valor) => {
+    const numeros = valor.replace(/\D/g, "");
+    return numeros.length >= 10 && numeros.length <= 11;
+  };
+
+  const aplicarMascaraTelefone = (valor) =>
+    valor
+      .replace(/\D/g, "")
+      .replace(/^(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
+      .slice(0, 15);
 
   function atualizarCampo(campo, valor) {
-    setCredenciais((prev) => ({ ...prev, [campo]: valor }));
+
     setErro("");
+
+    if (campo === "telefone") {
+
+      const telefoneFormatado =
+        aplicarMascaraTelefone(valor);
+
+      setCredenciais((prev) => ({
+        ...prev,
+        telefone: telefoneFormatado,
+      }));
+
+      setTelefoneError(
+        telefoneFormatado &&
+          !validarTelefone(telefoneFormatado)
+          ? "Digite um telefone válido."
+          : ""
+      );
+
+      return;
+    }
+
+    if (campo === "email") {
+
+      setCredenciais((prev) => ({
+        ...prev,
+        email: valor,
+      }));
+
+      setEmailError(
+        valor && !validarEmail(valor)
+          ? "Digite um e-mail válido."
+          : ""
+      );
+
+      return;
+    }
+
+    if (campo === "senha") {
+
+      setCredenciais((prev) => ({
+        ...prev,
+        senha: valor,
+      }));
+
+      setSenhaError(
+        valor && valor.length < 6
+          ? "A senha deve ter no mínimo 6 caracteres."
+          : ""
+      );
+
+      return;
+    }
+
+    setCredenciais((prev) => ({
+      ...prev,
+      [campo]: valor,
+    }));
   }
 
   function atualizarTipoUsuario(evento) {
+
     const valor = Number(evento.target.value);
-    setCredenciais((prev) => ({ ...prev, tipoUsuario: valor || "" }));
+
+    setCredenciais((prev) => ({
+      ...prev,
+      tipoUsuario: valor || "",
+    }));
+
     setIsAluno(valor === 4);
+
     setErro("");
   }
 
   function atualizarCondominio(evento) {
-    setCredenciais((prev) => ({ ...prev, condominio: Number(evento.target.value) }));
+
+    const valor = evento.target.value
+      ? Number(evento.target.value)
+      : "";
+
+    setCredenciais((prev) => ({
+      ...prev,
+      condominio: valor,
+    }));
   }
 
   function resetFormulario() {
-    setCredenciais({ tipoUsuario: "", nome: "", email: "", telefone: "", senha: "", condominio: "" });
+
+    setCredenciais({
+      tipoUsuario: "",
+      nome: "",
+      email: "",
+      telefone: "",
+      senha: "",
+      condominio: "",
+    });
+
     setConfirmarSenha("");
+
     setIsAluno(false);
+
     setErro("");
+
     setSucesso("");
+
+    setEmailError("");
+
+    setTelefoneError("");
+
+    setSenhaError("");
   }
 
   function validarCredenciais() {
-    if (!credenciais.nome.trim()) 
-        { setErro("Nome e obrigatorio"); return false; }
-    if (!credenciais.email.trim()) 
-        { setErro("E-mail e obrigatorio"); return false; }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (
+      emailError ||
+      telefoneError ||
+      senhaError
+    ) {
+      return false;
+    }
 
-    if (!emailRegex.test(credenciais.email)) 
-        { setErro("E-mail invalido"); return false; }
-    if (!credenciais.telefone.trim()) 
-        { setErro("Telefone e obrigatorio"); return false; }
-    const tel = credenciais.telefone.replace(/\D/g, "");
-    if (tel.length !== 11) 
-        { setErro("Telefone deve ter 11 digitos (DDD + numero)"); return false; }
-    if (!credenciais.senha) 
-        { setErro("Senha e obrigatoria"); return false; }
-    if (credenciais.senha.length < 6) 
-        { setErro("Senha deve ter no minimo 6 caracteres"); return false; }
-    if (!confirmarSenha) 
-        { setErro("Confirmacao de senha e obrigatoria"); return false; }
-    if (credenciais.senha !== confirmarSenha) 
-        { setErro("Senhas nao sao iguais"); return false; }
-    if (!credenciais.tipoUsuario) 
-        { setErro("Tipo de Usuario e obrigatorio"); return false; }
-    if (isAluno && !credenciais.condominio) 
-        { setErro("Condominio e obrigatorio para alunos"); return false; }
+    if (!credenciais.nome.trim()) {
+      setErro("Nome é obrigatório");
+      return false;
+    }
+
+    if (!credenciais.email.trim()) {
+      setErro("E-mail é obrigatório");
+      return false;
+    }
+
+    if (!validarEmail(credenciais.email)) {
+      setErro("E-mail inválido");
+      return false;
+    }
+
+    if (!credenciais.telefone.trim()) {
+      setErro("Telefone é obrigatório");
+      return false;
+    }
+
+    if (!validarTelefone(credenciais.telefone)) {
+      setErro("Telefone inválido");
+      return false;
+    }
+
+    if (!isEditMode && !credenciais.senha) {
+      setErro("Senha é obrigatória");
+      return false;
+    }
+
+    if (credenciais.senha) {
+
+      if (credenciais.senha.length < 6) {
+        setErro("Senha deve ter no mínimo 6 caracteres");
+        return false;
+      }
+
+      if (!confirmarSenha) {
+        setErro("Confirme a senha");
+        return false;
+      }
+
+      if (credenciais.senha !== confirmarSenha) {
+        setErro("Senhas não são iguais");
+        return false;
+      }
+    }
+
+    if (!credenciais.tipoUsuario) {
+      setErro("Tipo de usuário é obrigatório");
+      return false;
+    }
+
+    if (isAluno && !credenciais.condominio) {
+      setErro("Condomínio é obrigatório");
+      return false;
+    }
+
     return true;
   }
 
-  async function cadastrarUsuario(evento) {
+  async function salvarUsuario(evento) {
+
     evento.preventDefault();
-    if (!validarCredenciais()) return;
+
+    if (!validarCredenciais()) {
+      return;
+    }
+
     try {
-      const resposta = await fetch("http://localhost:8080/api/usuarios", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credenciais),
-      });
-      if (!resposta.ok) {
-        const erroBackend = await resposta.json();
-        console.log("STATUS:", resposta.status);
-        console.log("ERRO DO BACKEND:", erroBackend);
-        throw new Error("Erro na requisicao");
+
+      setLoading(true);
+
+      setErro("");
+
+      const payload = {
+        tipoUsuario: Number(credenciais.tipoUsuario),
+        nome: credenciais.nome.trim(),
+        email: credenciais.email.trim(),
+        telefone: credenciais.telefone.replace(/\D/g, ""),
+      };
+
+      if (credenciais.condominio) {
+        payload.condominio =
+          Number(credenciais.condominio);
       }
-      await resposta.json();
-      setSucesso("Cadastro realizado com sucesso!");
+
+      // senha opcional edição
+      if (credenciais.senha.trim()) {
+        payload.senha = credenciais.senha;
+      }
+
+      if (isEditMode) {
+
+        await api.put(
+          `/usuarios/${usuario.id}`,
+          payload
+        );
+
+      } else {
+
+        await api.post(
+          "/usuarios",
+          payload
+        );
+      }
+
+      if (onSuccess) {
+            onSuccess(isEditMode ? "updated" : "created");
+      }
+
       resetFormulario();
-      setTimeout(() => setSucesso(""), 10000);
+
+      onClose();
+
     } catch (e) {
-      console.error("Erro ao cadastrar:", e);
-      setErro("Erro ao cadastrar. Tente novamente.");
+
+      console.error("Erro:", e);
+
+      const mensagemBackend =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        e?.message ||
+        "";
+
+      setErro(
+        mensagemBackend ||
+          (isEditMode
+            ? "Erro ao atualizar usuário."
+            : "Erro ao cadastrar usuário.")
+      );
+
+    } finally {
+
+      setLoading(false);
     }
   }
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
 
-        <div className="bg-[#F8821E] px-6 py-5 flex items-center justify-between shrink-0">
-          <h2 className="text-2xl font-bold text-white">Cadastrar Usuários</h2>
+      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
+
+        <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+
+          <h2 className="text-lg font-bold text-white">
+            {isEditMode
+              ? "Editar Funcionário"
+              : "Cadastrar Funcionário"}
+          </h2>
+
           <button
             type="button"
-            onClick={() => { resetFormulario(); onClose(); }}
-            className="text-white text-4xl font-medium leading-none hover:text-red-200 transition"
+            onClick={() => {
+              resetFormulario();
+              onClose();
+            }}
+            className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
           >
-            x
+            ✕
           </button>
+
         </div>
 
-        <div className="overflow-y-auto px-6 py-5">
-          <form onSubmit={cadastrarUsuario} className="flex flex-col">
+        {/* Conteúdo */}
+        <div className="px-5 py-4">
+
+          <form
+            onSubmit={salvarUsuario}
+            className="flex flex-col space-y-3"
+          >
 
             <Field label="Nome">
               <input
                 type="text"
                 value={credenciais.nome}
-                onChange={(e) => atualizarCampo("nome", e.target.value)}
-                placeholder="Nome completo"
+                onChange={(e) =>
+                  atualizarCampo("nome", e.target.value)
+                }
+                placeholder="Nome e sobrenome"
                 className={inputCls}
               />
             </Field>
@@ -180,92 +455,165 @@ function ModalCadastroFuncionario({ isOpen, onClose }) {
               <input
                 type="email"
                 value={credenciais.email}
-                onChange={(e) => atualizarCampo("email", e.target.value)}
+                onChange={(e) =>
+                  atualizarCampo("email", e.target.value)
+                }
                 placeholder="exemplo@email.com"
                 className={inputCls}
               />
+
+              {emailError && (
+                <p className="text-red-600 text-sm mt-1">
+                  {emailError}
+                </p>
+              )}
             </Field>
 
             <Field label="Telefone">
               <input
                 type="tel"
                 value={credenciais.telefone}
-                onChange={(e) => atualizarCampo("telefone", e.target.value)}
-                placeholder="(11) 9 9999-9999"
+                onChange={(e) =>
+                  atualizarCampo(
+                    "telefone",
+                    e.target.value
+                  )
+                }
+                placeholder="(11) 99999-9999"
                 className={inputCls}
               />
+
+              {telefoneError && (
+                <p className="text-red-600 text-sm mt-1">
+                  {telefoneError}
+                </p>
+              )}
             </Field>
 
             <Field label="Senha">
               <input
                 type="password"
                 value={credenciais.senha}
-                onChange={(e) => atualizarCampo("senha", e.target.value)}
-                placeholder="Minimo 6 caracteres"
+                onChange={(e) =>
+                  atualizarCampo("senha", e.target.value)
+                }
+                placeholder={
+                  isEditMode
+                    ? "Deixe vazio para manter"
+                    : "Mínimo 6 caracteres"
+                }
                 className={inputCls}
               />
+
+              {senhaError && (
+                <p className="text-red-600 text-sm mt-1">
+                  {senhaError}
+                </p>
+              )}
             </Field>
 
             <Field label="Confirmar Senha">
               <input
                 type="password"
                 value={confirmarSenha}
-                onChange={(e) => { setConfirmarSenha(e.target.value); setErro(""); }}
+                onChange={(e) => {
+                  setConfirmarSenha(e.target.value);
+                  setErro("");
+                }}
                 placeholder="Repita a senha"
                 className={inputCls}
               />
             </Field>
 
-            <Field label="Tipo de Usuario">
+            <Field label="Tipo de Usuário">
+
               <select
                 value={credenciais.tipoUsuario}
                 onChange={atualizarTipoUsuario}
                 className={selectCls}
               >
-                <option value="">Selecione</option>
+
+                <option value="">
+                  Selecione
+                </option>
+
                 {tiposUsuario.map((tipo) => (
-                  <option key={tipo.id} value={tipo.id}>{tipo.cargo}</option>
+                  <option
+                    key={tipo.id}
+                    value={tipo.id}
+                  >
+                    {tipo.cargo}
+                  </option>
                 ))}
               </select>
+
             </Field>
 
             {isAluno && (
-              <Field label="Condominio">
+              <Field label="Condomínio">
+
                 <select
                   value={credenciais.condominio}
                   onChange={atualizarCondominio}
                   className={selectCls}
                 >
-                  <option value="">Selecione</option>
-                  {condominios.map((c) => (
-                    <option key={c.id} value={c.id}>{c.nome}</option>
+
+                  <option value="">
+                    Selecione
+                  </option>
+
+                  {condominios.map((cond) => (
+                    <option
+                      key={cond.id}
+                      value={cond.id}
+                    >
+                      {cond.nome}
+                    </option>
                   ))}
+
                 </select>
+
               </Field>
             )}
 
-            {erro && (
-              <p className="text-[#DC2625] text-sm text-center font-semibold mt-1 mb-2">
-                {erro}
-              </p>
-            )}
-            {sucesso && (
-              <p className="text-[#17A34A] text-sm text-center font-semibold mt-1 mb-2">
-                {sucesso}
-              </p>
-            )}
+            <AlertMessage variant="error" message={erro} />
 
-            <button
-              type="submit"
-              className="mt-2 w-full bg-[#F8821E] hover:bg-[#EA580C] text-white font-bold py-3 rounded-xl transition"
-            >
-              Cadastrar Funcionario
-            </button>
+            <AlertMessage variant="success" message={sucesso} />
+
+            {/* Botões */}
+            <div className="flex justify-end gap-2 mt-3">
+
+              <button
+                type="button"
+                onClick={() => {
+                  resetFormulario();
+                  onClose();
+                }}
+                disabled={loading}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-4 py-2 bg-linear-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+
+                {loading
+                  ? "Processando..."
+                  : isEditMode
+                    ? "Salvar alterações"
+                    : "Cadastrar Funcionário"}
+
+              </button>
+
+            </div>
+
           </form>
         </div>
       </div>
     </div>
   );
 }
-
-export default ModalCadastroFuncionario;

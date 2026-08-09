@@ -1,9 +1,71 @@
-export function AgendamentosRow({ data, horario, condominio, aluno, prof, reba, aux, status, onEdit}) {
+export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, aluno, alunos, professor, rebatedor, auxiliar, status, onEdit, onConfirm, onDelete, onFinalize, onViewDetails, showActions = true }) {
+  const statusNormalizado = String(status || "").trim().toLowerCase();
   const statusStyle = {
-    Confirmada: "bg-green-100 text-green-700",
-    Pendente: "bg-yellow-100 text-yellow-700",
-    Cancelada: "bg-red-100 text-red-700",
-  }[status] || "bg-gray-100 text-gray-700";
+    confirmado: "bg-green-100 text-green-700",
+    pendente: "bg-yellow-100 text-yellow-700",
+    cancelado: "bg-red-100 text-red-700",
+    finalizado: "bg-[#F8821E] text-white",
+  }[statusNormalizado] || "bg-gray-100 text-gray-700";
+
+  const statusLabel = statusNormalizado
+    ? statusNormalizado.charAt(0).toUpperCase() + statusNormalizado.slice(1)
+    : "-";
+
+  // Tratar como será exibido o valor, considerando que pode ser um objeto ou uma string
+  const getDisplayValue = (value) => {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => {
+          if (item && typeof item === "object") {
+            return item.nome ?? item.nomeCompleto ?? item.aluno?.nome ?? "-";
+          }
+
+          return item ?? "-";
+        })
+        .filter((item) => item !== "-")
+        .join(", ") || "-";
+    }
+
+    if (value && typeof value === "object") {
+      return value.nome ?? "-";
+    }
+    return value ?? "-";
+  };
+
+  /* Funções para formatar data/hora */
+  const parseDate = (value) => {
+    if (!value && value !== 0) return null;
+    if (value instanceof Date) return value;
+    if (typeof value === 'number') return new Date(value);
+    if (typeof value === 'string') {
+      if (/^\d{2}:\d{2}(:\d{2})?$/.test(value)) return null;
+      const iso = value.replace(' ', 'T');
+      const d = new Date(iso);
+      return isNaN(d) ? null : d;
+    }
+    return null;
+  };
+
+  const formatDateValue = (value) => {
+    const d = parseDate(value);
+    if (d instanceof Date) {
+      return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
+    }
+    return value ?? '-';
+  };
+
+  const formatTimeValue = (value) => {
+    if (!value && value !== 0) return '-';
+    if (typeof value === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(value)) {
+      const parts = value.split(':');
+      return `${parts[0].padStart(2,'0')}:${parts[1].padStart(2,'0')}`;
+    }
+    const d = parseDate(value);
+    if (d instanceof Date) {
+      return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(d);
+    }
+    return value ?? '-';
+  };
 
   function abrirRota(destino) {
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}`;
@@ -12,39 +74,100 @@ export function AgendamentosRow({ data, horario, condominio, aluno, prof, reba, 
 
   return (
     <tr className="border-b border-gray-200 hover:bg-[#F3F4F8] transition-colors duration-150">
-      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{aluno}</td>
-      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{data}</td>
-      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{horario}</td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle font-semibold">{id}</td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{getDisplayValue(alunos?.length ? alunos : aluno)}</td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{formatDateValue(data)}</td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{formatTimeValue(horaInicio)}</td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{formatTimeValue(horaFim)}</td>
       <td
         className="px-4 py-3 text-sm text-gray-800 underline align-middle cursor-pointer"
-        onClick={() => abrirRota(condominio)}
+        onClick={() => abrirRota(getDisplayValue(condominio))}
       >
-        {condominio}
+        {getDisplayValue(condominio)}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{prof}</td>
-      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{reba}</td>
-      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{aux}</td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{getDisplayValue(professor)}</td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{getDisplayValue(rebatedor)}</td>
+      <td className="px-4 py-3 text-sm text-gray-800 align-middle">{getDisplayValue(auxiliar)}</td>
       <td className="px-4 py-2 text-sm font-semibold align-middle">
         <span className={`px-3 py-1 rounded-full ${statusStyle}`}>
-          {status}
+          {statusLabel}
         </span>
       </td>
-      <td className="px-4 py-3 text-center align-middle">
-        <div className="flex justify-center gap-2">
-          <button className="px-4 py-2 bg-green-600 text-white text-xs rounded-md hover:bg-green-700 shadow-sm transition-all">
-            Confirmar
-          </button>
-          <button
-            className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
-            onClick={onEdit}
-          >
-            Editar
-          </button>
-          <button className="px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 shadow-sm transition-all">
-            Cancelar
-          </button>
-        </div>
-      </td>
+      {showActions && (
+        <td className="px-4 py-3 text-center align-middle">
+          <div className="flex justify-center gap-2">
+            {statusNormalizado === "finalizado" ? null : (
+              <>
+                {statusNormalizado === "pendente" && (
+                  <button
+                    className="px-4 py-2 text-xs rounded-md shadow-sm transition-all bg-green-600 text-white hover:bg-green-700"
+                    onClick={onConfirm}
+                  >
+                    Confirmar
+                  </button>
+                )}
+
+                {statusNormalizado === "confirmado" && (() => {
+                    try {
+                      const parsedDate = parseDate(data);
+                      let end = null;
+                      if (parsedDate) {
+                        end = new Date(parsedDate.getTime());
+                        if (typeof horaFim === 'string' && horaFim.length) {
+                          const parts = horaFim.split(':');
+                          const hh = Number(parts[0] ?? 0);
+                          const mm = Number(parts[1] ?? 0);
+                          end.setHours(hh, mm, 0, 0);
+                        }
+                      }
+                      const now = new Date();
+                      const podeFinalizar = end && now > end;
+
+                      if (!podeFinalizar) return null;
+
+                      return (
+                        <button
+                          className="px-4 py-2 text-xs rounded-md shadow-sm transition-all bg-green-600 text-white hover:bg-green-700"
+                          onClick={onFinalize}
+                        >
+                          Finalizar
+                        </button>
+                      );
+                    } catch (e) {
+                      return null;
+                    }
+                })()}
+
+                <button
+                  className="px-4 py-2 bg-blue-700 text-white text-xs rounded-md hover:bg-blue-800 shadow-sm transition-all"
+                  onClick={onViewDetails}
+                >
+                  Detalhes
+                </button>
+
+                {statusNormalizado !== "cancelado" && (
+                  <>
+                    <button
+                      className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
+                      onClick={onEdit}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 shadow-sm transition-all"
+                      onClick={onDelete}
+                    >
+                      Cancelar
+                    </button>
+                  </>
+                )}
+
+
+              </>
+            )}
+          </div>
+        </td>
+      )}
     </tr>
   );
 }

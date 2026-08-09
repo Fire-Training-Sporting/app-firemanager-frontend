@@ -1,45 +1,179 @@
-import { AlunosRow } from './AlunosRow'
-import AlunosTh from './AlunoTh'
+import { useState, useEffect } from "react";
+import { AlunosRow } from "./AlunosRow";
+import AlunosTh from "./AlunoTh";
 
-const alunos = [
-  { id: 1, nome: "Maria Silva", email: "maria.silva@email.com", telefone: "(11) 99999-1234", endereco: "Rua A, 123, São Paulo - SP" },
-  { id: 2, nome: "João Santos", email: "joao.santos@email.com", telefone: "(21) 98888-5678", endereco: "Av. B, 456, Rio de Janeiro - RJ" },
-  { id: 3, nome: "Ana Costa", email: "ana.costa@email.com", telefone: "(31) 97777-9012", endereco: "Rua C, 789, Belo Horizonte - MG" },
-  { id: 4, nome: "Carlos Souza", email: "carlos.souza@email.com", telefone: "(11) 91234-5678", endereco: "Rua D, 321, Campinas - SP" },
-  { id: 5, nome: "Fernanda Lima", email: "fernanda.lima@email.com", telefone: "(21) 93456-7890", endereco: "Av. E, 654, Niterói - RJ" },
-  { id: 6, nome: "Lucas Pereira", email: "lucas.pereira@email.com", telefone: "(31) 94567-8901", endereco: "Rua F, 987, Contagem - MG" },
-  { id: 7, nome: "Juliana Alves", email: "juliana.alves@email.com", telefone: "(11) 95678-9012", endereco: "Rua G, 159, Santos - SP" },
-  { id: 8, nome: "Paulo Henrique", email: "paulo.henrique@email.com", telefone: "(21) 96789-0123", endereco: "Av. H, 753, Duque de Caxias - RJ" },
-  { id: 9, nome: "Mariana Rocha", email: "mariana.rocha@email.com", telefone: "(31) 97890-1234", endereco: "Rua I, 357, Uberlândia - MG" },
-  { id: 10, nome: "Rafael Costa", email: "rafael.costa@email.com", telefone: "(11) 98901-2345", endereco: "Rua J, 951, São Bernardo - SP" },
-  { id: 11, nome: "Patrícia Gomes", email: "patricia.gomes@email.com", telefone: "(21) 99012-3456", endereco: "Av. K, 258, Nova Iguaçu - RJ" },
-  { id: 12, nome: "Bruno Martins", email: "bruno.martins@email.com", telefone: "(31) 90123-4567", endereco: "Rua L, 654, Betim - MG" },
-  { id: 13, nome: "Aline Souza", email: "aline.souza@email.com", telefone: "(11) 91234-5678", endereco: "Rua M, 852, Guarulhos - SP" },
-  { id: 14, nome: "Ricardo Dias", email: "ricardo.dias@email.com", telefone: "(21) 92345-6789", endereco: "Av. N, 456, São Gonçalo - RJ" },
-  { id: 15, nome: "Camila Freitas", email: "camila.freitas@email.com", telefone: "(31) 93456-7890", endereco: "Rua O, 123, Montes Claros - MG" },
-];
+export function AlunosTable({
+  alunos = [],
+  onDelete = () => {},
+  onEdit = () => {},
+  onAddSaldo = () => {},
+}) {
+  const ITEMS_PER_PAGE = 20;
+  const cargo = sessionStorage.getItem("cargo");
+  const showContato = cargo !== "Professor";
+  const showActions = sessionStorage.getItem("cargo") !== "Professor";
+  const showSaldos = sessionStorage.getItem("cargo") !== "Professor";
 
-export function AlunosTable() {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalItems = alunos.length;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(totalItems / ITEMS_PER_PAGE)
+  );
+
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+
+  const pageItems = alunos.slice(startIndex, endIndex);
+
+  const goPrev = () =>
+    setCurrentPage((p) => Math.max(1, p - 1));
+
+  const goNext = () =>
+    setCurrentPage((p) => Math.min(totalPages, p + 1));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages]);
+
   return (
     <div className="w-full overflow-x-auto">
-      <div className="max-h-115 overflow-y-auto">
+
+      <div className="h-fit max-h-[calc(100vh-300px)] overflow-y-auto">
+
         <table className="w-full border-separate border-spacing-0 rounded-lg overflow-hidden">
+
           <thead className="sticky top-0 z-10">
             <tr className="border-b-2 border-gray-200">
-              <AlunosTh className="text-left w-12">ID</AlunosTh>
-              <AlunosTh className="text-left">Nome</AlunosTh>
-              <AlunosTh className="text-left">Email</AlunosTh>
-              <AlunosTh className="text-left">Telefone</AlunosTh>
-              <AlunosTh className="text-left">Endereço</AlunosTh>
-              <AlunosTh className="text-left w-40">Ações</AlunosTh>
+
+              <AlunosTh className="text-left w-12">
+                ID
+              </AlunosTh>
+
+              <AlunosTh className="text-left">
+                Nome
+              </AlunosTh>
+
+              {showContato && (
+                <>
+                  <AlunosTh className="text-left">
+                    Email
+                  </AlunosTh>
+
+                  <AlunosTh className="text-left">
+                    Telefone
+                  </AlunosTh>
+                </>
+              )}
+
+              <AlunosTh className="text-left">
+                Endereço
+              </AlunosTh>
+
+              {showSaldos && (
+                <>
+                  <AlunosTh className="text-left w-32">
+                    Tênis
+                  </AlunosTh>
+
+                  <AlunosTh className="text-left w-40">
+                    Beach Tennis
+                  </AlunosTh>
+
+                  <AlunosTh className="text-left w-32">
+                    Funcional
+                  </AlunosTh>
+                </>
+              )}
+
+              {showActions && (
+                <AlunosTh className="text-left w-40">
+                  Ações
+                </AlunosTh>
+              )}
+
             </tr>
           </thead>
+
           <tbody className="bg-white">
-            {alunos.map((aluno) => (
-              <AlunosRow key={aluno.id} {...aluno} />
-            ))}
+            {pageItems.length > 0 ? (
+              pageItems.map((aluno) => (
+                <AlunosRow
+                  key={aluno.id}
+                  {...aluno}
+                  onDelete={() => onDelete(aluno)}
+                  onEdit={() => onEdit(aluno)}
+                  onAddSaldo={() => onAddSaldo(aluno)}
+                  showActions={showActions}
+                  showSaldos={showSaldos}
+                  showContato={showContato}
+                />
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={
+                    (showContato ? 5 : 3) +
+                    (showSaldos ? 3 : 0) +
+                    (showActions ? 1 : 0)
+                  }
+                  className="p-4 text-center text-gray-500"
+                >
+                  Nenhum aluno encontrado.
+                </td>
+              </tr>
+            )}
           </tbody>
+
         </table>
+      </div>
+
+      <div className="flex items-center justify-between gap-4 px-4 py-2 border-t bg-white">
+
+        <div className="text-xs text-gray-600">
+          Mostrando{" "}
+          {Math.min(totalItems, startIndex + 1)}
+          -
+          {Math.min(totalItems, endIndex)}
+          {" "}de {totalItems}
+        </div>
+
+        <div className="flex items-center gap-2">
+
+          <button
+            onClick={goPrev}
+            disabled={currentPage === 1}
+            className={`px-2 py-0.5 text-sm rounded-md border ${
+              currentPage === 1
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-100"
+            }`}
+          >
+            Anterior
+          </button>
+
+          <div className="text-xs">
+            Página {currentPage} de {totalPages}
+          </div>
+
+          <button
+            onClick={goNext}
+            disabled={currentPage === totalPages}
+            className={`px-2 py-0.5 text-sm rounded-md border ${
+              currentPage === totalPages
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-100"
+            }`}
+          >
+            Próxima
+          </button>
+
+        </div>
       </div>
     </div>
   );
