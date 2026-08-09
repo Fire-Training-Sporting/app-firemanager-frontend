@@ -8,6 +8,7 @@ import visibilityIcon from "../../assets/visibility.png";
 import visibilityOffIcon from "../../assets/visibility-off.png";
 import InputComponent from "../utils/InputComponent";
 import { BtnGreen } from "../utils/Buttons/BtnGreen";
+import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
 
 export async function login(email, senha) {
@@ -35,7 +36,12 @@ export function TelaLogin() {
             await login(email, senha);
             navigate("/agendamentos");
         } catch (e) {
-            setErro("Email ou senha inválidos");
+            setErro(
+                e?.response?.data?.message ||
+                e?.response?.data?.error ||
+                e?.message ||
+                "Email ou senha inválidos"
+            );
         } finally {
             setLoading(false);
         }
@@ -98,7 +104,7 @@ export function TelaLogin() {
                             inputClassName="w-full rounded-[9px] border-0 bg-[#e6e7ed] py-[0.88rem] pl-11 pr-12 text-base text-[#1f1f1f] outline-none focus:ring-3 focus:ring-white/25"
                         />
 
-                        {erro && <p className="mt-2 text-red-400 text-sm">{erro}</p>}
+                        <AlertMessage variant="error" message={erro} className="mt-2 mb-0" />
 
                         <BtnGreen
                             content={(

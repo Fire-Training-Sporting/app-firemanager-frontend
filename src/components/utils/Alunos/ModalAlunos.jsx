@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../provider/api";
+import AlertMessage from "../AlertMessage";
 
 const inputCls =
   "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]";
@@ -155,6 +156,7 @@ export default function ModalAluno({
       (!isEditMode && !form.senha.trim()) ||
       !form.condominio
     ) {
+      setSubmitError("Preencha todos os campos obrigatórios antes de continuar.");
       return;
     }
 
@@ -206,10 +208,17 @@ export default function ModalAluno({
         error
       );
 
+      const mensagemBackend =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "";
+
       setSubmitError(
-        isEditMode
-          ? "Não foi possível atualizar o aluno."
-          : "Não foi possível cadastrar o aluno. Tente novamente."
+        mensagemBackend ||
+          (isEditMode
+            ? "Não foi possível atualizar o aluno."
+            : "Não foi possível cadastrar o aluno. Tente novamente.")
       );
 
     } finally {
@@ -338,11 +347,7 @@ export default function ModalAluno({
             </select>
           </Field>
 
-          {submitError && (
-            <p className="text-red-600 text-sm">
-              {submitError}
-            </p>
-          )}
+          <AlertMessage variant="error" message={submitError} />
 
           {/* Botões */}
           <div className="flex justify-end gap-2 mt-3">
