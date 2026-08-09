@@ -4,6 +4,7 @@ import SearchFilter from "../utils/SearchFilter";
 import TabelaFuncionarios from "../utils/Funcionarios/TabelaFuncionarios";
 import ModalCadastroFuncionario from "../utils/Funcionarios/ModalCadastroFuncionario";
 import ConfirmationModal from "../utils/ConfirmationModal";
+import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
 
 const search_columns = [
@@ -33,6 +34,9 @@ export default function TelaFuncionarios() {
 
   const [sucessoCadastro,
     setSucessoCadastro] = useState("");
+
+  const [sucessoVisivel,
+    setSucessoVisivel] = useState(false);
 
   const [isLoading,
     setIsLoading] = useState(false);
@@ -247,15 +251,17 @@ export default function TelaFuncionarios() {
     return valor ?? "-";
   }
 
-  function handleSuccess() {
+  function handleSuccess(acao = "created") {
 
     setIsModalOpen(false);
 
     setSucessoCadastro(
-      selectedEmployee
-        ? "Funcionário atualizado com sucesso!"
-        : "Funcionário cadastrado com sucesso!"
+      acao === "updated"
+        ? "Funcionário atualizado com sucesso"
+        : "Funcionário cadastrado com sucesso"
     );
+
+    setSucessoVisivel(true);
 
     buscarDados();
 
@@ -269,6 +275,7 @@ export default function TelaFuncionarios() {
       window.setTimeout(() => {
 
         setSucessoCadastro("");
+        setSucessoVisivel(false);
 
       }, 7000);
   }
@@ -290,11 +297,11 @@ export default function TelaFuncionarios() {
         }
       >
 
-        {sucessoCadastro && (
-          <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
-            {sucessoCadastro}
-          </div>
-        )}
+        <AlertMessage
+          variant="success"
+          message={sucessoVisivel ? sucessoCadastro : ""}
+          className="fixed right-4 top-30 z-60 w-[min(420px,calc(100vw-2rem))] shadow-lg"
+        />
 
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
 

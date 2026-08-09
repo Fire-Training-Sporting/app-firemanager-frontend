@@ -373,7 +373,7 @@ export default function ModalCadastroFuncionario({
       }
 
       if (onSuccess) {
-        onSuccess();
+            onSuccess(isEditMode ? "updated" : "created");
       }
 
       resetFormulario();
