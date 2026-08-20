@@ -23,6 +23,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
   const [usuarios, setUsuarios] = useState([]);
   const [listaServicos, setListaServicos] = useState([]);
   const [mensagemValidacao, setMensagemValidacao] = useState("");
+  const [mensagemValidacaoId, setMensagemValidacaoId] = useState(0);
   const [loading, setLoading] = useState(false);
   const podeAdicionarFuncionario = funcionarios.length < 3;
 
@@ -116,6 +117,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
   }, [agendamento]);
 
   const mostrarErroValidacao = (mensagem) => {
+    setMensagemValidacaoId((idAtual) => idAtual + 1);
     setMensagemValidacao(mensagem);
   };
 
@@ -263,7 +265,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
 
         {/* FORM */}
         <div className="overflow-y-auto px-4 py-3">
-          <AlertMessage variant="error" message={mensagemValidacao} />
+          <AlertMessage key={mensagemValidacaoId} variant="error" message={mensagemValidacao} />
 
           <form
             onSubmit={handleSubmit}
