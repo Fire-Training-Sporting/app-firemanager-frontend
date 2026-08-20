@@ -1,4 +1,4 @@
-export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, aluno, alunos, professor, rebatedor, auxiliar, status, onEdit, onConfirm, onDelete, onFinalize, onViewDetails, showActions = true }) {
+export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, aluno, alunos, professor, rebatedor, auxiliar, status, onViewDetails }) {
   const statusNormalizado = String(status || "").trim().toLowerCase();
   const statusStyle = {
     confirmado: "bg-green-100 text-green-700",
@@ -73,7 +73,11 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
   }
 
   return (
-    <tr className="border-b border-gray-200 hover:bg-[#F3F4F8] transition-colors duration-150">
+    <tr
+      className="border-b border-gray-200 hover:bg-[#F3F4F8] transition-colors duration-150 cursor-pointer"
+      onClick={onViewDetails}
+      title="Clique para ver os detalhes do agendamento"
+    >
       <td className="px-4 py-3 text-sm text-gray-800 align-middle font-semibold">{id}</td>
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">{getDisplayValue(alunos?.length ? alunos : aluno)}</td>
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">{formatDateValue(data)}</td>
@@ -81,7 +85,10 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
       <td className="px-4 py-3 text-sm text-gray-800 align-middle">{formatTimeValue(horaFim)}</td>
       <td
         className="px-4 py-3 text-sm text-gray-800 underline align-middle cursor-pointer"
-        onClick={() => abrirRota(getDisplayValue(condominio))}
+        onClick={(event) => {
+          event.stopPropagation();
+          abrirRota(getDisplayValue(condominio));
+        }}
       >
         {getDisplayValue(condominio)}
       </td>
@@ -93,81 +100,6 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
           {statusLabel}
         </span>
       </td>
-      {showActions && (
-        <td className="px-4 py-3 text-center align-middle">
-          <div className="flex justify-center gap-2">
-            {statusNormalizado === "finalizado" ? null : (
-              <>
-                {statusNormalizado === "pendente" && (
-                  <button
-                    className="px-4 py-2 text-xs rounded-md shadow-sm transition-all bg-green-600 text-white hover:bg-green-700"
-                    onClick={onConfirm}
-                  >
-                    Confirmar
-                  </button>
-                )}
-
-                {statusNormalizado === "confirmado" && (() => {
-                    try {
-                      const parsedDate = parseDate(data);
-                      let end = null;
-                      if (parsedDate) {
-                        end = new Date(parsedDate.getTime());
-                        if (typeof horaFim === 'string' && horaFim.length) {
-                          const parts = horaFim.split(':');
-                          const hh = Number(parts[0] ?? 0);
-                          const mm = Number(parts[1] ?? 0);
-                          end.setHours(hh, mm, 0, 0);
-                        }
-                      }
-                      const now = new Date();
-                      const podeFinalizar = end && now > end;
-
-                      if (!podeFinalizar) return null;
-
-                      return (
-                        <button
-                          className="px-4 py-2 text-xs rounded-md shadow-sm transition-all bg-green-600 text-white hover:bg-green-700"
-                          onClick={onFinalize}
-                        >
-                          Finalizar
-                        </button>
-                      );
-                    } catch (e) {
-                      return null;
-                    }
-                })()}
-
-                <button
-                  className="px-4 py-2 bg-blue-700 text-white text-xs rounded-md hover:bg-blue-800 shadow-sm transition-all"
-                  onClick={onViewDetails}
-                >
-                  Detalhes
-                </button>
-
-                {statusNormalizado !== "cancelado" && (
-                  <>
-                    <button
-                      className="px-4 py-2 bg-yellow-500 text-white text-xs rounded-md hover:bg-yellow-600 shadow-sm transition-all"
-                      onClick={onEdit}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="px-4 py-2 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 shadow-sm transition-all"
-                      onClick={onDelete}
-                    >
-                      Cancelar
-                    </button>
-                  </>
-                )}
-
-
-              </>
-            )}
-          </div>
-        </td>
-      )}
     </tr>
   );
 }

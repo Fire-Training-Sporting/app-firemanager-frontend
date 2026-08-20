@@ -4,14 +4,16 @@ import api from "../../../provider/api";
 export default function ModalAgendamentoDetalhes({
   agendamento,
   onClose,
+  onEdit,
+  onConfirm,
+  onDelete,
+  onFinalize,
 }) {
   const [condominios, setCondominios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [listaServicos, setListaServicos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  if (!agendamento) return null;
 
   const formatDateValue = (value) => {
     if (!value) return "-";
@@ -89,6 +91,26 @@ export default function ModalAgendamentoDetalhes({
 
     buscarDados();
   }, []);
+
+  if (!agendamento) return null;
+
+  const statusNormalizado = String(agendamento.status || "").trim().toLowerCase();
+  const showActions = sessionStorage.getItem("cargo") !== "Professor";
+  const parseDate = (value) => {
+    if (!value) return null;
+    const date = new Date(String(value).replace(" ", "T"));
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+  const dataFim = parseDate(agendamento.data);
+
+  if (dataFim && agendamento.horaFim) {
+    const [hours, minutes] = String(agendamento.horaFim).split(":").map(Number);
+    dataFim.setHours(hours || 0, minutes || 0, 0, 0);
+  }
+
+  const podeFinalizar = statusNormalizado === "confirmado"
+    && dataFim
+    && new Date() > dataFim;
 
   // Extrai o endereço do condomínio associado
   const condominio = Array.isArray(agendamento.condominio)
@@ -302,7 +324,7 @@ export default function ModalAgendamentoDetalhes({
         </div>
 
         {/* FOOTER */}
-        <div className="border-t bg-gray-50 px-5 py-3 flex justify-end">
+        <div className="border-t bg-gray-50 px-5 py-3 flex items-center justify-between gap-3 flex-wrap">
           <button
             type="button"
             onClick={onClose}
@@ -310,6 +332,49 @@ export default function ModalAgendamentoDetalhes({
           >
             Fechar
           </button>
+
+          {showActions && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {statusNormalizado !== "finalizado" && statusNormalizado !== "cancelado" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={onDelete}
+                    className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onEdit}
+                    className="px-3 py-2 rounded-lg bg-yellow-500 text-white text-sm font-semibold hover:bg-yellow-600 transition"
+                  >
+                    Editar
+                  </button>
+                </>
+              )}
+
+              {statusNormalizado === "pendente" && (
+                <button
+                  type="button"
+                  onClick={onConfirm}
+                  className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition"
+                >
+                  Confirmar
+                </button>
+              )}
+
+              {podeFinalizar && (
+                <button
+                  type="button"
+                  onClick={onFinalize}
+                  className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition"
+                >
+                  Finalizar
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

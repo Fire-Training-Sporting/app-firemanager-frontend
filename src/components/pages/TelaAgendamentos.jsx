@@ -416,10 +416,6 @@ export default function TelaAgendamentos() {
       <div className="bg-white rounded-lg shadow-md border overflow-hidden">
         <AgendamentosTable
           agendamentos={agendamentos}
-          onEdit={editarDados}
-          onConfirm={solicitarConfirmacao}
-          onDelete={solicitarCancelamento}
-          onFinalize={solicitarFinalizacao}
           onViewDetails={visualizarDetalhes}
         />
       </div>
@@ -436,6 +432,22 @@ export default function TelaAgendamentos() {
         <ModalAgendamentoDetalhes
           agendamento={agendamentoDetalhes}
           onClose={() => setAgendamentoDetalhes(null)}
+          onEdit={() => {
+            setAgendamentoDetalhes(null);
+            editarDados(agendamentoDetalhes);
+          }}
+          onConfirm={() => {
+            setAgendamentoDetalhes(null);
+            solicitarConfirmacao(agendamentoDetalhes);
+          }}
+          onDelete={() => {
+            setAgendamentoDetalhes(null);
+            solicitarCancelamento(agendamentoDetalhes.id);
+          }}
+          onFinalize={() => {
+            setAgendamentoDetalhes(null);
+            solicitarFinalizacao(agendamentoDetalhes);
+          }}
         />
       )}
 
