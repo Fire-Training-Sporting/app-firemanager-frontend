@@ -140,7 +140,7 @@ export default function ModalAgendamentoDetalhes({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
 
         {/* HEADER */}
         <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
@@ -148,10 +148,6 @@ export default function ModalAgendamentoDetalhes({
             <h2 className="text-white text-lg font-bold">
               Detalhes do Agendamento
             </h2>
-
-            <p className="text-orange-100 text-xs">
-              Visualização completa do agendamento
-            </p>
           </div>
 
           <button
@@ -170,7 +166,7 @@ export default function ModalAgendamentoDetalhes({
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <span className="text-xs text-gray-500 font-medium">
-                ID do Agendamento
+                ID do Agendamento:
               </span>
 
               <h3 className="text-2xl font-bold text-gray-800">

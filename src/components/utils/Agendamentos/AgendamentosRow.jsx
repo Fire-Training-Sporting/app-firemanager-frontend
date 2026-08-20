@@ -74,7 +74,7 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
 
   return (
     <tr
-      className="border-b border-gray-200 hover:bg-[#F3F4F8] transition-colors duration-150 cursor-pointer"
+      className="border-b border-gray-200 odd:bg-white even:bg-gray-100 hover:bg-orange-100 transition-colors duration-150 cursor-pointer"
       onClick={onViewDetails}
       title="Clique para ver os detalhes do agendamento"
     >
