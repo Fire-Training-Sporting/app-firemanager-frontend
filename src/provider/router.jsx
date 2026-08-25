@@ -7,6 +7,7 @@ import { TelaDashboard } from "../components/pages/TelaDashboard";
 import TelaFuncionarios from "../components/pages/TelaFuncionarios";
 import TelaServico from "../components/pages/TelaServico";
 import { TelaPagamentos } from "../components/pages/TelaPagamentos";
+import TelaPerfil from "../components/pages/TelaPerfil";
 import Tela404 from "../components/pages/Tela404";
 import AuthGuard from "./AuthGuard";
 
@@ -29,6 +30,10 @@ export const router = createBrowserRouter([
             {
                 path: "/alunos",
                 element: <TelaAlunos />,
+            },
+            {
+                path: "/perfil",
+                element: <TelaPerfil />,
             },
             {
                 path: "/condominios",
