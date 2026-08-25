@@ -126,6 +126,59 @@ export default function TelaAgendamentos() {
     }
   };
 
+  const normalizarTextoBusca = (valor) => String(valor ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
+  const valorParaTextoBusca = (valor) => {
+    if (valor == null || valor === "") {
+      return "";
+    }
+
+    if (Array.isArray(valor)) {
+      return valor
+        .map((item) => valorParaTextoBusca(item))
+        .filter(Boolean)
+        .join(" ");
+    }
+
+    if (typeof valor === "object") {
+      return [
+        valor.nome,
+        valor.nomeCompleto,
+        valor.descricao,
+        valor.titulo,
+        valor.razaoSocial,
+        valor.aluno?.nome,
+        valor.id,
+      ]
+        .map((item) => (item == null ? "" : String(item)))
+        .filter(Boolean)
+        .join(" ");
+    }
+
+    if (valor instanceof Date) {
+      return valor.toLocaleDateString("pt-BR");
+    }
+
+    return String(valor);
+  };
+
+  const obterValorBuscaAgendamento = (agendamento, field) => {
+    if (field === "aluno") {
+      return [
+        valorParaTextoBusca(agendamento?.aluno),
+        valorParaTextoBusca(agendamento?.alunos),
+      ]
+        .filter(Boolean)
+        .join(" ");
+    }
+
+    return valorParaTextoBusca(agendamento?.[field]);
+  };
+
   const filtrarAgendamentos = async ({ field, value }) => {
     try {
       setIsLoading(true);
@@ -137,22 +190,8 @@ export default function TelaAgendamentos() {
 
       // Filtro local para melhor performance
       const filtrados = agendamentosOriginais.filter((agendamento) => {
-        const fieldValue = agendamento[field];
-        let compareValue = value.toLowerCase();
-
-        // Converter valor do campo para string para comparação
-        let fieldString = "";
-
-        if (typeof fieldValue === "object" && fieldValue !== null) {
-          fieldString = fieldValue.nome ? fieldValue.nome.toLowerCase() : "";
-        } else if (typeof fieldValue === "string") {
-          fieldString = fieldValue.toLowerCase();
-        } else if (typeof fieldValue === "number") {
-          fieldString = fieldValue.toString().toLowerCase();
-        } else if (fieldValue instanceof Date) {
-          fieldString = fieldValue.toLocaleDateString("pt-BR").toLowerCase();
-        }
-
+        const compareValue = normalizarTextoBusca(value);
+        const fieldString = normalizarTextoBusca(obterValorBuscaAgendamento(agendamento, field));
         return fieldString.includes(compareValue);
       });
 
