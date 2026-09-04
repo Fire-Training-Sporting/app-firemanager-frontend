@@ -8,6 +8,7 @@ export default function ModalAgendamentoDetalhes({
   onConfirm,
   onDelete,
   onFinalize,
+  onDuplicate,
 }) {
   const normalizarCargo = (cargo) => String(cargo ?? "").trim().toLowerCase();
 
@@ -360,6 +361,16 @@ export default function ModalAgendamentoDetalhes({
                   </button>
                 </>
               )}
+              
+              <button
+                type="button"
+                onClick={() => {
+                  if (showActions) onDuplicate?.();
+                }}
+                className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition"
+              >
+                Duplicar
+              </button>
 
               {statusNormalizado === "pendente" && (
                 <button
