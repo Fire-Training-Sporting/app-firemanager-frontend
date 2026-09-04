@@ -9,6 +9,13 @@ export default function ModalAgendamentoDetalhes({
   onDelete,
   onFinalize,
 }) {
+  const normalizarCargo = (cargo) => String(cargo ?? "").trim().toLowerCase();
+
+  const usuarioPodeGerenciarAgendamento = (cargo) => {
+    const cargoNormalizado = normalizarCargo(cargo);
+    return ["root", "administracao", "administrativo", "admnistrativo"].includes(cargoNormalizado);
+  };
+
   const [condominios, setCondominios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [listaServicos, setListaServicos] = useState([]);
@@ -95,7 +102,7 @@ export default function ModalAgendamentoDetalhes({
   if (!agendamento) return null;
 
   const statusNormalizado = String(agendamento.status || "").trim().toLowerCase();
-  const showActions = sessionStorage.getItem("cargo") !== "Professor";
+  const showActions = usuarioPodeGerenciarAgendamento(sessionStorage.getItem("cargo"));
   const parseDate = (value) => {
     if (!value) return null;
     const date = new Date(String(value).replace(" ", "T"));
@@ -132,7 +139,7 @@ export default function ModalAgendamentoDetalhes({
         {title}
       </span>
 
-      <span className="text-sm text-gray-800 font-medium break-words">
+      <span className="text-sm text-gray-800 font-medium wrap-break-word">
         {value || "-"}
       </span>
     </div>
@@ -335,14 +342,18 @@ export default function ModalAgendamentoDetalhes({
                 <>
                   <button
                     type="button"
-                    onClick={onDelete}
+                    onClick={() => {
+                      if (showActions) onDelete?.();
+                    }}
                     className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="button"
-                    onClick={onEdit}
+                    onClick={() => {
+                      if (showActions) onEdit?.();
+                    }}
                     className="px-3 py-2 rounded-lg bg-yellow-500 text-white text-sm font-semibold hover:bg-yellow-600 transition"
                   >
                     Editar
@@ -353,7 +364,9 @@ export default function ModalAgendamentoDetalhes({
               {statusNormalizado === "pendente" && (
                 <button
                   type="button"
-                  onClick={onConfirm}
+                  onClick={() => {
+                    if (showActions) onConfirm?.();
+                  }}
                   className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition"
                 >
                   Confirmar
@@ -363,7 +376,9 @@ export default function ModalAgendamentoDetalhes({
               {podeFinalizar && (
                 <button
                   type="button"
-                  onClick={onFinalize}
+                  onClick={() => {
+                    if (showActions) onFinalize?.();
+                  }}
                   className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition"
                 >
                   Finalizar
