@@ -276,6 +276,12 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       onClose();
     } catch (err) {
       console.error(isEditMode ? "Erro ao atualizar agendamento:" : "Erro ao criar agendamento:", err);
+      
+      if (err.response?.data?.message) {
+        mostrarErroValidacao(err.response.data.message);
+      } else {
+        mostrarErroValidacao("Erro ao agendar. Tente novamente.");
+      }
     } finally {
       setLoading(false);
     }
