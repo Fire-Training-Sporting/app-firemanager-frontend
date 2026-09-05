@@ -7,6 +7,7 @@ const TelaAlunos = lazy(() => import("../components/pages/TelaAlunos"));
 const TelaCondominios = lazy(() => import("../components/pages/TelaCondominios"));
 const TelaDashboard = lazy(() => import("../components/pages/TelaDashboard").then((module) => ({ default: module.TelaDashboard })));
 const TelaFuncionarios = lazy(() => import("../components/pages/TelaFuncionarios"));
+const TelaPerfil = lazy(() => import("../components/pages/TelaPerfil"));
 const TelaServico = lazy(() => import("../components/pages/TelaServico"));
 const TelaPagamentos = lazy(() => import("../components/pages/TelaPagamentos").then((module) => ({ default: module.TelaPagamentos })));
 const Tela404 = lazy(() => import("../components/pages/Tela404"));

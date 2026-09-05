@@ -143,13 +143,6 @@ export default function TelaCondominios() {
 
   };
 
-  const handleCloseModal = () => {
-
-    setShowModal(false);
-
-    setSelectedCondominio(null);
-
-
   const exibirSucesso = (mensagem) => {
     setSucessoCondominio(mensagem);
     setSucessoVisivel(true);
@@ -161,6 +154,11 @@ export default function TelaCondominios() {
     }, 7000);
   };
 
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedCondominio(null);
+  };
+
   const handleCondominioSalvo = (acao = "created") => {
     exibirSucesso(
       acao === "updated"
@@ -168,7 +166,6 @@ export default function TelaCondominios() {
         : "Condomínio cadastrado com sucesso"
     );
     buscarDados();
-  };
   };
 
   const solicitarExclusao = (condominio) => {
