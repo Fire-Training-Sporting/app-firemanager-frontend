@@ -17,6 +17,24 @@ const search_columns = [
   { label: "Bairro", value: "bairro" },
 ];
 
+const normalizarCampoBusca = (valor) => {
+  if (valor == null) return "";
+
+  if (typeof valor === "object") {
+    return valor.nome ?? "";
+  }
+
+  return String(valor);
+};
+
+const obterValorBusca = (condominio, field) => {
+  if (field === "logradouro") {
+    return normalizarCampoBusca(condominio.logradouro ?? condominio.rua ?? "");
+  }
+
+  return normalizarCampoBusca(condominio[field]);
+};
+
 export default function TelaCondominios() {
 
   const [showModal, setShowModal] = useState(false);
@@ -71,7 +89,7 @@ export default function TelaCondominios() {
     }
   };
 
-  const filtrarCondominios = async ({
+  const filtrarCondominios = ({
     field,
     value,
   }) => {
@@ -80,61 +98,18 @@ export default function TelaCondominios() {
 
       setIsLoading(true);
 
-      if (!value.trim()) {
+      const termoBusca = value.trim().toLowerCase();
 
-        setCondominios(
-          condominiosOriginais
-        );
+      if (!termoBusca) {
 
+        setCondominios(condominiosOriginais);
         return;
       }
 
-      const filtrados =
-        condominiosOriginais.filter(
-          (condominio) => {
-
-            const fieldValue =
-              field === "logradouro"
-                ? (condominio.logradouro ?? condominio.rua)
-                : condominio[field];
-
-            const compareValue =
-              value.toLowerCase();
-
-            let fieldString = "";
-
-            if (
-              typeof fieldValue === "object" &&
-              fieldValue !== null
-            ) {
-
-              fieldString =
-                fieldValue.nome
-                  ? fieldValue.nome.toLowerCase()
-                  : "";
-
-            } else if (
-              typeof fieldValue === "string"
-            ) {
-
-              fieldString =
-                fieldValue.toLowerCase();
-
-            } else if (
-              typeof fieldValue === "number"
-            ) {
-
-              fieldString =
-                fieldValue
-                  .toString()
-                  .toLowerCase();
-            }
-
-            return fieldString.includes(
-              compareValue
-            );
-          }
-        );
+      const filtrados = condominiosOriginais.filter((condominio) => {
+        const campoBusca = obterValorBusca(condominio, field).toLowerCase();
+        return campoBusca.includes(termoBusca);
+      });
 
       setCondominios(filtrados);
 
