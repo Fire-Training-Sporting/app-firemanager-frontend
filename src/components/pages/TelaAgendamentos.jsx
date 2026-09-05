@@ -5,6 +5,7 @@ import { AgendamentosTable } from '../utils/Agendamentos/AgendamentosTable';
 import ModalScheduling from '../utils/Agendamentos/ModalScheduling';
 import ModalAgendamentoDetalhes from '../utils/Agendamentos/ModalAgendamentoDetalhes';
 import ConfirmationModal from '../utils/ConfirmationModal';
+import AlertMessage from '../utils/AlertMessage';
 import api from "../../provider/api";
 
 const search_columns = [
@@ -90,6 +91,8 @@ export default function TelaAgendamentos() {
   const [agendamentos, setAgendamentos] = useState([]);
   const [agendamentosOriginais, setAgendamentosOriginais] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [sucessoAgendamento, setSucessoAgendamento] = useState("");
+  const [sucessoVisivel, setSucessoVisivel] = useState(false);
   const [agendamentoParaConfirmar, setAgendamentoParaConfirmar] = useState(null);
   const [agendamentoDetalhes, setAgendamentoDetalhes] = useState(null);
   const [agendamentoParaCancelar, setAgendamentoParaCancelar] = useState(null);
@@ -123,6 +126,59 @@ export default function TelaAgendamentos() {
     }
   };
 
+  const normalizarTextoBusca = (valor) => String(valor ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
+  const valorParaTextoBusca = (valor) => {
+    if (valor == null || valor === "") {
+      return "";
+    }
+
+    if (Array.isArray(valor)) {
+      return valor
+        .map((item) => valorParaTextoBusca(item))
+        .filter(Boolean)
+        .join(" ");
+    }
+
+    if (typeof valor === "object") {
+      return [
+        valor.nome,
+        valor.nomeCompleto,
+        valor.descricao,
+        valor.titulo,
+        valor.razaoSocial,
+        valor.aluno?.nome,
+        valor.id,
+      ]
+        .map((item) => (item == null ? "" : String(item)))
+        .filter(Boolean)
+        .join(" ");
+    }
+
+    if (valor instanceof Date) {
+      return valor.toLocaleDateString("pt-BR");
+    }
+
+    return String(valor);
+  };
+
+  const obterValorBuscaAgendamento = (agendamento, field) => {
+    if (field === "aluno") {
+      return [
+        valorParaTextoBusca(agendamento?.aluno),
+        valorParaTextoBusca(agendamento?.alunos),
+      ]
+        .filter(Boolean)
+        .join(" ");
+    }
+
+    return valorParaTextoBusca(agendamento?.[field]);
+  };
+
   const filtrarAgendamentos = async ({ field, value }) => {
     try {
       setIsLoading(true);
@@ -134,22 +190,8 @@ export default function TelaAgendamentos() {
 
       // Filtro local para melhor performance
       const filtrados = agendamentosOriginais.filter((agendamento) => {
-        const fieldValue = agendamento[field];
-        let compareValue = value.toLowerCase();
-
-        // Converter valor do campo para string para comparação
-        let fieldString = "";
-
-        if (typeof fieldValue === "object" && fieldValue !== null) {
-          fieldString = fieldValue.nome ? fieldValue.nome.toLowerCase() : "";
-        } else if (typeof fieldValue === "string") {
-          fieldString = fieldValue.toLowerCase();
-        } else if (typeof fieldValue === "number") {
-          fieldString = fieldValue.toString().toLowerCase();
-        } else if (fieldValue instanceof Date) {
-          fieldString = fieldValue.toLocaleDateString("pt-BR").toLowerCase();
-        }
-
+        const compareValue = normalizarTextoBusca(value);
+        const fieldString = normalizarTextoBusca(obterValorBuscaAgendamento(agendamento, field));
         return fieldString.includes(compareValue);
       });
 
@@ -216,6 +258,26 @@ export default function TelaAgendamentos() {
 
   const visualizarDetalhes = (agendamento) => {
     setAgendamentoDetalhes(agendamento);
+  };
+
+  const exibirSucesso = (mensagem) => {
+    setSucessoAgendamento(mensagem);
+    setSucessoVisivel(true);
+
+    window.clearTimeout(exibirSucesso.timeoutId);
+    exibirSucesso.timeoutId = window.setTimeout(() => {
+      setSucessoAgendamento("");
+      setSucessoVisivel(false);
+    }, 7000);
+  };
+
+  const handleAgendamentoSalvo = (acao = "created") => {
+    exibirSucesso(
+      acao === "updated"
+        ? "Agendamento atualizado com sucesso"
+        : "Agendamento cadastrado com sucesso"
+    );
+    buscarDados();
   };
 
   const normalizarAgendamentoParaModal = (agendamento) => ({
@@ -285,6 +347,7 @@ export default function TelaAgendamentos() {
         observacao: agendamentoParaConfirmar.observacao || "",
       });
 
+      exibirSucesso("Agendamento confirmado com sucesso");
       setAgendamentoParaConfirmar(null);
       await buscarDados();
     } catch (error) {
@@ -310,6 +373,8 @@ export default function TelaAgendamentos() {
         status: "cancelado",
         observacao,
       });
+
+      exibirSucesso("Agendamento cancelado com sucesso");
       setAgendamentoParaCancelar(null);
       setObservacaoCancelamento("");
       setErroCancelamento("");
@@ -333,6 +398,8 @@ export default function TelaAgendamentos() {
         status: "finalizado",
         observacao: agendamentoParaFinalizar.observacao || "",
       });
+
+      exibirSucesso("Agendamento finalizado com sucesso");
       setAgendamentoParaFinalizar(null);
       await buscarDados();
     } catch (error) {
@@ -379,13 +446,14 @@ export default function TelaAgendamentos() {
         />
       }
     >
+      <AlertMessage
+        variant="success"
+        message={sucessoVisivel ? sucessoAgendamento : ""}
+      />
+
       <div className="bg-white rounded-lg shadow-md border overflow-hidden">
         <AgendamentosTable
           agendamentos={agendamentos}
-          onEdit={editarDados}
-          onConfirm={solicitarConfirmacao}
-          onDelete={solicitarCancelamento}
-          onFinalize={solicitarFinalizacao}
           onViewDetails={visualizarDetalhes}
         />
       </div>
@@ -394,7 +462,7 @@ export default function TelaAgendamentos() {
         <ModalScheduling
           agendamento={editAgendamento}
           onClose={() => setShowModal(false)}
-          onCreated={buscarDados}
+          onCreated={handleAgendamentoSalvo}
         />
       )}
 
@@ -402,6 +470,22 @@ export default function TelaAgendamentos() {
         <ModalAgendamentoDetalhes
           agendamento={agendamentoDetalhes}
           onClose={() => setAgendamentoDetalhes(null)}
+          onEdit={() => {
+            setAgendamentoDetalhes(null);
+            editarDados(agendamentoDetalhes);
+          }}
+          onConfirm={() => {
+            setAgendamentoDetalhes(null);
+            solicitarConfirmacao(agendamentoDetalhes);
+          }}
+          onDelete={() => {
+            setAgendamentoDetalhes(null);
+            solicitarCancelamento(agendamentoDetalhes.id);
+          }}
+          onFinalize={() => {
+            setAgendamentoDetalhes(null);
+            solicitarFinalizacao(agendamentoDetalhes);
+          }}
         />
       )}
 
@@ -467,7 +551,7 @@ export default function TelaAgendamentos() {
             placeholder="Ex.: Chuva forte"
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
           />
-          {erroCancelamento && <p className="text-sm text-red-600">{erroCancelamento}</p>}
+          <AlertMessage variant="error" message={erroCancelamento} />
         </div>
       </ConfirmationModal>
 

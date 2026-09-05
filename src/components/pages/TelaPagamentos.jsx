@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Header from "../utils/Header";
+import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
 
 function formatarData(isoDate) {
@@ -93,24 +94,24 @@ function HistoricoAulasTable({ aulas, loading }) {
 
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-50">
+                    <thead className="bg-slate-200">
                         <tr className="border-b border-slate-200">
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">ID</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Aluno</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Data</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Hora Início</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Hora Fim</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Condomínio</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Professor</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Rebatedor</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Auxiliar</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Status</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">ID</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Aluno</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Data</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Hora Início</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Hora Fim</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Condomínio</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Professor</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Rebatedor</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Auxiliar</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Status</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white">
                         {!loading && pageItems.length > 0 ? (
                             pageItems.map((agendamento) => (
-                                <tr key={agendamento.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                <tr key={agendamento.id} className="border-b border-gray-100 odd:bg-white even:bg-gray-100 hover:bg-orange-100 transition-colors duration-150">
                                     <td className="px-4 py-3 text-sm text-slate-700">{agendamento.id}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.aluno)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarData(agendamento.data)}</td>
@@ -381,7 +382,7 @@ export function TelaPagamentos() {
                     </div>
                 </div>
 
-                {erroData && <div className="mb-4 text-sm text-red-600 font-semibold">{erroData}</div>}
+                <AlertMessage variant="error" message={erroData} />
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch mb-6">
                     {[

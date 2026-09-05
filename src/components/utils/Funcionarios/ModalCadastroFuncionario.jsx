@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../../../provider/api";
+import AlertMessage from "../AlertMessage";
 
 const inputCls =
   "mt-1 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]";
@@ -372,7 +373,7 @@ export default function ModalCadastroFuncionario({
       }
 
       if (onSuccess) {
-        onSuccess();
+            onSuccess(isEditMode ? "updated" : "created");
       }
 
       resetFormulario();
@@ -383,10 +384,17 @@ export default function ModalCadastroFuncionario({
 
       console.error("Erro:", e);
 
+      const mensagemBackend =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        e?.message ||
+        "";
+
       setErro(
-        isEditMode
-          ? "Erro ao atualizar usuário."
-          : "Erro ao cadastrar usuário."
+        mensagemBackend ||
+          (isEditMode
+            ? "Erro ao atualizar usuário."
+            : "Erro ao cadastrar usuário.")
       );
 
     } finally {
@@ -402,7 +410,7 @@ export default function ModalCadastroFuncionario({
 
       <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
 
-        <div className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+        <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
 
           <h2 className="text-lg font-bold text-white">
             {isEditMode
@@ -568,17 +576,9 @@ export default function ModalCadastroFuncionario({
               </Field>
             )}
 
-            {erro && (
-              <p className="text-red-600 text-sm text-center font-medium">
-                {erro}
-              </p>
-            )}
+            <AlertMessage variant="error" message={erro} />
 
-            {sucesso && (
-              <p className="text-green-600 text-sm text-center font-medium">
-                {sucesso}
-              </p>
-            )}
+            <AlertMessage variant="success" message={sucesso} />
 
             {/* Botões */}
             <div className="flex justify-end gap-2 mt-3">
@@ -598,7 +598,7 @@ export default function ModalCadastroFuncionario({
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 bg-gradient-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-linear-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
 
                 {loading

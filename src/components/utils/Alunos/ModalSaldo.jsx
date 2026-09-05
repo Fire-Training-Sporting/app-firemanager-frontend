@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../../provider/api";
+import AlertMessage from "../AlertMessage";
 
 const saldoServicesOrder = ["Tênis", "Beach Tennis", "Funcional"];
 
@@ -54,7 +55,12 @@ export default function ModalSaldo({ aluno = null, onClose }) {
         }
       } catch (error) {
         console.error("Erro ao carregar serviços:", error);
-        setSubmitError("Não foi possível carregar os serviços disponíveis.");
+        setSubmitError(
+          error?.response?.data?.message ||
+            error?.response?.data?.error ||
+            error?.message ||
+            "Não foi possível carregar os serviços disponíveis."
+        );
       } finally {
         setLoadingServicos(false);
       }
@@ -78,6 +84,7 @@ export default function ModalSaldo({ aluno = null, onClose }) {
     event.preventDefault();
 
     if (!alunoId || !form.servico || !form.quantidade) {
+      setSubmitError("Selecione um serviço e informe uma quantidade válida.");
       return;
     }
 
@@ -95,9 +102,11 @@ export default function ModalSaldo({ aluno = null, onClose }) {
     } catch (error) {
       console.error("Erro ao criar saldo:", error);
       setSubmitError(
-        error?.response?.status === 404
-          ? "Aluno ou serviço não encontrado."
-          : "Não foi possível criar o saldo. Tente novamente."
+        error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          (error?.response?.status === 404
+            ? "Aluno ou serviço não encontrado."
+            : "Não foi possível criar o saldo. Tente novamente.")
       );
     } finally {
       setIsSaving(false);
@@ -157,11 +166,7 @@ export default function ModalSaldo({ aluno = null, onClose }) {
             />
           </Field>
 
-          {submitError && (
-            <p className="text-red-600 text-sm">
-              {submitError}
-            </p>
-          )}
+          <AlertMessage variant="error" message={submitError} />
 
           <div className="flex justify-end gap-2 mt-3">
             <button

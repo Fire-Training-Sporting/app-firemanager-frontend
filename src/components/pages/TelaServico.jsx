@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import PageLayout from "../utils/PageLayout";
 import ServicoLista from "../utils/Servicos/ServicoLista";
+import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
 
 export default function TelaServicos() {
   const [servicos, setServicos] = useState([]);
   const [servicosOriginais, setServicosOriginais] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [sucessoServico, setSucessoServico] = useState("");
+  const [sucessoVisivel, setSucessoVisivel] = useState(false);
   const cargo = sessionStorage.getItem("cargo");
   const canToggleStatus = cargo === "root";
 
@@ -31,6 +34,17 @@ export default function TelaServicos() {
     }
   };
 
+  const exibirSucesso = (mensagem) => {
+    setSucessoServico(mensagem);
+    setSucessoVisivel(true);
+
+    window.clearTimeout(exibirSucesso.timeoutId);
+    exibirSucesso.timeoutId = window.setTimeout(() => {
+      setSucessoServico("");
+      setSucessoVisivel(false);
+    }, 7000);
+  };
+
   const toggleStatus = async (servico) => {
     if (!canToggleStatus) {
       return;
@@ -52,6 +66,7 @@ export default function TelaServicos() {
 
       setServicos(listaAtualizada);
       setServicosOriginais(listaAtualizada);
+      exibirSucesso("Status do serviço atualizado com sucesso");
 
     } catch (error) {
       console.error("Erro ao alterar status:", error);
@@ -67,6 +82,11 @@ export default function TelaServicos() {
       showSearch={false}
       showAddButton={false}
     >
+      <AlertMessage
+        variant="success"
+        message={sucessoVisivel ? sucessoServico : ""}
+      />
+
       <div className="bg-white rounded-lg shadow-md border overflow-hidden w-full">
         <ServicoLista
           servicos={servicos}

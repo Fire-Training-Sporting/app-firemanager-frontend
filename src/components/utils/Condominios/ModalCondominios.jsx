@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import api from "../../../provider/api";
+import AlertMessage from "../AlertMessage";
 
 const inputCls =
   "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]";
@@ -159,6 +160,7 @@ export default function ModalCondominio({
       !form.cidade.trim() ||
       !form.bairro.trim()
     ) {
+      setSubmitError("Preencha todos os campos obrigatórios antes de continuar.");
       return;
     }
 
@@ -206,10 +208,17 @@ export default function ModalCondominio({
         error
       );
 
+      const mensagemBackend =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "";
+
       setSubmitError(
-        isEditMode
-          ? "Não foi possível atualizar o condomínio."
-          : "Não foi possível cadastrar condomínio."
+        mensagemBackend ||
+          (isEditMode
+            ? "Não foi possível atualizar o condomínio."
+            : "Não foi possível cadastrar condomínio.")
       );
 
     } finally {
@@ -339,11 +348,7 @@ export default function ModalCondominio({
             />
           </Field>
 
-          {submitError && (
-            <p className="text-red-600 text-sm">
-              {submitError}
-            </p>
-          )}
+          <AlertMessage variant="error" message={submitError} />
 
           {/* Botões */}
           <div className="flex justify-end gap-2 mt-3">

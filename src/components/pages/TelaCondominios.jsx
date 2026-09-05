@@ -4,6 +4,7 @@ import SearchFilter from "../utils/SearchFilter";
 import { CondominiosTable } from "../utils/Condominios/CondominiosTable";
 import ModalCondominio from "../utils/Condominios/ModalCondominios";
 import ConfirmationModal from "../utils/ConfirmationModal";
+import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
 
 const search_columns = [
@@ -50,6 +51,10 @@ export default function TelaCondominios() {
 
   const [condominioParaExcluir, setCondominioParaExcluir] =
     useState(null);
+
+  const [sucessoCondominio, setSucessoCondominio] = useState("");
+
+  const [sucessoVisivel, setSucessoVisivel] = useState(false);
 
   useEffect(() => {
     buscarDados();
@@ -144,6 +149,26 @@ export default function TelaCondominios() {
 
     setSelectedCondominio(null);
 
+
+  const exibirSucesso = (mensagem) => {
+    setSucessoCondominio(mensagem);
+    setSucessoVisivel(true);
+
+    window.clearTimeout(exibirSucesso.timeoutId);
+    exibirSucesso.timeoutId = window.setTimeout(() => {
+      setSucessoCondominio("");
+      setSucessoVisivel(false);
+    }, 7000);
+  };
+
+  const handleCondominioSalvo = (acao = "created") => {
+    exibirSucesso(
+      acao === "updated"
+        ? "Condomínio atualizado com sucesso"
+        : "Condomínio cadastrado com sucesso"
+    );
+    buscarDados();
+  };
   };
 
   const solicitarExclusao = (condominio) => {
@@ -224,6 +249,11 @@ export default function TelaCondominios() {
         }
       >
 
+        <AlertMessage
+          variant="success"
+          message={sucessoVisivel ? sucessoCondominio : ""}
+        />
+
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
 
           <CondominiosTable
@@ -242,7 +272,7 @@ export default function TelaCondominios() {
 
           <ModalCondominio
             onClose={handleCloseModal}
-            onCreated={buscarDados}
+            onCreated={handleCondominioSalvo}
             condominio={selectedCondominio}
           />
 

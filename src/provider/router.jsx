@@ -33,6 +33,10 @@ export const router = createBrowserRouter([
                 element: <TelaAlunos />,
             },
             {
+                path: "/perfil",
+                element: <TelaPerfil />,
+            },
+            {
                 path: "/condominios",
                 element: <TelaCondominios />,
             },
