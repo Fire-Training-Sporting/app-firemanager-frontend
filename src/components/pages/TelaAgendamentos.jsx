@@ -214,7 +214,8 @@ export default function TelaAgendamentos() {
     }
 
     if (typeof value === "object") {
-      return String(value.id ?? value.codigo ?? value.value ?? "");
+      const id = value.id ?? value.codigo ?? value.value ?? value._id ?? "";
+      return String(id);
     }
 
     return String(value);
@@ -285,7 +286,7 @@ export default function TelaAgendamentos() {
     data: formatarData(agendamento?.data),
     horaInicio: formatarHora(agendamento?.horaInicio),
     horaFim: formatarHora(agendamento?.horaFim),
-    condominio: extrairId(agendamento?.condominio),
+    condominio: extrairId(agendamento?.condominio) || agendamento?.condominio?.nome || "",
     aluno: extrairId(agendamento?.aluno),
     alunos: agendamento?.alunos || [],
     servico: extrairId(agendamento?.servico),
@@ -308,6 +309,17 @@ export default function TelaAgendamentos() {
 
   const editarDados = (agendamento) => {
     setEditAgendamento(normalizarAgendamentoParaModal(agendamento));
+    setShowModal(true);
+  };
+
+  const duplicarAgendamento = (agendamento) => {
+    const agendamentoNormalizado = normalizarAgendamentoParaModal(agendamento);
+    // Remove o ID para criar um novo agendamento
+    const agendamentoDuplicado = {
+      ...agendamentoNormalizado,
+      id: null,
+    };
+    setEditAgendamento(agendamentoDuplicado);
     setShowModal(true);
   };
 
@@ -485,6 +497,10 @@ export default function TelaAgendamentos() {
           onFinalize={() => {
             setAgendamentoDetalhes(null);
             solicitarFinalizacao(agendamentoDetalhes);
+          }}
+          onDuplicate={() => {
+            setAgendamentoDetalhes(null);
+            duplicarAgendamento(agendamentoDetalhes);
           }}
         />
       )}

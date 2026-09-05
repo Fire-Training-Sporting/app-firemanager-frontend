@@ -3,7 +3,8 @@ import api from "../../../provider/api";
 import AlertMessage from "../AlertMessage";
 
 export default function ModalScheduling({ agendamento = null, onClose, onCreated }) {
-  const isEditMode = !!agendamento;
+  const isEditMode = !!agendamento?.id;
+  const isDuplicateMode = !!agendamento && !agendamento?.id;
 
   const [data, setData] = useState("");
   const [horaInicio, setHoraInicio] = useState("");
@@ -102,19 +103,73 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
     setData(agendamento.data || "");
     setHoraInicio(agendamento.horaInicio || "");
     setHoraFim(agendamento.horaFim || "");
-    setLocal(String(agendamento.condominio || ""));
-    setAlunosSelecionados([
-      { alunoId: String(agendamento.aluno || "") }
-    ]);
-    setServico(String(agendamento.servico || ""));
+    
+    let condominioValue = "";
+    if (typeof agendamento.condominio === 'object' && agendamento.condominio !== null) {
+      condominioValue = String(agendamento.condominio?.id ?? agendamento.condominio?.codigo ?? agendamento.condominio?.value ?? "");
+    } else {
+      condominioValue = String(agendamento.condominio ?? "");
+    }
+    
+    setLocal(condominioValue);
+    
+    // Suporte para múltiplos alunos na duplicação
+    if (Array.isArray(agendamento.alunos) && agendamento.alunos.length > 0) {
+      setAlunosSelecionados(
+        agendamento.alunos.map((aluno) => ({
+          alunoId: String(typeof aluno === 'object' ? aluno.id : aluno)
+        }))
+      );
+    } else {
+      setAlunosSelecionados([
+        { alunoId: String(agendamento.aluno || "") }
+      ]);
+    }
+    
+    setServico(String(
+      typeof agendamento.servico === 'object' 
+        ? agendamento.servico?.id ?? agendamento.servico?.codigo ?? agendamento.servico?.value ?? ""
+        : agendamento.servico ?? ""
+    ));
     setFuncionarios([
-      { funcionarioId: String(agendamento.professor || ""), funcao: "Professor" },
-      { funcionarioId: String(agendamento.rebatedor || ""), funcao: "Rebatedor" },
-      { funcionarioId: String(agendamento.auxiliar || ""), funcao: "Auxiliar" },
+      { 
+        funcionarioId: String(
+          typeof agendamento.professor === 'object' 
+            ? agendamento.professor?.id ?? agendamento.professor?.codigo ?? agendamento.professor?.value ?? ""
+            : agendamento.professor ?? ""
+        ), 
+        funcao: "Professor" 
+      },
+      { 
+        funcionarioId: String(
+          typeof agendamento.rebatedor === 'object' 
+            ? agendamento.rebatedor?.id ?? agendamento.rebatedor?.codigo ?? agendamento.rebatedor?.value ?? ""
+            : agendamento.rebatedor ?? ""
+        ), 
+        funcao: "Rebatedor" 
+      },
+      { 
+        funcionarioId: String(
+          typeof agendamento.auxiliar === 'object' 
+            ? agendamento.auxiliar?.id ?? agendamento.auxiliar?.codigo ?? agendamento.auxiliar?.value ?? ""
+            : agendamento.auxiliar ?? ""
+        ), 
+        funcao: "Auxiliar" 
+      },
     ]);
     setObservacao(agendamento.observacao || "");
     setMensagemValidacao("");
   }, [agendamento]);
+
+  // Converte nome do condomínio para ID quando a lista de condomínios estiver disponível
+  useEffect(() => {
+    if (local && isNaN(local) && condominiosOptions.length > 0) {
+      const condominioEncontrado = condominiosOptions.find(c => c.nome === local);
+      if (condominioEncontrado) {
+        setLocal(condominioEncontrado.id);
+      }
+    }
+  }, [local, condominiosOptions]);
 
   const mostrarErroValidacao = (mensagem) => {
     setMensagemValidacaoId((idAtual) => idAtual + 1);
@@ -221,6 +276,12 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       onClose();
     } catch (err) {
       console.error(isEditMode ? "Erro ao atualizar agendamento:" : "Erro ao criar agendamento:", err);
+      
+      if (err.response?.data?.message) {
+        mostrarErroValidacao(err.response.data.message);
+      } else {
+        mostrarErroValidacao("Erro ao agendar. Tente novamente.");
+      }
     } finally {
       setLoading(false);
     }
@@ -251,7 +312,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
         {/* HEADER */}
         <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-4 py-2 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
           <h2 className="text-white text-lg font-bold">
-            {isEditMode ? "Editar Agendamento" : "Criar Agendamento"}
+            {isEditMode ? "Editar Agendamento" : isDuplicateMode ? "Duplicar Agendamento" : "Criar Agendamento"}
           </h2>
 
           <button
@@ -485,7 +546,9 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                   ? "Processando..."
                   : isEditMode
                     ? "Salvar alterações"
-                    : "Criar agendamento"}
+                    : isDuplicateMode
+                      ? "Criar agendamento duplicado"
+                      : "Criar agendamento"}
               </button>
             </div>
           </form>
