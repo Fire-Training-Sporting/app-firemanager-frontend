@@ -18,13 +18,24 @@ export default function Header() {
   const navigate = useNavigate();
   const role = sessionStorage.getItem("cargo");
   const usuarioString = sessionStorage.getItem("usuario");
-  const usuario = usuarioString ? JSON.parse(usuarioString) : null;
+  
+  let usuario = null;
+  try {
+    usuario = usuarioString ? JSON.parse(usuarioString) : null;
+  } catch (error) {
+    console.error("Erro ao fazer parse do usuário:", error);
+  }
 
   function handleLogout() {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("cargo");
-    sessionStorage.removeItem("usuario");
-    navigate("/", { replace: true });
+    try {
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("cargo");
+      sessionStorage.removeItem("usuario");
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      navigate("/", { replace: true });
+    }
   }
 
   const navItems = (() => {

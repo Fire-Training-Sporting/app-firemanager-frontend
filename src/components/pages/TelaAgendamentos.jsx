@@ -7,6 +7,7 @@ import ModalAgendamentoDetalhes from '../utils/Agendamentos/ModalAgendamentoDeta
 import ConfirmationModal from '../utils/ConfirmationModal';
 import AlertMessage from '../utils/AlertMessage';
 import api from "../../provider/api";
+import { getUsuarioLogado, getUsuarioId, getItemId, normalizarCargo, normalizarTextoBusca, valorParaTextoBusca, formatarData, formatarHora, getItemName, exibirSucesso, formatarValor } from "../../utils/helpers";
 
 const search_columns = [
   { label: "Aluno", value: "aluno" },
@@ -16,40 +17,6 @@ const search_columns = [
   { label: "Professor", value: "professor" },
   { label: "Status", value: "status" },
 ];
-
-function getUsuarioLogado() {
-  const usuarioString = sessionStorage.getItem("usuario");
-
-  if (!usuarioString) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(usuarioString);
-  } catch {
-    return null;
-  }
-}
-
-function getUsuarioId(usuario) {
-  return sessionStorage.getItem("userId") ?? usuario?.userId ?? usuario?.id ?? null;
-}
-
-function getItemId(value) {
-  if (value == null || value === "") {
-    return null;
-  }
-
-  if (typeof value === "object") {
-    return value.id ?? value.codigo ?? value.value ?? null;
-  }
-
-  return value;
-}
-
-function normalizarCargo(cargo) {
-  return String(cargo ?? "").trim().toLowerCase();
-}
 
 function usuarioPodeVerAgendamento(agendamento, cargo, usuarioId) {
   const cargoNormalizado = normalizarCargo(cargo);
@@ -126,45 +93,7 @@ export default function TelaAgendamentos() {
     }
   };
 
-  const normalizarTextoBusca = (valor) => String(valor ?? "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim();
 
-  const valorParaTextoBusca = (valor) => {
-    if (valor == null || valor === "") {
-      return "";
-    }
-
-    if (Array.isArray(valor)) {
-      return valor
-        .map((item) => valorParaTextoBusca(item))
-        .filter(Boolean)
-        .join(" ");
-    }
-
-    if (typeof valor === "object") {
-      return [
-        valor.nome,
-        valor.nomeCompleto,
-        valor.descricao,
-        valor.titulo,
-        valor.razaoSocial,
-        valor.aluno?.nome,
-        valor.id,
-      ]
-        .map((item) => (item == null ? "" : String(item)))
-        .filter(Boolean)
-        .join(" ");
-    }
-
-    if (valor instanceof Date) {
-      return valor.toLocaleDateString("pt-BR");
-    }
-
-    return String(valor);
-  };
 
   const obterValorBuscaAgendamento = (agendamento, field) => {
     if (field === "aluno") {
@@ -208,72 +137,16 @@ export default function TelaAgendamentos() {
     setShowModal(true);
   };
 
-  const extrairId = (value) => {
-    if (value == null || value === "") {
-      return "";
-    }
 
-    if (typeof value === "object") {
-      const id = value.id ?? value.codigo ?? value.value ?? value._id ?? "";
-      return String(id);
-    }
-
-    return String(value);
-  };
-
-  const extrairNome = (value) => {
-    if (value == null || value === "") {
-      return "";
-    }
-
-    if (typeof value === "object") {
-      return value.nome ?? value.descricao ?? value.razaoSocial ?? value.titulo ?? "";
-    }
-
-    return String(value);
-  };
-
-  const formatarData = (valor) => {
-    if (!valor) {
-      return "";
-    }
-
-    if (typeof valor === "string") {
-      return valor.slice(0, 10);
-    }
-
-    if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
-      return valor.toISOString().slice(0, 10);
-    }
-
-    return String(valor).slice(0, 10);
-  };
-
-  const formatarHora = (valor) => {
-    if (!valor) {
-      return "";
-    }
-
-    return String(valor).slice(0, 5);
-  };
 
   const visualizarDetalhes = (agendamento) => {
     setAgendamentoDetalhes(agendamento);
   };
 
-  const exibirSucesso = (mensagem) => {
-    setSucessoAgendamento(mensagem);
-    setSucessoVisivel(true);
-
-    window.clearTimeout(exibirSucesso.timeoutId);
-    exibirSucesso.timeoutId = window.setTimeout(() => {
-      setSucessoAgendamento("");
-      setSucessoVisivel(false);
-    }, 7000);
-  };
+  const exibirSucessoLocal = exibirSucesso(setSucessoAgendamento, setSucessoVisivel);
 
   const handleAgendamentoSalvo = (acao = "created") => {
-    exibirSucesso(
+    exibirSucessoLocal(
       acao === "updated"
         ? "Agendamento atualizado com sucesso"
         : "Agendamento cadastrado com sucesso"
@@ -286,24 +159,24 @@ export default function TelaAgendamentos() {
     data: formatarData(agendamento?.data),
     horaInicio: formatarHora(agendamento?.horaInicio),
     horaFim: formatarHora(agendamento?.horaFim),
-    condominio: extrairId(agendamento?.condominio) || agendamento?.condominio?.nome || "",
-    aluno: extrairId(agendamento?.aluno),
+    condominio: getItemId(agendamento?.condominio) || agendamento?.condominio?.nome || "",
+    aluno: getItemId(agendamento?.aluno),
     alunos: agendamento?.alunos || [],
-    servico: extrairId(agendamento?.servico),
-    professor: extrairId(agendamento?.professor),
-    rebatedor: extrairId(agendamento?.rebatedor),
-    auxiliar: extrairId(agendamento?.auxiliar),
+    servico: getItemId(agendamento?.servico),
+    professor: getItemId(agendamento?.professor),
+    rebatedor: getItemId(agendamento?.rebatedor),
+    auxiliar: getItemId(agendamento?.auxiliar),
     observacao: agendamento?.observacao || "",
     nomes: {
-      condominio: extrairNome(agendamento?.condominio),
-      aluno: extrairNome(agendamento?.aluno),
+      condominio: getItemName(agendamento?.condominio),
+      aluno: getItemName(agendamento?.aluno),
       alunos: Array.isArray(agendamento?.alunos)
-        ? agendamento.alunos.map((item) => extrairNome(item))
+        ? agendamento.alunos.map((item) => getItemName(item))
         : [],
-      servico: extrairNome(agendamento?.servico),
-      professor: extrairNome(agendamento?.professor),
-      rebatedor: extrairNome(agendamento?.rebatedor),
-      auxiliar: extrairNome(agendamento?.auxiliar),
+      servico: getItemName(agendamento?.servico),
+      professor: getItemName(agendamento?.professor),
+      rebatedor: getItemName(agendamento?.rebatedor),
+      auxiliar: getItemName(agendamento?.auxiliar),
     },
   });
 
@@ -359,7 +232,7 @@ export default function TelaAgendamentos() {
         observacao: agendamentoParaConfirmar.observacao || "",
       });
 
-      exibirSucesso("Agendamento confirmado com sucesso");
+      exibirSucessoLocal("Agendamento confirmado com sucesso");
       setAgendamentoParaConfirmar(null);
       await buscarDados();
     } catch (error) {
@@ -386,7 +259,7 @@ export default function TelaAgendamentos() {
         observacao,
       });
 
-      exibirSucesso("Agendamento cancelado com sucesso");
+      exibirSucessoLocal("Agendamento cancelado com sucesso");
       setAgendamentoParaCancelar(null);
       setObservacaoCancelamento("");
       setErroCancelamento("");
@@ -411,7 +284,7 @@ export default function TelaAgendamentos() {
         observacao: agendamentoParaFinalizar.observacao || "",
       });
 
-      exibirSucesso("Agendamento finalizado com sucesso");
+      exibirSucessoLocal("Agendamento finalizado com sucesso");
       setAgendamentoParaFinalizar(null);
       await buscarDados();
     } catch (error) {
@@ -422,25 +295,7 @@ export default function TelaAgendamentos() {
     }
   };
 
-  const formatarValor = (valor) => {
-    if (Array.isArray(valor)) {
-      return valor
-        .map((item) => {
-          if (item && typeof item === "object") {
-            return item.nome ?? item.nomeCompleto ?? item.descricao ?? item.titulo ?? item.razaoSocial ?? item.aluno?.nome ?? "-";
-          }
-          return item ?? "-";
-        })
-        .filter((item) => item !== "-")
-        .join(", ") || "-";
-    }
 
-    if (valor && typeof valor === "object") {
-      return valor.nome ?? valor.nomeCompleto ?? valor.descricao ?? valor.titulo ?? valor.razaoSocial ?? valor.aluno?.nome ?? "-";
-    }
-
-    return valor ?? "-";
-  };
 
   return (
     <div className={showModal ? "modal-open" : ""}>

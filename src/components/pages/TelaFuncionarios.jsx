@@ -6,6 +6,7 @@ import ModalCadastroFuncionario from "../utils/Funcionarios/ModalCadastroFuncion
 import ConfirmationModal from "../utils/ConfirmationModal";
 import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
+import { formatarValor, exibirSucesso } from "../../utils/helpers";
 
 const search_columns = [
   { label: "ID", value: "id" },
@@ -238,46 +239,20 @@ export default function TelaFuncionarios() {
     }
   }
 
-  function formatarValor(valor) {
-
-    if (
-      valor &&
-      typeof valor === "object"
-    ) {
-
-      return valor.nome ?? "-";
-    }
-
-    return valor ?? "-";
-  }
-
   function handleSuccess(acao = "created") {
+    const exibirSucessoLocal = exibirSucesso(setSucessoCadastro, setSucessoVisivel);
 
     setIsModalOpen(false);
 
-    setSucessoCadastro(
+    exibirSucessoLocal(
       acao === "updated"
         ? "Funcionário atualizado com sucesso"
         : "Funcionário cadastrado com sucesso"
     );
 
-    setSucessoVisivel(true);
-
     buscarDados();
 
     setSelectedEmployee(null);
-
-    window.clearTimeout(
-      handleSuccess.timeoutId
-    );
-
-    handleSuccess.timeoutId =
-      window.setTimeout(() => {
-
-        setSucessoCadastro("");
-        setSucessoVisivel(false);
-
-      }, 7000);
   }
 
   return (

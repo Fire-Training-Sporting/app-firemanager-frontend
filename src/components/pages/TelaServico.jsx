@@ -3,6 +3,7 @@ import PageLayout from "../utils/PageLayout";
 import ServicoLista from "../utils/Servicos/ServicoLista";
 import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
+import { exibirSucesso } from "../../utils/helpers";
 
 export default function TelaServicos() {
   const [servicos, setServicos] = useState([]);
@@ -34,16 +35,7 @@ export default function TelaServicos() {
     }
   };
 
-  const exibirSucesso = (mensagem) => {
-    setSucessoServico(mensagem);
-    setSucessoVisivel(true);
-
-    window.clearTimeout(exibirSucesso.timeoutId);
-    exibirSucesso.timeoutId = window.setTimeout(() => {
-      setSucessoServico("");
-      setSucessoVisivel(false);
-    }, 7000);
-  };
+  const exibirSucessoLocal = exibirSucesso(setSucessoServico, setSucessoVisivel);
 
   const toggleStatus = async (servico) => {
     if (!canToggleStatus) {
@@ -66,7 +58,7 @@ export default function TelaServicos() {
 
       setServicos(listaAtualizada);
       setServicosOriginais(listaAtualizada);
-      exibirSucesso("Status do serviço atualizado com sucesso");
+      exibirSucessoLocal("Status do serviço atualizado com sucesso");
 
     } catch (error) {
       console.error("Erro ao alterar status:", error);

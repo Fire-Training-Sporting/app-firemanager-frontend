@@ -6,6 +6,7 @@ import ModalCondominio from "../utils/Condominios/ModalCondominios";
 import ConfirmationModal from "../utils/ConfirmationModal";
 import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
+import { formatarValor, exibirSucesso } from "../../utils/helpers";
 
 const search_columns = [
   { label: "ID", value: "id" },
@@ -143,16 +144,7 @@ export default function TelaCondominios() {
 
   };
 
-  const exibirSucesso = (mensagem) => {
-    setSucessoCondominio(mensagem);
-    setSucessoVisivel(true);
-
-    window.clearTimeout(exibirSucesso.timeoutId);
-    exibirSucesso.timeoutId = window.setTimeout(() => {
-      setSucessoCondominio("");
-      setSucessoVisivel(false);
-    }, 7000);
-  };
+  const exibirSucessoLocal = exibirSucesso(setSucessoCondominio, setSucessoVisivel);
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -160,7 +152,7 @@ export default function TelaCondominios() {
   };
 
   const handleCondominioSalvo = (acao = "created") => {
-    exibirSucesso(
+    exibirSucessoLocal(
       acao === "updated"
         ? "Condomínio atualizado com sucesso"
         : "Condomínio cadastrado com sucesso"
@@ -207,19 +199,6 @@ export default function TelaCondominios() {
         "Não foi possível excluir o condomínio. Tente novamente."
       );
     }
-  };
-
-  const formatarValor = (valor) => {
-
-    if (
-      valor &&
-      typeof valor === "object"
-    ) {
-
-      return valor.nome ?? "-";
-    }
-
-    return valor ?? "-";
   };
 
   return (

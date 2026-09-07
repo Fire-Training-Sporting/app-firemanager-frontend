@@ -109,24 +109,6 @@ export function Dashboard() {
             )
     );
 
-    const chartOptions = {
-        responsive: true,
-        plugins: {
-            legend: { display: false }
-        },
-        scales: {
-            x: {
-                ticks: { color: "#fff" }
-            },
-            y: {
-                ticks: { color: "#fff" }
-            }
-        }
-    };
-
-    const concluidosData = [60, 50, 80, 90, 110, 120];
-    const canceladosData = [20, 15, 10, 20, 15, 20];
-
     const chartOptionsAtualizado = {
         responsive: true,
         maintainAspectRatio: false,
