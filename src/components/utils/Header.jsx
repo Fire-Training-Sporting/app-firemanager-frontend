@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavLink from "./NavLink";
 import fireIcon from "../../assets/fireIcon.png";
@@ -16,6 +17,7 @@ const routeMap = {
 
 export default function Header() {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
   const role = sessionStorage.getItem("cargo");
   const usuarioString = sessionStorage.getItem("usuario");
   const usuario = usuarioString ? JSON.parse(usuarioString) : null;
@@ -60,15 +62,15 @@ export default function Header() {
   return (
     <header className="w-full">
       {/* Top bar */}
-      <div className="bg-[#23272F] flex justify-between items-center px-8 py-3">
+      <div className="bg-[#23272F] flex flex-nowrap justify-between items-center gap-2 px-4 py-3 sm:gap-3 sm:px-8">
         <div className="flex items-center gap-3">
           <img src={fireIcon} alt="Logo" className="w-8 h-8" />
-          <span className="text-lg font-semibold text-white tracking-wide">
+          <span className="hidden text-base font-semibold tracking-wide text-white sm:inline sm:text-lg">
             Fire Manager
           </span>
         </div>
-        <div className="flex items-center gap-3 text-white text-base">
-          <span>Olá, {usuario?.nome ?? "usuário"}</span>
+        <div className="flex items-center gap-2 sm:gap-3 text-white text-sm sm:text-base">
+          <span className="max-w-[150px] truncate sm:max-w-none">Olá, {usuario?.nome ?? "usuário"}</span>
           <button
             type="button"
             onClick={handleLogout}
@@ -82,12 +84,31 @@ export default function Header() {
         </div>
       </div>
       {/* Navigation bar */}
-      <nav className="bg-linear-to-r from-[#F8821E] to-[#EA580C] flex gap-2 px-8 py-2">
-        {navItems.map((item) => (
-          <NavLink key={item} to={routeMap[item]}>
-            {item}
-          </NavLink>
-        ))}
+      <nav className="relative bg-linear-to-r from-[#F8821E] to-[#EA580C] px-4 py-2 sm:px-8">
+        <button
+          type="button"
+          onClick={() => setMenuOpen((isOpen) => !isOpen)}
+          className="flex w-full items-center justify-between rounded-lg px-3 py-2 font-semibold text-white hover:bg-[#EA580C] lg:hidden"
+          aria-expanded={menuOpen}
+          aria-controls="main-navigation"
+        >
+          <span>Menu</span>
+          <span className="flex flex-col gap-1" aria-hidden="true">
+            <span className="h-0.5 w-5 bg-white" />
+            <span className="h-0.5 w-5 bg-white" />
+            <span className="h-0.5 w-5 bg-white" />
+          </span>
+        </button>
+        <div
+          id="main-navigation"
+          className={`${menuOpen ? "flex" : "hidden"} absolute left-0 right-0 top-full z-50 max-h-[60vh] flex-col gap-2 overflow-x-hidden overflow-y-auto bg-linear-to-r from-[#F8821E] to-[#EA580C] p-4 shadow-lg custom-scrollbar lg:static lg:flex lg:max-h-none lg:flex-row lg:overflow-visible lg:bg-transparent lg:p-0 lg:shadow-none`}
+        >
+          {navItems.map((item) => (
+            <NavLink key={item} to={routeMap[item]} onClick={() => setMenuOpen(false)}>
+              {item}
+            </NavLink>
+          ))}
+        </div>
       </nav>
     </header>
   );

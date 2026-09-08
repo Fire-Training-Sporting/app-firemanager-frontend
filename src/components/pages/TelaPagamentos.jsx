@@ -380,21 +380,21 @@ export function TelaPagamentos() {
                 <AlertMessage variant="error" message={erroData} />
                 <AlertMessage variant="error" message={erroCarregamento} />
 
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch mb-6">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch mb-6">
                     {[
                         { label: "Total de aulas", value: totalAgendamentos },
                         { label: "Aulas como professor", value: aulasComoProfessorCount },
                         { label: "Aulas como rebatedor", value: aulasComoRebatedorCount },
                         { label: "Aulas como auxiliar", value: aulasComoAuxiliarCount },
                     ].map((kpi, index) => (
-                        <div key={index} className="relative overflow-hidden rounded-[28px] bg-linear-to-br from-white to-slate-50 p-4 border border-slate-200 shadow-sm h-36 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                        <div key={index} className="relative overflow-hidden rounded-[28px] bg-linear-to-br from-white to-slate-50 p-3 sm:p-4 border border-slate-200 shadow-sm h-32 sm:h-36 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                             <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-orange-100 opacity-60" />
                             <div className="relative">
-                                <p className="text-[10px] uppercase tracking-[0.25em] text-slate-400 font-medium">{kpi.label}</p>
-                                <p className="mt-3 text-4xl font-black tracking-tight text-slate-900">{kpi.value}</p>
+                                <p className="text-[9px] uppercase tracking-[0.1em] text-slate-400 font-medium sm:text-[10px] sm:tracking-[0.25em]">{kpi.label}</p>
+                                <p className="mt-2 text-3xl font-black tracking-tight text-slate-900 sm:mt-3 sm:text-4xl">{kpi.value}</p>
                             </div>
                             <div className="relative flex items-center gap-2 text-[11px] text-slate-500">
-                                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700 font-semibold">Último período</span>
+                                <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-700 font-semibold sm:px-2.5 sm:text-[11px]">Último período</span>
                             </div>
                         </div>
                     ))}
