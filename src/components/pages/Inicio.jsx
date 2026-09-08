@@ -26,9 +26,9 @@ const capitalize = (str) =>
 
 function KPICard({ label, value, color }) {
   return (
-    <div className={`${color} rounded-2xl p-6 flex flex-col items-center justify-center gap-1`}>
-      <span className="text-4xl font-bold text-white">{value}</span>
-      <span className="text-lg font-semibold text-white">{label}</span>
+    <div className={`${color} rounded-2xl p-4 sm:p-6 flex min-h-28 flex-col items-center justify-center gap-1 text-center`}>
+      <span className="text-3xl sm:text-4xl font-bold text-white">{value}</span>
+      <span className="text-base sm:text-lg font-semibold text-white">{label}</span>
     </div>
   );
 }
@@ -58,14 +58,15 @@ function Inicio() {
 
   return (
     <PageLayout title="Início">
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <KPICard label="Total de Agendamentos" value={total} color="bg-[#2563EA]" />
         <KPICard label="Confirmados" value={confirmados} color="bg-[#17A34A]" />
         <KPICard label="Pendentes" value={pendentes} color="bg-[#E9B308]" />
         <KPICard label="Cancelados" value={cancelados} color="bg-[#DC2625]" />
       </div>
 
-      <TableBase>
+      <TableBase wrapperClassName="w-full overflow-x-auto" tableClassName="w-full">
+        <div className="min-w-[980px]">
         <div className={`grid ${gridTemplate} gap-2 mb-4`}>
           {tableCols.map((col) => (
             <div key={col} className="text-xl bg-[#363636] p-3 rounded-lg text-center font-semibold">
@@ -109,6 +110,7 @@ function Inicio() {
               </div>
             );
           })}
+        </div>
         </div>
       </TableBase>
     </PageLayout>

@@ -46,13 +46,18 @@ export default function TabelaFuncionarios({ funcionarios = [], onEdit = () => {
 
   return (
     <div className="w-full">
-      <TableBase columns={columns} data={pageItems} />
+      <TableBase
+        columns={columns}
+        data={pageItems}
+        wrapperClassName="w-full overflow-x-auto"
+        tableClassName="w-full min-w-[900px] table-fixed"
+      />
 
-      <div className="flex items-center justify-between gap-4 px-4 py-2 border-t bg-white">
+      <div className="flex flex-col items-stretch justify-between gap-3 px-4 py-2 border-t bg-white sm:flex-row sm:items-center">
         <div className="text-xs text-gray-600">
           Mostrando {Math.min(totalItems, startIndex + 1)}-{Math.min(totalItems, endIndex)} de {totalItems}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2 sm:justify-end">
           <button
             onClick={goPrev}
             disabled={currentPage === 1}
