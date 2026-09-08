@@ -68,9 +68,27 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
   };
 
   function abrirRota(destino) {
+    if (!destino || destino === "-") {
+      window.alert("Não foi possível abrir o Maps porque este condomínio não possui um endereço cadastrado.");
+      return;
+    }
+
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}`;
     window.open(mapsUrl, "_blank");
   }
+
+  const getMapsDestination = (value) => {
+    if (!value || typeof value !== "object") return null;
+
+    const endereco = value.endereco || [
+      value.logradouro ?? value.rua,
+      value.numero,
+      value.bairro,
+      value.cidade,
+    ].filter(Boolean).join(", ");
+
+    return endereco || null;
+  };
 
   return (
     <tr
@@ -87,7 +105,7 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
         className="px-4 py-3 text-sm text-gray-800 underline align-middle cursor-pointer"
         onClick={(event) => {
           event.stopPropagation();
-          abrirRota(getDisplayValue(condominio));
+          abrirRota(getMapsDestination(condominio));
         }}
       >
         {getDisplayValue(condominio)}

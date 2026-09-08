@@ -121,10 +121,20 @@ export default function ModalAgendamentoDetalhes({
     && new Date() > dataFim;
 
   // Extrai o endereço do condomínio associado
-  const condominio = Array.isArray(agendamento.condominio)
+  const condominioSelecionado = Array.isArray(agendamento.condominio)
     ? agendamento.condominio[0]
     : agendamento.condominio;
-  const endereco = condominio?.endereco || "Endereço não disponível";
+  const condominio = condominioSelecionado && typeof condominioSelecionado === "object"
+    ? condominioSelecionado
+    : condominios.find((item) => String(item.id) === String(condominioSelecionado));
+  const endereco = condominio?.endereco || [
+    condominio?.logradouro ?? condominio?.rua,
+    condominio?.numero,
+    condominio?.bairro,
+    condominio?.cidade,
+  ].filter(Boolean).join(", ");
+  const enderecoDisponivel = Boolean(endereco);
+  const enderecoExibicao = endereco || "Endereço não cadastrado";
 
   const mapsEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(
     endereco
@@ -294,8 +304,9 @@ export default function ModalAgendamentoDetalhes({
 
               <button
                 type="button"
-                onClick={() => window.open(mapsRedirectUrl, "_blank")}
-                className="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition"
+                onClick={() => enderecoDisponivel && window.open(mapsRedirectUrl, "_blank")}
+                disabled={!enderecoDisponivel}
+                className="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Abrir no Maps
               </button>
@@ -308,22 +319,28 @@ export default function ModalAgendamentoDetalhes({
                 </span>
 
                 <span className="text-sm text-gray-800 font-medium">
-                  {condominio?.logradouro + ", " + condominio?.numero || "Endereço não disponível"}
+                  {enderecoExibicao}
                 </span>
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
-              <iframe
-                title="Mapa"
-                src={mapsEmbedUrl}
-                width="100%"
-                height="300"
-                loading="lazy"
-                allowFullScreen
-                className="border-0"
-              />
-            </div>
+            {!enderecoDisponivel ? (
+              <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                Não foi possível abrir o mapa porque este condomínio não possui um endereço cadastrado.
+              </p>
+            ) : (
+              <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
+                <iframe
+                  title="Mapa"
+                  src={mapsEmbedUrl}
+                  width="100%"
+                  height="300"
+                  loading="lazy"
+                  allowFullScreen
+                  className="border-0"
+                />
+              </div>
+            )}
           </div>
         </div>
 
