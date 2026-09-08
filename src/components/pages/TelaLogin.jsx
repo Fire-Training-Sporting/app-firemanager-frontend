@@ -12,6 +12,11 @@ import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
 
 export async function login(email, senha) {
+    // Limpar qualquer token existente antes do login
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("cargo");
+    sessionStorage.removeItem("usuario");
+    
     const response = await api.post("/usuarios/login", { email, senha });
     const data = response.data;
 

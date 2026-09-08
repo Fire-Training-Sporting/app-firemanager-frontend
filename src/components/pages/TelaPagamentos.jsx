@@ -2,63 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Header from "../utils/Header";
 import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
-
-function formatarData(isoDate) {
-    if (!isoDate) return "-";
-
-    const data = new Date(`${isoDate}T12:00:00`);
-    if (Number.isNaN(data.getTime())) {
-        return String(isoDate);
-    }
-
-    return data.toLocaleDateString("pt-BR");
-}
-
-function formatarHora(hora) {
-    if (!hora) return "-";
-
-    return String(hora).slice(0, 5);
-}
-
-function formatarValor(valor) {
-    if (valor == null || valor === "") {
-        return "-";
-    }
-
-    if (Array.isArray(valor)) {
-        return valor
-            .map((item) => {
-                if (item && typeof item === "object") {
-                    return item.nome ?? item.nomeCompleto ?? item.aluno?.nome ?? "-";
-                }
-
-                return item ?? "-";
-            })
-            .filter((item) => item !== "-")
-            .join(", ") || "-";
-    }
-
-    if (typeof valor === "object") {
-        return valor.nome ?? valor.descricao ?? valor.titulo ?? "-";
-    }
-
-    return String(valor);
-}
-
-function getUsuarioId() {
-    const usuarioString = sessionStorage.getItem("usuario");
-
-    if (!usuarioString) {
-        return null;
-    }
-
-    try {
-        const usuario = JSON.parse(usuarioString);
-        return sessionStorage.getItem("userId") ?? usuario?.userId ?? usuario?.id ?? null;
-    } catch {
-        return sessionStorage.getItem("userId");
-    }
-}
+import { formatarData, formatarHora, formatarValor, getUsuarioId } from "../../utils/helpers";
 
 function HistoricoAulasTable({ aulas, loading }) {
     const ITEMS_PER_PAGE = 5;

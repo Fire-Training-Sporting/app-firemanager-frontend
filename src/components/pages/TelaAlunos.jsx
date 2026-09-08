@@ -6,6 +6,7 @@ import ModalAluno from "../utils/Alunos/ModalAlunos";
 import ModalSaldo from "../utils/Alunos/ModalSaldo";
 import ConfirmationModal from "../utils/ConfirmationModal";
 import api from "../../provider/api";
+import { formatarValor } from "../../utils/helpers";
 
 const saldoServicesOrder = ["Tênis", "Beach Tennis", "Funcional"];
 
@@ -240,21 +241,7 @@ export default function TelaAlunos() {
       }
     };
 
-  const formatarValor = (
-    valor
-  ) => {
 
-    if (
-      valor &&
-      typeof valor === "object"
-    ) {
-
-      return valor.nome ?? "-";
-
-    }
-
-    return valor ?? "-";
-  };
 
   const filtrarAlunos = async ({
     field,
