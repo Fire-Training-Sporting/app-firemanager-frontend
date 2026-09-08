@@ -28,10 +28,22 @@ ChartJS.register(
 
 export function Dashboard() {
 
+    const normalizarStatus = (status) => String(status ?? "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    const obterDataCriacao = (usuario) => usuario?.criadoEm
+        ?? usuario?.createdAt
+        ?? usuario?.dataCriacao
+        ?? usuario?.dataCadastro;
+
     const [usuarios, setUsuarios] = useState([]);
     const [condominios, setCondominios] = useState([]);
     const [agendamentos, setAgendamentos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [erro, setErro] = useState("");
 
     const [dataInicio, setDataInicio] = useState("");
     const [dataFim, setDataFim] = useState("");
@@ -63,6 +75,7 @@ export function Dashboard() {
         } catch (error) {
 
             console.error("Erro ao buscar dados:", error);
+            setErro("Não foi possível carregar os dados do dashboard.");
 
         } finally {
 
@@ -77,7 +90,7 @@ export function Dashboard() {
             return true;
         }
 
-        const dataCriacao = new Date(usuario.criadoEm);
+        const dataCriacao = new Date(obterDataCriacao(usuario));
 
         if (dataInicio && dataCriacao < new Date(dataInicio)) {
             return false;
@@ -90,42 +103,19 @@ export function Dashboard() {
         return true;
     });
 
+    const agendamentosFiltrados = agendamentos.filter((agendamento) => {
+        const dataAgendamento = String(agendamento.data || agendamento.criadoEm || "").slice(0, 10);
+
+        if (dataInicio && dataAgendamento < dataInicio) return false;
+        if (dataFim && dataAgendamento > dataFim) return false;
+
+        return true;
+    });
+
     const alunos = usuariosFiltrados.filter(
         (usuario) =>
             usuario.tipoUsuario?.cargo?.toLowerCase() === "aluno"
     );
-
-    const funcionarios = usuariosFiltrados.filter(
-        (usuario) =>
-            ["professor", "rebatedor", "auxiliar"].includes(
-                usuario.tipoUsuario?.cargo?.toLowerCase()
-            )
-    );
-
-    const administradores = usuariosFiltrados.filter(
-        (usuario) =>
-            ["adm", "root"].includes(
-                usuario.tipoUsuario?.cargo?.toLowerCase()
-            )
-    );
-
-    const chartOptions = {
-        responsive: true,
-        plugins: {
-            legend: { display: false }
-        },
-        scales: {
-            x: {
-                ticks: { color: "#fff" }
-            },
-            y: {
-                ticks: { color: "#fff" }
-            }
-        }
-    };
-
-    const concluidosData = [60, 50, 80, 90, 110, 120];
-    const canceladosData = [20, 15, 10, 20, 15, 20];
 
     const chartOptionsAtualizado = {
         responsive: true,
@@ -155,27 +145,6 @@ export function Dashboard() {
     const inicioMesPassado = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
     const fimMesPassado = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
 
-    const alunosMesAtual = usuarios.filter((u) => {
-        const data = new Date(u.criadoEm);
-        return data >= inicioMesAtual;
-    });
-
-    const alunosMesPassado = usuarios.filter((u) => {
-        const data = new Date(u.criadoEm);
-        return data >= inicioMesPassado && data <= fimMesPassado;
-    });
-
-    const atual = alunosMesAtual.length;
-    const anterior = alunosMesPassado.length;
-
-    let percentual = 0;
-
-    if (anterior === 0) {
-        percentual = atual > 0 ? 100 : 0;
-    } else {
-        percentual = ((atual - anterior) / anterior) * 100;
-    }
-
     // AGENDAMENTOS
     const agendamentosMesAtual = agendamentos.filter((a) => {
         const data = new Date(a.criadoEm);
@@ -201,14 +170,14 @@ export function Dashboard() {
     const crescimentoAg = percentualAg.toFixed(1);
     const isPositivoAg = percentualAg >= 0;
 
-    const totalAgendamentos = agendamentos.length;
+    const totalAgendamentos = agendamentosFiltrados.length;
 
-    const concluidos = agendamentos.filter(
-        (a) => a.status?.toLowerCase() === "concluido"
+    const concluidos = agendamentosFiltrados.filter(
+        (a) => ["concluido", "finalizado"].includes(normalizarStatus(a.status))
     ).length;
 
-    const cancelados = agendamentos.filter(
-        (a) => a.status?.toLowerCase() === "cancelado"
+    const cancelados = agendamentosFiltrados.filter(
+        (a) => normalizarStatus(a.status) === "cancelado"
     ).length;
 
     let taxaConclusao = 0;
@@ -242,7 +211,7 @@ export function Dashboard() {
     const concluidosPorMes = Array(6).fill(0);
     const canceladosPorMes = Array(6).fill(0);
 
-    agendamentos.forEach((a) => {
+    agendamentosFiltrados.forEach((a) => {
         const data = new Date(a.criadoEm);
 
         ultimos6Meses.forEach((m, index) => {
@@ -250,11 +219,11 @@ export function Dashboard() {
                 data.getMonth() === m.mes &&
                 data.getFullYear() === m.ano
             ) {
-                if (a.status?.toLowerCase() === "concluido") {
+                if (["concluido", "finalizado"].includes(normalizarStatus(a.status))) {
                     concluidosPorMes[index]++;
                 }
 
-                if (a.status?.toLowerCase() === "cancelado") {
+                if (normalizarStatus(a.status) === "cancelado") {
                     canceladosPorMes[index]++;
                 }
             }
@@ -283,21 +252,42 @@ export function Dashboard() {
 
     const contagemPorCondominio = {};
 
-    agendamentos.forEach((a) => {
-        const condominioId =
-            a.condominio?.id || a.condominioId;
+    const normalizarChave = (valor) => String(valor ?? "")
+        .trim()
+        .toLowerCase();
 
-        if (!condominioId) return;
+    const extrairIdentificador = (valor) => {
+        if (valor == null || valor === "") return "";
+        if (typeof valor === "object") {
+            return String(valor.id ?? valor.codigo ?? valor.value ?? valor._id ?? "");
+        }
+        return String(valor);
+    };
 
-        contagemPorCondominio[condominioId] =
-            (contagemPorCondominio[condominioId] || 0) + 1;
+    agendamentosFiltrados.forEach((a) => {
+        const condominioRelacionamento = a.condominio
+            ?? a.condominioId
+            ?? a.fk_condominio
+            ?? a.fkCondominio;
+        const condominioId = extrairIdentificador(condominioRelacionamento);
+        const condominioNome = typeof condominioRelacionamento === "object"
+            ? condominioRelacionamento.nome
+            : condominioRelacionamento;
+        const chave = condominioId || normalizarChave(condominioNome);
+
+        if (!chave) return;
+
+        contagemPorCondominio[chave] =
+            (contagemPorCondominio[chave] || 0) + 1;
     });
 
     const condominiosDestaque = condominios
         .map((c) => ({
             id: c.id,
             nome: c.nome,
-            valor: contagemPorCondominio[c.id] || 0
+            valor: contagemPorCondominio[extrairIdentificador(c.id)]
+                || contagemPorCondominio[normalizarChave(c.nome)]
+                || 0
         }))
         .sort((a, b) => b.valor - a.valor)
         .slice(0, 5);
@@ -314,7 +304,7 @@ export function Dashboard() {
 
     const aulasPorProfessor = {};
 
-    agendamentos.forEach((a) => {
+    agendamentosFiltrados.forEach((a) => {
         const professorId = a.professor?.id || a.professorId;
 
         if (!professorId) return;
@@ -339,27 +329,63 @@ export function Dashboard() {
         .slice(0, 5);
 
     const agendamentosPorAluno = {};
+    const agendamentosAvaliados = agendamentosFiltrados.filter((agendamento) =>
+        ["concluido", "finalizado", "cancelado"].includes(normalizarStatus(agendamento.status))
+    );
 
-    agendamentos.forEach((a) => {
-        const alunoId = a.aluno?.id || a.usuarioId;
+    agendamentosAvaliados.forEach((a) => {
+        const status = normalizarStatus(a.status);
+        const participantes = [
+            ...(Array.isArray(a.alunos) ? a.alunos : []),
+            a.aluno ?? a.usuarioId,
+        ];
+        const alunosDoAgendamento = new Set(
+            participantes
+                .map((participante) => extrairIdentificador(participante))
+                .filter(Boolean)
+        );
 
-        if (!alunoId) return;
+        alunosDoAgendamento.forEach((alunoId) => {
+            if (!agendamentosPorAluno[alunoId]) {
+                agendamentosPorAluno[alunoId] = {
+                    finalizados: 0,
+                    cancelados: 0,
+                };
+            }
 
-        agendamentosPorAluno[alunoId] =
-            (agendamentosPorAluno[alunoId] || 0) + 1;
+            if (["concluido", "finalizado"].includes(status)) {
+                agendamentosPorAluno[alunoId].finalizados += 1;
+            } else {
+                agendamentosPorAluno[alunoId].cancelados += 1;
+            }
+        });
     });
 
     const alunosRanking = usuariosFiltrados
         .filter((u) => u.tipoUsuario?.cargo?.toLowerCase() === "aluno")
-        .map((a) => ({
-            id: a.id,
-            nome: a.nome,
-            frequencia: totalAgendamentos > 0
-                ? ((agendamentosPorAluno[a.id] || 0) / totalAgendamentos * 100).toFixed(1) + "%"
-                : "0%",
-            agendamentos: agendamentosPorAluno[a.id] || 0
-        }))
-        .sort((a, b) => b.agendamentos - a.agendamentos)
+        .map((a) => {
+            const contagem = agendamentosPorAluno[extrairIdentificador(a.id)] || {
+                finalizados: 0,
+                cancelados: 0,
+            };
+            const totalAvaliados = contagem.finalizados + contagem.cancelados;
+            const frequenciaPercentual = totalAvaliados > 0
+                ? (contagem.finalizados / totalAvaliados) * 100
+                : 0;
+
+            return {
+                id: a.id,
+                nome: a.nome,
+                frequencia: `${frequenciaPercentual.toFixed(1)}%`,
+                frequenciaPercentual,
+                finalizados: contagem.finalizados,
+                cancelados: contagem.cancelados,
+                agendamentos: contagem.finalizados,
+            };
+        })
+        .sort((a, b) => b.frequenciaPercentual - a.frequenciaPercentual
+            || b.finalizados - a.finalizados
+            || b.agendamentos - a.agendamentos)
         .slice(0, 5);
 
     function limparFiltro() {
@@ -367,29 +393,31 @@ export function Dashboard() {
         setDataFim("");
     }
 
-    const inicio = dataInicio ? new Date(dataInicio) : null;
-    const fim = dataFim ? new Date(dataFim) : null;
+    const inicio = dataInicio ? new Date(`${dataInicio}T00:00:00`) : null;
+    const fim = dataFim ? new Date(`${dataFim}T23:59:59.999`) : null;
 
-    const inicioAtual = inicio || new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-    const fimAtual = fim || hoje;
-
-    const diferencaDias =
-        (fimAtual - inicioAtual) / (1000 * 60 * 60 * 24);
-
-    const inicioAnterior = new Date(inicioAtual);
-    inicioAnterior.setDate(inicioAnterior.getDate() - diferencaDias);
+    const inicioAtual = inicio || inicioMesAtual;
+    const fimAtual = fim || new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
+    const duracaoDias = Math.round((fimAtual - inicioAtual) / (1000 * 60 * 60 * 24)) + 1;
 
     const fimAnterior = new Date(inicioAtual);
     fimAnterior.setDate(fimAnterior.getDate() - 1);
+    fimAnterior.setHours(23, 59, 59, 999);
+
+    const inicioAnterior = new Date(fimAnterior);
+    inicioAnterior.setDate(inicioAnterior.getDate() - duracaoDias + 1);
+    inicioAnterior.setHours(0, 0, 0, 0);
 
     const alunosPeriodoAtual = usuarios.filter((u) => {
-        const data = new Date(u.criadoEm);
-        return data >= inicioAtual && data <= fimAtual;
+        const data = new Date(obterDataCriacao(u));
+        const cargo = String(u.tipoUsuario?.cargo ?? "").trim().toLowerCase();
+        return cargo === "aluno" && data >= inicioAtual && data <= fimAtual;
     });
 
     const alunosPeriodoAnterior = usuarios.filter((u) => {
-        const data = new Date(u.criadoEm);
-        return data >= inicioAnterior && data <= fimAnterior;
+        const data = new Date(obterDataCriacao(u));
+        const cargo = String(u.tipoUsuario?.cargo ?? "").trim().toLowerCase();
+        return cargo === "aluno" && data >= inicioAnterior && data <= fimAnterior;
     });
 
     const atualAlunos = alunosPeriodoAtual.length;
@@ -407,25 +435,20 @@ export function Dashboard() {
     const crescimentoAlunos = percentualAlunos.toFixed(1);
     const isPositivo = percentualAlunos >= 0;
 
-    const agendamentosPeriodoAtual = agendamentos.filter((a) => {
-        const data = new Date(a.criadoEm);
-        return data >= inicioAtual && data <= fimAtual;
-    });
-
-    const agendamentosPeriodoAnterior = agendamentos.filter((a) => {
-        const data = new Date(a.criadoEm);
-        return data >= inicioAnterior && data <= fimAnterior;
-    });
-
-    if (anteriorAg === 0) {
-        percentualAg = atualAg > 0 ? 100 : 0;
-    } else {
-        percentualAg =
-            ((atualAg - anteriorAg) / anteriorAg) * 100;
-    }
-
     return (
         <div className="min-h-screen bg-[#f1f5f9] px-4 py-4 text-slate-900">
+
+            {erro && (
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {erro}
+                </div>
+            )}
+
+            {loading && (
+                <div className="mb-4 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-700">
+                    Carregando dados do dashboard...
+                </div>
+            )}
 
             <h1 className="text-4xl font-black tracking-tight mb-6">
                 Dashboard administrativa
@@ -496,7 +519,16 @@ export function Dashboard() {
                         />
                     </div>
 
-                    <button className="
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (dataInicio && dataFim && dataInicio > dataFim) {
+                                setErro("A data inicial não pode ser maior que a data final.");
+                                return;
+                            }
+                            setErro("");
+                        }}
+                        className="
                 ml-2
                 rounded-xl
                 bg-orange-500
@@ -1005,7 +1037,7 @@ export function Dashboard() {
                                         </div>
 
                                         <div className="text-sm text-slate-500">
-                                            Frequência {aluno.frequencia}
+                                            Frequência {aluno.frequencia} · {aluno.finalizados} finalizados · {aluno.cancelados} cancelados
                                         </div>
                                     </div>
 
@@ -1016,7 +1048,7 @@ export function Dashboard() {
                                         </div>
 
                                         <div className="text-sm text-slate-500">
-                                            agendamentos
+                                            aulas
                                         </div>
                                     </div>
 

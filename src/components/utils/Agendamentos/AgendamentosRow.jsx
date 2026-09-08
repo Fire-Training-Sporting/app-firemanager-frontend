@@ -47,6 +47,11 @@ export function AgendamentosRow({ id, data, horaInicio, horaFim, condominio, alu
   };
 
   const formatDateValue = (value) => {
+    if (typeof value === "string") {
+      const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+    }
+
     const d = parseDate(value);
     if (d instanceof Date) {
       return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
