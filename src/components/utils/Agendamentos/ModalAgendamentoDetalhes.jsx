@@ -26,6 +26,11 @@ export default function ModalAgendamentoDetalhes({
   const formatDateValue = (value) => {
     if (!value) return "-";
 
+    if (typeof value === "string") {
+      const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+    }
+
     const d = new Date(value);
 
     if (isNaN(d)) return value;
