@@ -18,7 +18,7 @@ export function AlunosRow({
   const saldoFuncional = saldosPorServico["Funcional"] ?? 0;
 
   return (
-    <tr className="border-b border-gray-200 hover:bg-[#F3F4F8] transition-colors duration-150">
+    <tr className="border-b border-gray-200 odd:bg-white even:bg-gray-100 hover:bg-orange-100 transition-colors duration-150">
 
       <td className="px-4 py-3 text-gray-800 font-normal text-sm align-middle w-12">
         {id}

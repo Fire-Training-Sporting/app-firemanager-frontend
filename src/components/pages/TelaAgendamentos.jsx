@@ -126,6 +126,59 @@ export default function TelaAgendamentos() {
     }
   };
 
+  const normalizarTextoBusca = (valor) => String(valor ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
+  const valorParaTextoBusca = (valor) => {
+    if (valor == null || valor === "") {
+      return "";
+    }
+
+    if (Array.isArray(valor)) {
+      return valor
+        .map((item) => valorParaTextoBusca(item))
+        .filter(Boolean)
+        .join(" ");
+    }
+
+    if (typeof valor === "object") {
+      return [
+        valor.nome,
+        valor.nomeCompleto,
+        valor.descricao,
+        valor.titulo,
+        valor.razaoSocial,
+        valor.aluno?.nome,
+        valor.id,
+      ]
+        .map((item) => (item == null ? "" : String(item)))
+        .filter(Boolean)
+        .join(" ");
+    }
+
+    if (valor instanceof Date) {
+      return valor.toLocaleDateString("pt-BR");
+    }
+
+    return String(valor);
+  };
+
+  const obterValorBuscaAgendamento = (agendamento, field) => {
+    if (field === "aluno") {
+      return [
+        valorParaTextoBusca(agendamento?.aluno),
+        valorParaTextoBusca(agendamento?.alunos),
+      ]
+        .filter(Boolean)
+        .join(" ");
+    }
+
+    return valorParaTextoBusca(agendamento?.[field]);
+  };
+
   const filtrarAgendamentos = async ({ field, value }) => {
     try {
       setIsLoading(true);
@@ -137,22 +190,8 @@ export default function TelaAgendamentos() {
 
       // Filtro local para melhor performance
       const filtrados = agendamentosOriginais.filter((agendamento) => {
-        const fieldValue = agendamento[field];
-        let compareValue = value.toLowerCase();
-
-        // Converter valor do campo para string para comparação
-        let fieldString = "";
-
-        if (typeof fieldValue === "object" && fieldValue !== null) {
-          fieldString = fieldValue.nome ? fieldValue.nome.toLowerCase() : "";
-        } else if (typeof fieldValue === "string") {
-          fieldString = fieldValue.toLowerCase();
-        } else if (typeof fieldValue === "number") {
-          fieldString = fieldValue.toString().toLowerCase();
-        } else if (fieldValue instanceof Date) {
-          fieldString = fieldValue.toLocaleDateString("pt-BR").toLowerCase();
-        }
-
+        const compareValue = normalizarTextoBusca(value);
+        const fieldString = normalizarTextoBusca(obterValorBuscaAgendamento(agendamento, field));
         return fieldString.includes(compareValue);
       });
 
@@ -175,7 +214,8 @@ export default function TelaAgendamentos() {
     }
 
     if (typeof value === "object") {
-      return String(value.id ?? value.codigo ?? value.value ?? "");
+      const id = value.id ?? value.codigo ?? value.value ?? value._id ?? "";
+      return String(id);
     }
 
     return String(value);
@@ -246,7 +286,7 @@ export default function TelaAgendamentos() {
     data: formatarData(agendamento?.data),
     horaInicio: formatarHora(agendamento?.horaInicio),
     horaFim: formatarHora(agendamento?.horaFim),
-    condominio: extrairId(agendamento?.condominio),
+    condominio: extrairId(agendamento?.condominio) || agendamento?.condominio?.nome || "",
     aluno: extrairId(agendamento?.aluno),
     alunos: agendamento?.alunos || [],
     servico: extrairId(agendamento?.servico),
@@ -269,6 +309,17 @@ export default function TelaAgendamentos() {
 
   const editarDados = (agendamento) => {
     setEditAgendamento(normalizarAgendamentoParaModal(agendamento));
+    setShowModal(true);
+  };
+
+  const duplicarAgendamento = (agendamento) => {
+    const agendamentoNormalizado = normalizarAgendamentoParaModal(agendamento);
+    // Remove o ID para criar um novo agendamento
+    const agendamentoDuplicado = {
+      ...agendamentoNormalizado,
+      id: null,
+    };
+    setEditAgendamento(agendamentoDuplicado);
     setShowModal(true);
   };
 
@@ -410,16 +461,11 @@ export default function TelaAgendamentos() {
       <AlertMessage
         variant="success"
         message={sucessoVisivel ? sucessoAgendamento : ""}
-        className="fixed right-4 top-30 z-60 w-[min(420px,calc(100vw-2rem))] shadow-lg"
       />
 
       <div className="bg-white rounded-lg shadow-md border overflow-hidden">
         <AgendamentosTable
           agendamentos={agendamentos}
-          onEdit={editarDados}
-          onConfirm={solicitarConfirmacao}
-          onDelete={solicitarCancelamento}
-          onFinalize={solicitarFinalizacao}
           onViewDetails={visualizarDetalhes}
         />
       </div>
@@ -436,6 +482,26 @@ export default function TelaAgendamentos() {
         <ModalAgendamentoDetalhes
           agendamento={agendamentoDetalhes}
           onClose={() => setAgendamentoDetalhes(null)}
+          onEdit={() => {
+            setAgendamentoDetalhes(null);
+            editarDados(agendamentoDetalhes);
+          }}
+          onConfirm={() => {
+            setAgendamentoDetalhes(null);
+            solicitarConfirmacao(agendamentoDetalhes);
+          }}
+          onDelete={() => {
+            setAgendamentoDetalhes(null);
+            solicitarCancelamento(agendamentoDetalhes.id);
+          }}
+          onFinalize={() => {
+            setAgendamentoDetalhes(null);
+            solicitarFinalizacao(agendamentoDetalhes);
+          }}
+          onDuplicate={() => {
+            setAgendamentoDetalhes(null);
+            duplicarAgendamento(agendamentoDetalhes);
+          }}
         />
       )}
 

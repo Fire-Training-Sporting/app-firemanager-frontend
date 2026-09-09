@@ -2,11 +2,9 @@ import { useState, useEffect } from "react";
 import { AgendamentosRow } from "./AgendamentosRow";
 import AgendamentosTh from "./AgendamentosTh";
 
-export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDelete, onViewDetails, onFinalize }) {
+export function AgendamentosTable({ agendamentos = [], onViewDetails }) {
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
-  const showActions = sessionStorage.getItem("cargo") !== "Professor";
-
   const totalItems = agendamentos.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
@@ -33,7 +31,7 @@ export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDele
       }
       const d = new Date(iso);
       return isNaN(d) ? null : d;
-    } catch (e) {
+    } catch {
       return null;
     }
   };
@@ -75,7 +73,6 @@ export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDele
               <AgendamentosTh>Rebatedor</AgendamentosTh>
               <AgendamentosTh>Auxiliar</AgendamentosTh>
               <AgendamentosTh>Status</AgendamentosTh>
-              {showActions && <AgendamentosTh className="w-40">Ações</AgendamentosTh>}
             </tr>
           </thead>
           <tbody className="bg-white">
@@ -84,17 +81,12 @@ export function AgendamentosTable({ agendamentos = [], onEdit, onConfirm, onDele
                 <AgendamentosRow
                   key={agendamento.id}
                   {...agendamento}
-                  onEdit={() => onEdit(agendamento)}
-                  onConfirm={() => onConfirm(agendamento)}
-                  onDelete={() => onDelete(agendamento.id)}
                   onViewDetails={() => onViewDetails(agendamento)}
-                  onFinalize={() => onFinalize && onFinalize(agendamento)}
-                  showActions={showActions}
                 />
               ))
             ) : (
               <tr>
-                <td colSpan={showActions ? 11 : 10} className="p-4 text-center text-gray-500">
+                <td colSpan={10} className="p-4 text-center text-gray-500">
                   Nenhum agendamento encontrado.
                 </td>
               </tr>
