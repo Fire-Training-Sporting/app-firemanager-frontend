@@ -10,7 +10,7 @@ const routeMap = {
   Condomínios: "/condominios",
   Serviços: "/servicos",
   Dashboard: "/dashboard",
-  Perfil: "/alunos",
+  Perfil: "/perfil",
   Pagamentos: "/pagamento",
 };
 

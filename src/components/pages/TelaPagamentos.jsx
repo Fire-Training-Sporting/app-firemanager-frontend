@@ -66,15 +66,10 @@ function HistoricoAulasTable({ aulas, loading }) {
 
     const totalItems = aulas.length;
     const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginaAtual = Math.min(currentPage, totalPages);
+    const startIndex = (paginaAtual - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
     const pageItems = aulas.slice(startIndex, endIndex);
-
-    useEffect(() => {
-        if (currentPage > totalPages) {
-            setCurrentPage(totalPages);
-        }
-    }, [currentPage, totalPages]);
 
     const goPrev = () => setCurrentPage((page) => Math.max(1, page - 1));
     const goNext = () => setCurrentPage((page) => Math.min(totalPages, page + 1));
@@ -94,24 +89,24 @@ function HistoricoAulasTable({ aulas, loading }) {
 
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-50">
+                    <thead className="bg-slate-200">
                         <tr className="border-b border-slate-200">
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">ID</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Aluno</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Data</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Hora Início</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Hora Fim</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Condomínio</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Professor</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Rebatedor</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Auxiliar</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Status</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">ID</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Aluno</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Data</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Hora Início</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Hora Fim</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Condomínio</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Professor</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Rebatedor</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Auxiliar</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Status</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white">
                         {!loading && pageItems.length > 0 ? (
                             pageItems.map((agendamento) => (
-                                <tr key={agendamento.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                <tr key={agendamento.id} className="border-b border-gray-100 odd:bg-white even:bg-gray-100 hover:bg-orange-100 transition-colors duration-150">
                                     <td className="px-4 py-3 text-sm text-slate-700">{agendamento.id}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.aluno)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarData(agendamento.data)}</td>
@@ -148,12 +143,12 @@ function HistoricoAulasTable({ aulas, loading }) {
                         Anterior
                     </button>
                     <div className="text-xs">
-                        Página {currentPage} de {totalPages}
+                            Página {paginaAtual} de {totalPages}
                     </div>
                     <button
                         onClick={goNext}
-                        disabled={currentPage === totalPages}
-                        className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === totalPages ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                        disabled={paginaAtual === totalPages}
+                        className={`px-2 py-0.5 text-sm rounded-md border ${paginaAtual === totalPages ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
                     >
                         Próxima
                     </button>
@@ -181,6 +176,7 @@ export function TelaPagamentos() {
     const [funcionarios, setFuncionarios] = useState([]);
     const [funcionarioSelecionadoId, setFuncionarioSelecionadoId] = useState("");
     const [loading, setLoading] = useState(true);
+    const [erroCarregamento, setErroCarregamento] = useState("");
 
     const usuarioLogadoId = getUsuarioId();
     const usuarioAlvoId = isAdmin ? funcionarioSelecionadoId : usuarioLogadoId;
@@ -238,6 +234,7 @@ export function TelaPagamentos() {
                 setAgendamentos(Array.isArray(responseAgendamentos.data) ? responseAgendamentos.data : []);
             } catch (error) {
                 console.error("Erro ao buscar dados do backend:", error);
+                setErroCarregamento("Não foi possível carregar os dados de pagamentos.");
             } finally {
                 setLoading(false);
             }
@@ -264,48 +261,46 @@ export function TelaPagamentos() {
     function campoCorrespondeUsuario(campo) {
         if (!campo) return false;
 
+        const idAlvo = usuarioAlvoId;
+        const nomeAlvo = nomeProfessor;
+
         try {
             if (typeof campo === "object") {
                 const ids = [campo.id, campo._id, campo.userId, campo.professorId, campo.usuarioId];
                 for (const id of ids) {
-                    if (id != null && String(id) === String(usuarioLogadoId)) return true;
+                    if (id != null && String(id) === String(idAlvo)) return true;
                 }
 
                 // comparar por nome quando não houver id
                 const nome = campo.nome ?? campo.nomeCompleto ?? campo.name ?? campo.fullName;
-                if (nome && String(nome).trim() === String(nomeProfessor).trim()) return true;
+                if (nome && String(nome).trim() === String(nomeAlvo).trim()) return true;
                 return false;
             }
 
             // campo é string/number: comparar diretamente com id ou com nome
-            if (String(campo) === String(usuarioLogadoId)) return true;
-            if (String(campo).trim() === String(nomeProfessor).trim()) return true;
+            if (String(campo) === String(idAlvo)) return true;
+            if (String(campo).trim() === String(nomeAlvo).trim()) return true;
             return false;
         } catch {
             return false;
         }
     }
 
-    const agendamentosFiltrados = useMemo(() => {
-        if (erroData) return [];
-
-        return agendamentos.filter((agendamento) => {
+    const agendamentosFiltrados = erroData
+        ? []
+        : agendamentos.filter((agendamento) => {
             const dataAgendamento = String(agendamento?.data ?? "").slice(0, 10);
 
             if (dataInicio && dataAgendamento < dataInicio) return false;
             if (dataFim && dataAgendamento > dataFim) return false;
 
             // só incluir agendamentos em que o usuário participa (professor, rebatedor ou auxiliar)
-            const participa = campoCorrespondeUsuario(agendamento?.professor) || campoCorrespondeUsuario(agendamento?.rebatedor) || campoCorrespondeUsuario(agendamento?.auxiliar);
-            return participa;
+            return campoCorrespondeUsuario(agendamento?.professor)
+                || campoCorrespondeUsuario(agendamento?.rebatedor)
+                || campoCorrespondeUsuario(agendamento?.auxiliar);
         });
-    }, [agendamentos, dataInicio, dataFim, erroData, usuarioAlvoId, nomeProfessor]);
 
     const totalAgendamentos = agendamentosFiltrados.length;
-    const confirmados = agendamentosFiltrados.filter((agendamento) => String(agendamento?.status ?? "").toLowerCase().includes("confirm")).length;
-    const pendentes = agendamentosFiltrados.filter((agendamento) => String(agendamento?.status ?? "").toLowerCase().includes("pend")).length;
-    const cancelados = agendamentosFiltrados.filter((agendamento) => String(agendamento?.status ?? "").toLowerCase().includes("cancel")).length;
-
     const aulasComoProfessorCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.professor)).length;
     const aulasComoRebatedorCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.rebatedor)).length;
     const aulasComoAuxiliarCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.auxiliar)).length;
@@ -383,6 +378,7 @@ export function TelaPagamentos() {
                 </div>
 
                 <AlertMessage variant="error" message={erroData} />
+                <AlertMessage variant="error" message={erroCarregamento} />
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch mb-6">
                     {[

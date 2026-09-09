@@ -4,17 +4,32 @@ import api from "../../../provider/api";
 export default function ModalAgendamentoDetalhes({
   agendamento,
   onClose,
+  onEdit,
+  onConfirm,
+  onDelete,
+  onFinalize,
+  onDuplicate,
 }) {
+  const normalizarCargo = (cargo) => String(cargo ?? "").trim().toLowerCase();
+
+  const usuarioPodeGerenciarAgendamento = (cargo) => {
+    const cargoNormalizado = normalizarCargo(cargo);
+    return ["root", "administracao", "administrativo", "admnistrativo"].includes(cargoNormalizado);
+  };
+
   const [condominios, setCondominios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [listaServicos, setListaServicos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  if (!agendamento) return null;
-
   const formatDateValue = (value) => {
     if (!value) return "-";
+
+    if (typeof value === "string") {
+      const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+    }
 
     const d = new Date(value);
 
@@ -90,11 +105,41 @@ export default function ModalAgendamentoDetalhes({
     buscarDados();
   }, []);
 
+  if (!agendamento) return null;
+
+  const statusNormalizado = String(agendamento.status || "").trim().toLowerCase();
+  const showActions = usuarioPodeGerenciarAgendamento(sessionStorage.getItem("cargo"));
+  const parseDate = (value) => {
+    if (!value) return null;
+    const date = new Date(String(value).replace(" ", "T"));
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+  const dataFim = parseDate(agendamento.data);
+
+  if (dataFim && agendamento.horaFim) {
+    const [hours, minutes] = String(agendamento.horaFim).split(":").map(Number);
+    dataFim.setHours(hours || 0, minutes || 0, 0, 0);
+  }
+
+  const podeFinalizar = statusNormalizado === "confirmado"
+    && dataFim
+    && new Date() > dataFim;
+
   // Extrai o endereço do condomínio associado
-  const condominio = Array.isArray(agendamento.condominio)
+  const condominioSelecionado = Array.isArray(agendamento.condominio)
     ? agendamento.condominio[0]
     : agendamento.condominio;
-  const endereco = condominio?.endereco || "Endereço não disponível";
+  const condominio = condominioSelecionado && typeof condominioSelecionado === "object"
+    ? condominioSelecionado
+    : condominios.find((item) => String(item.id) === String(condominioSelecionado));
+  const endereco = condominio?.endereco || [
+    condominio?.logradouro ?? condominio?.rua,
+    condominio?.numero,
+    condominio?.bairro,
+    condominio?.cidade,
+  ].filter(Boolean).join(", ");
+  const enderecoDisponivel = Boolean(endereco);
+  const enderecoExibicao = endereco || "Endereço não cadastrado";
 
   const mapsEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(
     endereco
@@ -110,7 +155,7 @@ export default function ModalAgendamentoDetalhes({
         {title}
       </span>
 
-      <span className="text-sm text-gray-800 font-medium break-words">
+      <span className="text-sm text-gray-800 font-medium wrap-break-word">
         {value || "-"}
       </span>
     </div>
@@ -118,7 +163,7 @@ export default function ModalAgendamentoDetalhes({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
 
         {/* HEADER */}
         <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
@@ -126,10 +171,6 @@ export default function ModalAgendamentoDetalhes({
             <h2 className="text-white text-lg font-bold">
               Detalhes do Agendamento
             </h2>
-
-            <p className="text-orange-100 text-xs">
-              Visualização completa do agendamento
-            </p>
           </div>
 
           <button
@@ -148,7 +189,7 @@ export default function ModalAgendamentoDetalhes({
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <span className="text-xs text-gray-500 font-medium">
-                ID do Agendamento
+                ID do Agendamento:
               </span>
 
               <h3 className="text-2xl font-bold text-gray-800">
@@ -268,8 +309,9 @@ export default function ModalAgendamentoDetalhes({
 
               <button
                 type="button"
-                onClick={() => window.open(mapsRedirectUrl, "_blank")}
-                className="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition"
+                onClick={() => enderecoDisponivel && window.open(mapsRedirectUrl, "_blank")}
+                disabled={!enderecoDisponivel}
+                className="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Abrir no Maps
               </button>
@@ -282,27 +324,33 @@ export default function ModalAgendamentoDetalhes({
                 </span>
 
                 <span className="text-sm text-gray-800 font-medium">
-                  {condominio?.logradouro + ", " + condominio?.numero || "Endereço não disponível"}
+                  {enderecoExibicao}
                 </span>
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
-              <iframe
-                title="Mapa"
-                src={mapsEmbedUrl}
-                width="100%"
-                height="300"
-                loading="lazy"
-                allowFullScreen
-                className="border-0"
-              />
-            </div>
+            {!enderecoDisponivel ? (
+              <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                Não foi possível abrir o mapa porque este condomínio não possui um endereço cadastrado.
+              </p>
+            ) : (
+              <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
+                <iframe
+                  title="Mapa"
+                  src={mapsEmbedUrl}
+                  width="100%"
+                  height="300"
+                  loading="lazy"
+                  allowFullScreen
+                  className="border-0"
+                />
+              </div>
+            )}
           </div>
         </div>
 
         {/* FOOTER */}
-        <div className="border-t bg-gray-50 px-5 py-3 flex justify-end">
+        <div className="border-t bg-gray-50 px-5 py-3 flex items-center justify-between gap-3 flex-wrap">
           <button
             type="button"
             onClick={onClose}
@@ -310,6 +358,67 @@ export default function ModalAgendamentoDetalhes({
           >
             Fechar
           </button>
+
+          {showActions && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {statusNormalizado !== "finalizado" && statusNormalizado !== "cancelado" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (showActions) onDelete?.();
+                    }}
+                    className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (showActions) onEdit?.();
+                    }}
+                    className="px-3 py-2 rounded-lg bg-yellow-500 text-white text-sm font-semibold hover:bg-yellow-600 transition"
+                  >
+                    Editar
+                  </button>
+                </>
+              )}
+              
+              <button
+                type="button"
+                onClick={() => {
+                  if (showActions) onDuplicate?.();
+                }}
+                className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition"
+              >
+                Duplicar
+              </button>
+
+              {statusNormalizado === "pendente" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (showActions) onConfirm?.();
+                  }}
+                  className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition"
+                >
+                  Confirmar
+                </button>
+              )}
+
+              {podeFinalizar && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (showActions) onFinalize?.();
+                  }}
+                  className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition"
+                >
+                  Finalizar
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
