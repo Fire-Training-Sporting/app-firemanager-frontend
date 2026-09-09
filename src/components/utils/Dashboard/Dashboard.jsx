@@ -474,15 +474,16 @@ export function Dashboard() {
                 </div>
 
                 <div className="
-            flex items-center gap-3
+            flex w-full min-w-0 max-w-full flex-col gap-3
             bg-white
             border border-slate-200
             rounded-2xl
             px-4 py-3
             shadow-sm
+            md:flex-row md:items-center
             ">
 
-                    <div className="flex flex-col">
+                    <div className="flex min-w-0 flex-1 flex-col">
                         <label className="text-xs text-slate-400 font-medium mb-1">
                             Data inicial
                         </label>
@@ -495,13 +496,14 @@ export function Dashboard() {
     text-sm
     bg-transparent
     text-slate-700
+    w-full min-w-0
     "
                         />
                     </div>
 
-                    <div className="h-10 w-px bg-slate-200" />
+                    <div className="h-px w-full bg-slate-200 md:h-10 md:w-px" />
 
-                    <div className="flex flex-col">
+                    <div className="flex min-w-0 flex-1 flex-col">
                         <label className="text-xs text-slate-400 font-medium mb-1">
                             Data final
                         </label>
@@ -515,10 +517,13 @@ export function Dashboard() {
     text-sm
     bg-transparent
     text-slate-700
+    w-full min-w-0
     "
                         />
                     </div>
 
+                    <button className="
+                w-full
                     <button
                         type="button"
                         onClick={() => {
@@ -537,13 +542,14 @@ export function Dashboard() {
                 text-white
                 transition-all duration-300
                 hover:bg-orange-600
+                md:ml-2 md:w-auto
                 ">
                         Filtrar
                     </button>
                     <button
                         onClick={limparFiltro}
                         className="
-        ml-2
+        w-full
         rounded-xl
         bg-slate-200
         px-4 py-2
@@ -551,6 +557,7 @@ export function Dashboard() {
         text-slate-700
         transition-all duration-300
         hover:bg-slate-300
+        md:ml-2 md:w-auto
     "
                     >
                         Limpar
@@ -559,7 +566,7 @@ export function Dashboard() {
             </div>
 
             {/* TOP CARDS */}
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch">
 
                 {/* CARD 1 */}
                 <div className="
@@ -578,17 +585,17 @@ export function Dashboard() {
 
                     <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-orange-100 opacity-60" />
 
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.25em] text-slate-400 font-medium">
+                    <div className="relative z-10">
+                        <p className="text-[9px] uppercase tracking-[0.1em] text-slate-400 font-medium sm:text-[10px] sm:tracking-[0.25em]">
                             TOTAL DE ALUNOS
                         </p>
 
-                        <h2 className="mt-4 text-5xl font-black tracking-tight text-slate-900">
+                        <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900 sm:mt-4 sm:text-4xl">
                             {alunos.length}
                         </h2>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="relative z-10 flex items-center gap-2">
                         <span className={`
             rounded-full px-3 py-1 text-xs font-semibold
             ${isPositivo
@@ -599,7 +606,7 @@ export function Dashboard() {
                             {isPositivo ? "+" : ""}{crescimentoAlunos}%
                         </span>
 
-                        <span className="text-xs text-slate-500">
+                        <span className="text-[10px] text-slate-500 sm:text-xs">
                             comparado ao mês passado
                         </span>
                     </div>
@@ -620,30 +627,32 @@ export function Dashboard() {
     hover:shadow-xl
 ">
 
-                    <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-orange-100 opacity-50 blur-2xl" />
+                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-orange-100 opacity-60" />
 
-                    <div>
+                    <div className="relative z-10">
                         <p className="
-            text-xs uppercase
-            tracking-[0.25em]
+            text-[9px] uppercase
+            tracking-[0.1em]
             text-slate-400
             font-medium
+            sm:text-[10px] sm:tracking-[0.25em]
         ">
                             TOTAL DE AGENDAMENTOS
                         </p>
 
                         <h2 className="
-            mt-4
-            text-5xl
+            mt-3
+            text-3xl
             font-black
             tracking-tight
             text-slate-900
+            sm:mt-4 sm:text-4xl
         ">
                             {agendamentos.length}
                         </h2>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="relative z-10 flex items-center gap-2">
                         <span className={`
             rounded-full
             px-3 py-1
@@ -656,7 +665,7 @@ export function Dashboard() {
                             {isPositivoAg ? "+" : ""}{crescimentoAg}%
                         </span>
 
-                        <span className="text-xs text-slate-500">
+                        <span className="text-[10px] text-slate-500 sm:text-xs">
                             comparado ao mês passado
                         </span>
                     </div>
@@ -677,14 +686,14 @@ export function Dashboard() {
     hover:shadow-xl
 ">
 
-                    <div className="absolute -right-6 -bottom-6 h-24 w-24 rounded-full bg-orange-100 opacity-60" />
+                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-orange-100 opacity-60" />
 
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.25em] text-slate-400 font-medium">
+                    <div className="relative z-10">
+                        <p className="text-[9px] uppercase tracking-[0.1em] text-slate-400 font-medium sm:text-[10px] sm:tracking-[0.25em]">
                             TAXA DE CONCLUSÃO
                         </p>
 
-                        <div className="flex items-center gap-4 mt-4">
+                        <div className="flex items-center gap-3 mt-3 sm:mt-4 sm:gap-4">
 
                             <div className="
                 flex h-16 w-16
@@ -699,7 +708,7 @@ export function Dashboard() {
                             </div>
 
                             <div>
-                                <h3 className="text-xl font-bold text-slate-900">
+                                <h3 className="text-lg font-bold text-slate-900 sm:text-xl">
                                     Conclusão
                                 </h3>
 
@@ -710,7 +719,7 @@ export function Dashboard() {
                         </div>
                     </div>
 
-                    <div>
+                    <div className="relative z-10">
                         <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
                             <span>Meta</span>
                             <span>85%</span>
@@ -740,14 +749,14 @@ export function Dashboard() {
     hover:shadow-xl
 ">
 
-                    <div className="absolute -left-6 -bottom-6 h-24 w-24 rounded-full bg-orange-100 opacity-60" />
+                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-orange-100 opacity-60" />
 
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.25em] text-slate-400 font-medium">
+                    <div className="relative z-10">
+                        <p className="text-[9px] uppercase tracking-[0.1em] text-slate-400 font-medium sm:text-[10px] sm:tracking-[0.25em]">
                             MÉDIA POR CONDOMÍNIO
                         </p>
 
-                        <h2 className="mt-4 text-5xl font-black tracking-tight text-slate-900">
+                        <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900 sm:mt-4 sm:text-4xl">
                             {mediaFormatada}
                         </h2>
 
@@ -756,7 +765,7 @@ export function Dashboard() {
                         </p>
                     </div>
 
-                    <div className="h-2.5 w-full rounded-full bg-slate-200 overflow-hidden">
+                    <div className="relative z-10 h-2.5 w-full rounded-full bg-slate-200 overflow-hidden">
                         <div
                             className="h-full rounded-full bg-orange-500"
                             style={{
@@ -768,18 +777,18 @@ export function Dashboard() {
             </div>
 
             {/* GRÁFICOS */}
-            <div className="mt-6 grid gap-4 xl:grid-cols-2">
+            <div className="mt-6 grid min-w-0 gap-4 xl:grid-cols-2">
 
                 {/* GRÁFICO */}
                 <div className="
-            rounded-[28px]
+                    min-w-0 rounded-[28px]
             bg-white
             p-5
             border border-slate-200
             shadow-sm
             ">
 
-                    <div className="flex items-center justify-between mb-5">
+                    <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
 
                         <div>
                             <h2 className="text-lg font-bold text-slate-900">
@@ -791,7 +800,7 @@ export function Dashboard() {
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-4 text-sm">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                             <span className="flex items-center gap-2">
                                 <span className="h-3 w-3 rounded-full bg-orange-500"></span>
                                 Concluídos
@@ -814,7 +823,7 @@ export function Dashboard() {
 
                 {/* CONDOMÍNIOS */}
                 <div className="
-    rounded-[28px]
+    min-w-0 rounded-[28px]
     bg-white
     p-5
     border border-slate-200
@@ -830,12 +839,12 @@ export function Dashboard() {
                         {condominiosComProgresso.map((condominio) => (
                             <div key={condominio.nome}>
 
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="font-medium text-slate-700">
+                                <div className="mb-2 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                                    <span className="min-w-0 break-words font-medium text-slate-700">
                                         {condominio.nome}
                                     </span>
 
-                                    <span className="font-bold text-slate-900">
+                                    <span className="whitespace-nowrap font-bold text-slate-900">
                                         {condominio.valor} agend.
                                     </span>
                                 </div>
