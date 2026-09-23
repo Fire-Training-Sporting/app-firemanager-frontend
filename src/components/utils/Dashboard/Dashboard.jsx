@@ -522,6 +522,8 @@ export function Dashboard() {
                         />
                     </div>
 
+                    <button className="
+                w-full
                     <button
                         type="button"
                         onClick={() => {
