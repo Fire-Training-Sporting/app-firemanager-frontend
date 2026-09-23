@@ -522,8 +522,6 @@ export function Dashboard() {
                         />
                     </div>
 
-                    <button className="
-                w-full
                     <button
                         type="button"
                         onClick={() => {
@@ -534,7 +532,7 @@ export function Dashboard() {
                             setErro("");
                         }}
                         className="
-                ml-2
+                w-full
                 rounded-xl
                 bg-orange-500
                 px-4 py-2
@@ -543,10 +541,12 @@ export function Dashboard() {
                 transition-all duration-300
                 hover:bg-orange-600
                 md:ml-2 md:w-auto
-                ">
+                "
+                    >
                         Filtrar
                     </button>
                     <button
+                        type="button"
                         onClick={limparFiltro}
                         className="
         w-full

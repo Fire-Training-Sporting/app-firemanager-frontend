@@ -11,6 +11,7 @@ const TelaPerfil = lazy(() => import("../components/pages/TelaPerfil"));
 const TelaServico = lazy(() => import("../components/pages/TelaServico"));
 const TelaPagamentos = lazy(() => import("../components/pages/TelaPagamentos").then((module) => ({ default: module.TelaPagamentos })));
 const Tela404 = lazy(() => import("../components/pages/Tela404"));
+const TelaAcessoNegado = lazy(() => import("../components/pages/TelaAcessoNegado"));
 const AuthGuard = lazy(() => import("./AuthGuard"));
 
 export const router = createBrowserRouter([
@@ -52,6 +53,10 @@ export const router = createBrowserRouter([
             {
                 path: "/pagamento",
                 element: <TelaPagamentos />,
+            },
+            {
+                path: "/acesso-nao-autorizado",
+                element: <TelaAcessoNegado />,
             },
             {
                 path: "*",
