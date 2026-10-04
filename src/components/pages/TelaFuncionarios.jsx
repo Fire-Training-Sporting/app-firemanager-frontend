@@ -5,7 +5,7 @@ import TabelaFuncionarios from "../utils/Funcionarios/TabelaFuncionarios";
 import ModalCadastroFuncionario from "../utils/Funcionarios/ModalCadastroFuncionario";
 import ConfirmationModal from "../utils/ConfirmationModal";
 import AlertMessage from "../utils/AlertMessage";
-import api, { getAllPages } from "../../provider/api";
+import api from "../../provider/api";
 
 const search_columns = [
   { label: "ID", value: "id" },
@@ -22,9 +22,11 @@ export default function TelaFuncionarios() {
 
   const [funcionarios, setFuncionarios] =
     useState([]);
-
-  const [funcionariosOriginais,
-    setFuncionariosOriginais] = useState([]);
+  const [tipoUsuarioCargos, setTipoUsuarioCargos] = useState([]);
+  const [paginaAtual, setPaginaAtual] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [totalFuncionarios, setTotalFuncionarios] = useState(0);
+  const [filtroAtual, setFiltroAtual] = useState(null);
 
   const [selectedEmployee,
     setSelectedEmployee] = useState(null);
@@ -42,35 +44,59 @@ export default function TelaFuncionarios() {
     setIsLoading] = useState(false);
 
   useEffect(() => {
-    buscarDados();
+    async function carregarCargosEBuscarFuncionarios() {
+      try {
+        const response = await api.get("/tipo-usuarios");
+        const cargos = (response.data || [])
+          .map((tipo) => String(tipo.cargo || "").trim())
+          .filter((cargo) => cargo && cargo.toLowerCase() !== "aluno" && cargo.toLowerCase() !== "root");
+
+        setTipoUsuarioCargos(cargos);
+        await buscarDados(0, null, cargos);
+      } catch (error) {
+        console.error("Erro ao carregar tipos de funcionário:", error);
+      }
+    }
+
+    carregarCargosEBuscarFuncionarios();
   }, []);
 
-  async function buscarDados() {
+  async function buscarDados(pagina = paginaAtual, filtro = filtroAtual, cargos = tipoUsuarioCargos) {
 
     try {
 
       setIsLoading(true);
 
-      const usuarios = await getAllPages("/usuarios");
+      if (cargos.length === 0) {
+        setFuncionarios([]);
+        setPaginaAtual(0);
+        setTotalPaginas(0);
+        setTotalFuncionarios(0);
+        return;
+      }
 
-      const funcionariosFiltrados =
-        usuarios.filter((usuario) => {
+      const params = new URLSearchParams({ page: String(pagina), size: "10" });
+      cargos.forEach((cargo) => params.append("tipoUsuarioCargo", cargo));
 
-          const cargo =
-            (usuario.tipoUsuario?.cargo || "")
-              .toString()
-              .trim()
-              .toLowerCase();
+      if (filtro?.value) {
+        params.set("campo", filtro.field);
+        params.set("busca", filtro.value);
+      }
 
-          return (
-            cargo !== "aluno" &&
-            cargo !== "root" &&
-            cargo !== ""
-          );
-        });
+      const response = await api.get("/usuarios", { params });
+      const paginaResponse = response.data;
+      const totalPaginasResposta = Number(paginaResponse?.totalPages) || 0;
+      const ultimaPagina = Math.max(0, totalPaginasResposta - 1);
 
-      setFuncionarios(funcionariosFiltrados);
-      setFuncionariosOriginais(funcionariosFiltrados);
+      if (pagina > ultimaPagina) {
+        await buscarDados(ultimaPagina, filtro, cargos);
+        return;
+      }
+
+      setFuncionarios(paginaResponse?.content || []);
+      setPaginaAtual(Number(paginaResponse?.page) || 0);
+      setTotalPaginas(totalPaginasResposta);
+      setTotalFuncionarios(Number(paginaResponse?.totalElements) || 0);
     } catch (err) {
 
       console.error(
@@ -85,77 +111,10 @@ export default function TelaFuncionarios() {
     }
   }
 
-  async function filtrarFuncionarios({
-    field,
-    value,
-  }) {
-
-    try {
-
-      setIsLoading(true);
-
-      if (!value.trim()) {
-        setFuncionarios(funcionariosOriginais);
-        return;
-      }
-
-      function getFieldValue(obj, path) {
-        if (!path) return undefined;
-        const parts = path.split(".");
-        let cur = obj;
-        for (const p of parts) {
-          if (cur == null) return undefined;
-          cur = cur[p];
-        }
-        return cur;
-      }
-
-      const filtrados =
-        funcionariosOriginais.filter((funcionario) => {
-          const fieldValue = getFieldValue(funcionario, field);
-
-          const compareValue = value.toLowerCase().trim();
-
-          let fieldString = "";
-
-          if (typeof fieldValue === "object" && fieldValue !== null) {
-            if (fieldValue.nome) {
-              fieldString = String(fieldValue.nome).toLowerCase();
-            } else if (fieldValue.cargo) {
-              fieldString = String(fieldValue.cargo).toLowerCase();
-            } else if (fieldValue.perfil) {
-              fieldString = String(fieldValue.perfil).toLowerCase();
-            } else {
-              fieldString = Object.values(fieldValue)
-                .filter((v) => v != null)
-                .join(" ")
-                .toLowerCase();
-            }
-          } else if (typeof fieldValue === "string") {
-            fieldString = fieldValue.toLowerCase();
-          } else if (typeof fieldValue === "number") {
-            fieldString = fieldValue.toString().toLowerCase();
-          } else if (fieldValue instanceof Date) {
-            fieldString = fieldValue.toLocaleDateString("pt-BR").toLowerCase();
-          }
-
-          return fieldString.includes(compareValue);
-        });
-
-      setFuncionarios(filtrados);
-
-    } catch (error) {
-
-      console.error(
-        "Erro ao filtrar funcionários:",
-        error
-      );
-
-    } finally {
-
-      setIsLoading(false);
-
-    }
+  function filtrarFuncionarios({ field, value }) {
+    const filtro = value.trim() ? { field, value: value.trim() } : null;
+    setFiltroAtual(filtro);
+    return buscarDados(0, filtro);
   }
 
   function handleAdd() {
@@ -221,7 +180,7 @@ export default function TelaFuncionarios() {
 
       setFuncionarioParaExcluir(null);
 
-      await buscarDados();
+      await buscarDados(paginaAtual, filtroAtual);
 
     } catch (error) {
 
@@ -261,7 +220,7 @@ export default function TelaFuncionarios() {
 
     setSucessoVisivel(true);
 
-    buscarDados();
+    buscarDados(0, filtroAtual);
 
     setSelectedEmployee(null);
 
@@ -306,6 +265,11 @@ export default function TelaFuncionarios() {
             funcionarios={funcionarios}
             onEdit={handleEdit}
             onDelete={solicitarExclusao}
+            currentPage={paginaAtual}
+            totalPages={totalPaginas}
+            totalItems={totalFuncionarios}
+            isLoading={isLoading}
+            onPageChange={(pagina) => buscarDados(pagina)}
           />
 
         </div>

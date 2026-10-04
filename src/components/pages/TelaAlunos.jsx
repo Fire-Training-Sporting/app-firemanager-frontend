@@ -5,7 +5,7 @@ import { AlunosTable } from "../utils/Alunos/AlunosTable";
 import ModalAluno from "../utils/Alunos/ModalAlunos";
 import ModalSaldo from "../utils/Alunos/ModalSaldo";
 import ConfirmationModal from "../utils/ConfirmationModal";
-import api, { getAllPages } from "../../provider/api";
+import api from "../../provider/api";
 
 const saldoServicesOrder = ["Tênis", "Beach Tennis", "Funcional"];
 
@@ -25,11 +25,11 @@ export default function TelaAlunos() {
     useState(null);
 
   const [alunos, setAlunos] = useState([]);
-
-  const [alunosOriginais, setAlunosOriginais] =
-    useState([]);
-
   const [isLoading, setIsLoading] = useState(false);
+  const [paginaAtual, setPaginaAtual] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [totalAlunos, setTotalAlunos] = useState(0);
+  const [filtroAtual, setFiltroAtual] = useState(null);
 
   const [alunoParaExcluir, setAlunoParaExcluir] =
     useState(null);
@@ -38,23 +38,43 @@ export default function TelaAlunos() {
     useState(null);
 
   useEffect(() => {
-    buscarAlunos();
+    buscarAlunos(0, null);
   }, []);
 
-  const buscarAlunos = async () => {
+  const buscarAlunos = async (pagina = paginaAtual, filtro = filtroAtual) => {
 
     try {
 
       setIsLoading(true);
 
+      const params = new URLSearchParams({
+        page: String(pagina),
+        size: "10",
+        tipoUsuarioCargo: "Aluno",
+      });
+
+      if (filtro?.value) {
+        params.set("campo", filtro.field);
+        params.set("busca", filtro.value);
+      }
+
       const [usuariosResp, servicosResp, saldosResp] =
         await Promise.all([
-          getAllPages("/usuarios"),
+          api.get("/usuarios", { params }),
           api.get("/servicos").catch(() => ({ data: [] })),
           api.get("/saldos").catch(() => ({ data: [] })),
         ]);
 
-      const usuarios = usuariosResp || [];
+      const paginaResponse = usuariosResp.data;
+      const totalPaginasResposta = Number(paginaResponse?.totalPages) || 0;
+      const ultimaPagina = Math.max(0, totalPaginasResposta - 1);
+
+      if (pagina > ultimaPagina) {
+        await buscarAlunos(ultimaPagina, filtro);
+        return;
+      }
+
+      const usuarios = paginaResponse?.content || [];
       const servicos = servicosResp.data || [];
       const saldos = saldosResp.data || [];
 
@@ -114,14 +134,7 @@ export default function TelaAlunos() {
         return mapa;
       }, {});
 
-      const alunosFiltrados =
-        usuarios
-          .filter(
-            (u) =>
-              u.tipoUsuario?.cargo ===
-              "Aluno"
-          )
-          .map((u) => ({
+      const alunosFiltrados = usuarios.map((u) => ({
             ...u,
             endereco:
               u.endereco ||
@@ -141,10 +154,9 @@ export default function TelaAlunos() {
           }));
 
       setAlunos(alunosFiltrados);
-
-      setAlunosOriginais(
-        alunosFiltrados
-      );
+      setPaginaAtual(Number(paginaResponse?.page) || 0);
+      setTotalPaginas(totalPaginasResposta);
+      setTotalAlunos(Number(paginaResponse?.totalElements) || 0);
 
     } catch (err) {
 
@@ -225,7 +237,7 @@ export default function TelaAlunos() {
 
         setAlunoParaExcluir(null);
 
-        await buscarAlunos();
+        await buscarAlunos(paginaAtual, filtroAtual);
 
       } catch (error) {
 
@@ -256,97 +268,10 @@ export default function TelaAlunos() {
     return valor ?? "-";
   };
 
-  const filtrarAlunos = async ({
-    field,
-    value,
-  }) => {
-
-    try {
-
-      setIsLoading(true);
-
-      if (!value.trim()) {
-
-        setAlunos(
-          alunosOriginais
-        );
-
-        return;
-      }
-
-      const filtrados =
-        alunosOriginais.filter(
-          (aluno) => {
-
-            const fieldValue =
-              aluno[field];
-
-            const compareValue =
-              value.toLowerCase();
-
-            let fieldString = "";
-
-            if (
-              typeof fieldValue ===
-                "object" &&
-              fieldValue !== null
-            ) {
-
-              fieldString =
-                fieldValue.nome
-                  ? fieldValue.nome.toLowerCase()
-                  : "";
-
-            } else if (
-              typeof fieldValue ===
-              "string"
-            ) {
-
-              fieldString =
-                fieldValue.toLowerCase();
-
-            } else if (
-              typeof fieldValue ===
-              "number"
-            ) {
-
-              fieldString =
-                fieldValue
-                  .toString()
-                  .toLowerCase();
-
-            } else if (
-              fieldValue instanceof Date
-            ) {
-
-              fieldString =
-                fieldValue
-                  .toLocaleDateString(
-                    "pt-BR"
-                  )
-                  .toLowerCase();
-            }
-
-            return fieldString.includes(
-              compareValue
-            );
-          }
-        );
-
-      setAlunos(filtrados);
-
-    } catch (error) {
-
-      console.error(
-        "Erro ao filtrar alunos:",
-        error
-      );
-
-    } finally {
-
-      setIsLoading(false);
-
-    }
+  const filtrarAlunos = ({ field, value }) => {
+    const filtro = value.trim() ? { field, value: value.trim() } : null;
+    setFiltroAtual(filtro);
+    return buscarAlunos(0, filtro);
   };
 
   return (
@@ -380,6 +305,11 @@ export default function TelaAlunos() {
             onDelete={solicitarExclusao}
             onEdit={handleEdit}
             onAddSaldo={handleAddSaldo}
+            currentPage={paginaAtual}
+            totalPages={totalPaginas}
+            totalItems={totalAlunos}
+            isLoading={isLoading}
+            onPageChange={(pagina) => buscarAlunos(pagina)}
           />
 
         </div>
@@ -393,9 +323,7 @@ export default function TelaAlunos() {
               onClose={
                 handleCloseModal
               }
-              onCreated={
-                buscarAlunos
-              }
+              onCreated={() => buscarAlunos(0, filtroAtual)}
             />
 
           </div>

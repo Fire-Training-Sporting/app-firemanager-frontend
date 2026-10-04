@@ -16,7 +16,7 @@ api.interceptors.request.use((config) => {
 export default api;
 
 export async function getAllPages(url, params = {}) {
-  const pageSize = 100;
+  const pageSize = 10;
   const firstResponse = await api.get(url, {
     params: { ...params, page: 0, size: pageSize },
   });

@@ -6,7 +6,7 @@ import ModalScheduling from '../utils/Agendamentos/ModalScheduling';
 import ModalAgendamentoDetalhes from '../utils/Agendamentos/ModalAgendamentoDetalhes';
 import ConfirmationModal from '../utils/ConfirmationModal';
 import AlertMessage from '../utils/AlertMessage';
-import api, { getAllPages } from "../../provider/api";
+import api from "../../provider/api";
 
 const search_columns = [
   { label: "Aluno", value: "aluno" },
@@ -89,7 +89,6 @@ export default function TelaAgendamentos() {
   const [showModal, setShowModal] = useState(false);
   const [editAgendamento, setEditAgendamento] = useState(null);
   const [agendamentos, setAgendamentos] = useState([]);
-  const [agendamentosBusca, setAgendamentosBusca] = useState(null);
   const [paginaAtual, setPaginaAtual] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(0);
   const [totalAgendamentos, setTotalAgendamentos] = useState(0);
@@ -111,26 +110,34 @@ export default function TelaAgendamentos() {
     buscarDados(0);
   }, []);
 
-  const buscarDados = async (pagina = paginaAtual) => {
+  const buscarDados = async (pagina = paginaAtual, filtro = filtroAtual) => {
     try {
       setIsLoading(true);
-      const response = await api.get("/agendamentos", {
-        params: { page: pagina, size: 10 },
-      });
+      const params = new URLSearchParams({ page: String(pagina), size: "10" });
+      if (filtro?.value) {
+        params.set("campo", filtro.field);
+        params.set("busca", filtro.value);
+      }
+
+      const response = await api.get("/agendamentos", { params });
       const paginaResponse = response.data;
-      const listaAgendamentos = Array.isArray(paginaResponse?.content)
-        ? paginaResponse.content
-        : Array.isArray(paginaResponse)
-          ? paginaResponse
-          : [];
+      const listaAgendamentos = paginaResponse?.content || [];
+      const totalPaginasResposta = Number(paginaResponse?.totalPages) || 0;
+      const ultimaPagina = Math.max(0, totalPaginasResposta - 1);
+
+      if (pagina > ultimaPagina) {
+        await buscarDados(ultimaPagina, filtro);
+        return;
+      }
+
       const agendamentosPermitidos = filtrarAgendamentosPorCargo(
         listaAgendamentos,
         cargo,
         usuarioId
       );
       setAgendamentos(agendamentosPermitidos);
-      setPaginaAtual(paginaResponse?.page ?? pagina);
-      setTotalPaginas(paginaResponse?.totalPages ?? 1);
+      setPaginaAtual(Number(paginaResponse?.page) || 0);
+      setTotalPaginas(totalPaginasResposta);
       setTotalAgendamentos(paginaResponse?.totalElements ?? listaAgendamentos.length);
     } catch (error) {
       console.error("Erro ao buscar agendamentos:", error);
@@ -139,112 +146,18 @@ export default function TelaAgendamentos() {
     }
   };
 
-  const normalizarTextoBusca = (valor) => String(valor ?? "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim();
-
-  const valorParaTextoBusca = (valor) => {
-    if (valor == null || valor === "") {
-      return "";
-    }
-
-    if (Array.isArray(valor)) {
-      return valor
-        .map((item) => valorParaTextoBusca(item))
-        .filter(Boolean)
-        .join(" ");
-    }
-
-    if (typeof valor === "object") {
-      return [
-        valor.nome,
-        valor.nomeCompleto,
-        valor.descricao,
-        valor.titulo,
-        valor.razaoSocial,
-        valor.aluno?.nome,
-        valor.id,
-      ]
-        .map((item) => (item == null ? "" : String(item)))
-        .filter(Boolean)
-        .join(" ");
-    }
-
-    if (valor instanceof Date) {
-      return valor.toLocaleDateString("pt-BR");
-    }
-
-    return String(valor);
-  };
-
-  const obterValorBuscaAgendamento = (agendamento, field) => {
-    if (field === "aluno") {
-      return [
-        valorParaTextoBusca(agendamento?.aluno),
-        valorParaTextoBusca(agendamento?.alunos),
-      ]
-        .filter(Boolean)
-        .join(" ");
-    }
-
-    return valorParaTextoBusca(agendamento?.[field]);
-  };
-
-  const filtrarAgendamentos = async ({ field, value }) => {
-    const filtro = { field, value: value.trim() };
+  const filtrarAgendamentos = ({ field, value }) => {
+    const filtro = value.trim() ? { field, value: value.trim() } : null;
     setFiltroAtual(filtro);
-
-    if (!filtro.value) {
-      setAgendamentosBusca(null);
-      await buscarDados(0);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const listaAgendamentos = await getAllPages("/agendamentos");
-      const agendamentosPermitidos = filtrarAgendamentosPorCargo(
-        listaAgendamentos,
-        cargo,
-        usuarioId
-      );
-      const compareValue = normalizarTextoBusca(filtro.value);
-      const resultados = agendamentosPermitidos.filter((agendamento) =>
-        normalizarTextoBusca(obterValorBuscaAgendamento(agendamento, filtro.field))
-          .includes(compareValue)
-      );
-
-      setAgendamentosBusca(resultados);
-      setAgendamentos(resultados.slice(0, 10));
-      setPaginaAtual(0);
-      setTotalPaginas(Math.ceil(resultados.length / 10));
-      setTotalAgendamentos(resultados.length);
-    } catch (error) {
-      console.error("Erro ao filtrar agendamentos:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    return buscarDados(0, filtro);
   };
 
   const mudarPagina = (pagina) => {
-    if (agendamentosBusca !== null) {
-      const inicio = pagina * 10;
-      setPaginaAtual(pagina);
-      setAgendamentos(agendamentosBusca.slice(inicio, inicio + 10));
-      return;
-    }
-
-    return buscarDados(pagina);
+    return buscarDados(pagina, filtroAtual);
   };
 
   const atualizarDados = () => {
-    if (filtroAtual?.value) {
-      return filtrarAgendamentos(filtroAtual);
-    }
-
-    return buscarDados();
+    return buscarDados(paginaAtual, filtroAtual);
   };
 
   const adicionarDados = () => {

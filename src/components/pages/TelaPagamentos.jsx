@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Header from "../utils/Header";
 import AlertMessage from "../utils/AlertMessage";
 import api, { getAllPages } from "../../provider/api";
@@ -60,19 +60,10 @@ function getUsuarioId() {
     }
 }
 
-function HistoricoAulasTable({ aulas, loading }) {
-    const ITEMS_PER_PAGE = 5;
-    const [currentPage, setCurrentPage] = useState(1);
-
-    const totalItems = aulas.length;
-    const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
-    const paginaAtual = Math.min(currentPage, totalPages);
-    const startIndex = (paginaAtual - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    const pageItems = aulas.slice(startIndex, endIndex);
-
-    const goPrev = () => setCurrentPage((page) => Math.max(1, page - 1));
-    const goNext = () => setCurrentPage((page) => Math.min(totalPages, page + 1));
+function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalItems, onPageChange }) {
+    const totalPagesExibidas = Math.max(1, totalPages);
+    const startItem = totalItems === 0 ? 0 : currentPage * 10 + 1;
+    const endItem = Math.min(totalItems, (currentPage + 1) * 10);
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -104,8 +95,8 @@ function HistoricoAulasTable({ aulas, loading }) {
                         </tr>
                     </thead>
                     <tbody className="bg-white">
-                        {!loading && pageItems.length > 0 ? (
-                            pageItems.map((agendamento) => (
+                        {!loading && aulas.length > 0 ? (
+                            aulas.map((agendamento) => (
                                 <tr key={agendamento.id} className="border-b border-gray-100 odd:bg-white even:bg-gray-100 hover:bg-orange-100 transition-colors duration-150">
                                     <td className="px-4 py-3 text-sm text-slate-700">{agendamento.id}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.aluno)}</td>
@@ -132,23 +123,23 @@ function HistoricoAulasTable({ aulas, loading }) {
 
             <div className="flex items-center justify-between gap-4 px-5 pt-4 border-t border-slate-200 mt-4 mb-4">
                 <div className="text-xs text-slate-500">
-                    Mostrando {totalItems === 0 ? 0 : startIndex + 1}-{Math.min(totalItems, endIndex)} de {totalItems}
+                    Mostrando {startItem}-{endItem} de {totalItems}
                 </div>
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={goPrev}
-                        disabled={currentPage === 1}
-                        className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage === 0 || loading}
+                        className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 0 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
                     >
                         Anterior
                     </button>
                     <div className="text-xs">
-                            Página {paginaAtual} de {totalPages}
+                            Página {currentPage + 1} de {totalPagesExibidas}
                     </div>
                     <button
-                        onClick={goNext}
-                        disabled={paginaAtual === totalPages}
-                        className={`px-2 py-0.5 text-sm rounded-md border ${paginaAtual === totalPages ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={totalPages === 0 || currentPage >= totalPages - 1 || loading}
+                        className={`px-2 py-0.5 text-sm rounded-md border ${totalPages === 0 || currentPage >= totalPages - 1 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
                     >
                         Próxima
                     </button>
@@ -172,7 +163,10 @@ export function TelaPagamentos() {
     const [dataFim, setDataFim] = useState(hoje);
     const [erroData, setErroData] = useState("");
     const [agendamentos, setAgendamentos] = useState([]);
-    const [saldoProfessor, setSaldoProfessor] = useState(null);
+    const [paginaAtual, setPaginaAtual] = useState(0);
+    const [totalPaginas, setTotalPaginas] = useState(0);
+    const [totalAgendamentos, setTotalAgendamentos] = useState(0);
+    const [resumoAulas, setResumoAulas] = useState({ professor: 0, rebatedor: 0, auxiliar: 0 });
     const [funcionarios, setFuncionarios] = useState([]);
     const [funcionarioSelecionadoId, setFuncionarioSelecionadoId] = useState("");
     const [loading, setLoading] = useState(true);
@@ -208,38 +202,62 @@ export function TelaPagamentos() {
         carregarFuncionarios();
     }, [isAdmin, funcionarioSelecionadoId]);
 
-    useEffect(() => {
-        async function carregarDadosBackend() {
+    const carregarHistorico = useCallback(async (pagina = 0) => {
             if (!usuarioAlvoId) {
                 setAgendamentos([]);
-                setSaldoProfessor(null);
+                setPaginaAtual(0);
+                setTotalPaginas(0);
+                setTotalAgendamentos(0);
+                setResumoAulas({ professor: 0, rebatedor: 0, auxiliar: 0 });
+                setLoading(false);
+                return;
+            }
+
+            if (dataInicio && dataFim && dataInicio > dataFim) {
+                setAgendamentos([]);
+                setPaginaAtual(0);
+                setTotalPaginas(0);
+                setTotalAgendamentos(0);
+                setResumoAulas({ professor: 0, rebatedor: 0, auxiliar: 0 });
                 setLoading(false);
                 return;
             }
 
             setLoading(true);
+            setErroCarregamento("");
 
             try {
-                const [responseSaldo, agendamentos] = await Promise.all([
-                    api.get(`/saldos/professor/${usuarioAlvoId}`),
-                    getAllPages("/agendamentos"),
-                ]);
+                const params = new URLSearchParams({
+                    participanteId: String(usuarioAlvoId),
+                    page: String(pagina),
+                    size: "10",
+                });
+                if (dataInicio) params.set("dataInicio", dataInicio);
+                if (dataFim) params.set("dataFim", dataFim);
 
-                console.log("Saldo do professor:", responseSaldo.data);
-                console.log("Agendamentos:", agendamentos);
+                const responseHistorico = await api.get("/agendamentos/historico-pagamentos", { params });
 
-                setSaldoProfessor(responseSaldo.data);
-                setAgendamentos(agendamentos);
+                const { pagina: paginaResponse, ...resumo } = responseHistorico.data;
+                setAgendamentos(paginaResponse?.content || []);
+                setPaginaAtual(Number(paginaResponse?.page) || 0);
+                setTotalPaginas(Number(paginaResponse?.totalPages) || 0);
+                setTotalAgendamentos(Number(paginaResponse?.totalElements) || 0);
+                setResumoAulas({
+                    professor: Number(resumo.aulasComoProfessor) || 0,
+                    rebatedor: Number(resumo.aulasComoRebatedor) || 0,
+                    auxiliar: Number(resumo.aulasComoAuxiliar) || 0,
+                });
             } catch (error) {
                 console.error("Erro ao buscar dados do backend:", error);
                 setErroCarregamento("Não foi possível carregar os dados de pagamentos.");
             } finally {
                 setLoading(false);
             }
-        }
+    }, [usuarioAlvoId, dataInicio, dataFim]);
 
-        carregarDadosBackend();
-    }, [usuarioAlvoId]);
+    useEffect(() => {
+        carregarHistorico(0);
+    }, [carregarHistorico]);
 
     useEffect(() => {
         if (dataInicio && dataFim && dataInicio > dataFim) {
@@ -250,58 +268,14 @@ export function TelaPagamentos() {
     }, [dataInicio, dataFim]);
 
     const funcionarioSelecionado = funcionarios.find((usuario) => String(usuario.id) === String(funcionarioSelecionadoId));
-    const nomeProfessor = saldoProfessor?.professor?.nome ?? funcionarioSelecionado?.nome ?? "Professor";
 
     function handleFuncionarioChange(event) {
         setFuncionarioSelecionadoId(event.target.value);
     }
 
-    function campoCorrespondeUsuario(campo) {
-        if (!campo) return false;
-
-        const idAlvo = usuarioAlvoId;
-        const nomeAlvo = nomeProfessor;
-
-        try {
-            if (typeof campo === "object") {
-                const ids = [campo.id, campo._id, campo.userId, campo.professorId, campo.usuarioId];
-                for (const id of ids) {
-                    if (id != null && String(id) === String(idAlvo)) return true;
-                }
-
-                // comparar por nome quando não houver id
-                const nome = campo.nome ?? campo.nomeCompleto ?? campo.name ?? campo.fullName;
-                if (nome && String(nome).trim() === String(nomeAlvo).trim()) return true;
-                return false;
-            }
-
-            // campo é string/number: comparar diretamente com id ou com nome
-            if (String(campo) === String(idAlvo)) return true;
-            if (String(campo).trim() === String(nomeAlvo).trim()) return true;
-            return false;
-        } catch {
-            return false;
-        }
-    }
-
-    const agendamentosFiltrados = erroData
-        ? []
-        : agendamentos.filter((agendamento) => {
-            const dataAgendamento = String(agendamento?.data ?? "").slice(0, 10);
-
-            if (dataInicio && dataAgendamento < dataInicio) return false;
-            if (dataFim && dataAgendamento > dataFim) return false;
-
-            // só incluir agendamentos em que o usuário participa (professor, rebatedor ou auxiliar)
-            return campoCorrespondeUsuario(agendamento?.professor)
-                || campoCorrespondeUsuario(agendamento?.rebatedor)
-                || campoCorrespondeUsuario(agendamento?.auxiliar);
-        });
-
-    const totalAgendamentos = agendamentosFiltrados.length;
-    const aulasComoProfessorCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.professor)).length;
-    const aulasComoRebatedorCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.rebatedor)).length;
-    const aulasComoAuxiliarCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.auxiliar)).length;
+    const aulasComoProfessorCount = resumoAulas.professor;
+    const aulasComoRebatedorCount = resumoAulas.rebatedor;
+    const aulasComoAuxiliarCount = resumoAulas.auxiliar;
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col overflow-hidden ">
@@ -388,7 +362,7 @@ export function TelaPagamentos() {
                         <div key={index} className="relative overflow-hidden rounded-[28px] bg-linear-to-br from-white to-slate-50 p-3 sm:p-4 border border-slate-200 shadow-sm h-32 sm:h-36 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                             <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-orange-100 opacity-60" />
                             <div className="relative">
-                                <p className="text-[9px] uppercase tracking-[0.1em] text-slate-400 font-medium sm:text-[10px] sm:tracking-[0.25em]">{kpi.label}</p>
+                                <p className="text-[9px] uppercase tracking-widest text-slate-400 font-medium sm:text-[10px] sm:tracking-[0.25em]">{kpi.label}</p>
                                 <p className="mt-2 text-3xl font-black tracking-tight text-slate-900 sm:mt-3 sm:text-4xl">{kpi.value}</p>
                             </div>
                             <div className="relative flex items-center gap-2 text-[11px] text-slate-500">
@@ -398,7 +372,14 @@ export function TelaPagamentos() {
                     ))}
                 </div>
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden w-full h-full">
-                    <HistoricoAulasTable aulas={agendamentosFiltrados} loading={loading} />
+                    <HistoricoAulasTable
+                        aulas={agendamentos}
+                        loading={loading}
+                        currentPage={paginaAtual}
+                        totalPages={totalPaginas}
+                        totalItems={totalAgendamentos}
+                        onPageChange={carregarHistorico}
+                    />
                 </div>
             </div>
         </div>
