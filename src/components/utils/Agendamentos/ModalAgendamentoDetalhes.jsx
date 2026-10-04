@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api from "../../../provider/api";
+import api, { getAllPages } from "../../../provider/api";
 
 export default function ModalAgendamentoDetalhes({
   agendamento,
@@ -87,12 +87,12 @@ export default function ModalAgendamentoDetalhes({
         setLoading(true);
         const [condominiosResponse, usuariosResponse, servicosResponse] = await Promise.all([
           api.get("/condominios"),
-          api.get("/usuarios"),
+          getAllPages("/usuarios"),
           api.get("/servicos"),
         ]);
 
         setCondominios(condominiosResponse.data || []);
-        setUsuarios(usuariosResponse.data || []);
+        setUsuarios(usuariosResponse || []);
         setListaServicos(servicosResponse.data || []);
         setLoading(false);
       } catch (err) {

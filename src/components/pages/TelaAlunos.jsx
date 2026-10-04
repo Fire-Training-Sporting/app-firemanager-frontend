@@ -5,7 +5,7 @@ import { AlunosTable } from "../utils/Alunos/AlunosTable";
 import ModalAluno from "../utils/Alunos/ModalAlunos";
 import ModalSaldo from "../utils/Alunos/ModalSaldo";
 import ConfirmationModal from "../utils/ConfirmationModal";
-import api from "../../provider/api";
+import api, { getAllPages } from "../../provider/api";
 
 const saldoServicesOrder = ["Tênis", "Beach Tennis", "Funcional"];
 
@@ -49,12 +49,12 @@ export default function TelaAlunos() {
 
       const [usuariosResp, servicosResp, saldosResp] =
         await Promise.all([
-          api.get("/usuarios"),
+          getAllPages("/usuarios"),
           api.get("/servicos").catch(() => ({ data: [] })),
           api.get("/saldos").catch(() => ({ data: [] })),
         ]);
 
-      const usuarios = usuariosResp.data || [];
+      const usuarios = usuariosResp || [];
       const servicos = servicosResp.data || [];
       const saldos = saldosResp.data || [];
 

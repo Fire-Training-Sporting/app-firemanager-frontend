@@ -5,7 +5,7 @@ import TabelaFuncionarios from "../utils/Funcionarios/TabelaFuncionarios";
 import ModalCadastroFuncionario from "../utils/Funcionarios/ModalCadastroFuncionario";
 import ConfirmationModal from "../utils/ConfirmationModal";
 import AlertMessage from "../utils/AlertMessage";
-import api from "../../provider/api";
+import api, { getAllPages } from "../../provider/api";
 
 const search_columns = [
   { label: "ID", value: "id" },
@@ -51,9 +51,7 @@ export default function TelaFuncionarios() {
 
       setIsLoading(true);
 
-      const resp = await api.get("/usuarios");
-
-      const usuarios = resp.data || [];
+      const usuarios = await getAllPages("/usuarios");
 
       const funcionariosFiltrados =
         usuarios.filter((usuario) => {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api from "../../../provider/api";
+import api, { getAllPages } from "../../../provider/api";
 import AlertMessage from "../AlertMessage";
 
 export default function ModalScheduling({ agendamento = null, onClose, onCreated }) {
@@ -33,12 +33,12 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       try {
         const [condominiosResponse, usuariosResponse, servicosResponse] = await Promise.all([
           api.get("/condominios"),
-          api.get("/usuarios"),
+          getAllPages("/usuarios"),
           api.get("/servicos"),
         ]);
 
         setCondominios(condominiosResponse.data || []);
-        setUsuarios(usuariosResponse.data || []);
+        setUsuarios(usuariosResponse || []);
         setListaServicos(servicosResponse.data || []);
       } catch (err) {
         console.error("Erro ao buscar dados para o agendamento:", err);

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Header from "../utils/Header";
 import AlertMessage from "../utils/AlertMessage";
-import api from "../../provider/api";
+import api, { getAllPages } from "../../provider/api";
 
 function formatarData(isoDate) {
     if (!isoDate) return "-";
@@ -188,14 +188,12 @@ export function TelaPagamentos() {
             }
 
             try {
-                const responseUsuarios = await api.get("/usuarios");
-                const listaFuncionarios = Array.isArray(responseUsuarios.data)
-                    ? responseUsuarios.data.filter((usuario) =>
+                const usuarios = await getAllPages("/usuarios");
+                const listaFuncionarios = usuarios.filter((usuario) =>
                         ["professor", "rebatedor", "auxiliar"].includes(
                             usuario.tipoUsuario?.cargo?.toLowerCase()
                         )
-                    )
-                    : [];
+                    );
 
                 setFuncionarios(listaFuncionarios);
 
@@ -222,16 +220,16 @@ export function TelaPagamentos() {
             setLoading(true);
 
             try {
-                const [responseSaldo, responseAgendamentos] = await Promise.all([
+                const [responseSaldo, agendamentos] = await Promise.all([
                     api.get(`/saldos/professor/${usuarioAlvoId}`),
-                    api.get("/agendamentos"),
+                    getAllPages("/agendamentos"),
                 ]);
 
                 console.log("Saldo do professor:", responseSaldo.data);
-                console.log("Agendamentos:", responseAgendamentos.data);
+                console.log("Agendamentos:", agendamentos);
 
                 setSaldoProfessor(responseSaldo.data);
-                setAgendamentos(Array.isArray(responseAgendamentos.data) ? responseAgendamentos.data : []);
+                setAgendamentos(agendamentos);
             } catch (error) {
                 console.error("Erro ao buscar dados do backend:", error);
                 setErroCarregamento("Não foi possível carregar os dados de pagamentos.");

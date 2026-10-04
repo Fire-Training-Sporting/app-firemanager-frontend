@@ -6,7 +6,7 @@ import ModalScheduling from '../utils/Agendamentos/ModalScheduling';
 import ModalAgendamentoDetalhes from '../utils/Agendamentos/ModalAgendamentoDetalhes';
 import ConfirmationModal from '../utils/ConfirmationModal';
 import AlertMessage from '../utils/AlertMessage';
-import api from "../../provider/api";
+import api, { getAllPages } from "../../provider/api";
 
 const search_columns = [
   { label: "Aluno", value: "aluno" },
@@ -89,7 +89,11 @@ export default function TelaAgendamentos() {
   const [showModal, setShowModal] = useState(false);
   const [editAgendamento, setEditAgendamento] = useState(null);
   const [agendamentos, setAgendamentos] = useState([]);
-  const [agendamentosOriginais, setAgendamentosOriginais] = useState([]);
+  const [agendamentosBusca, setAgendamentosBusca] = useState(null);
+  const [paginaAtual, setPaginaAtual] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [totalAgendamentos, setTotalAgendamentos] = useState(0);
+  const [filtroAtual, setFiltroAtual] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sucessoAgendamento, setSucessoAgendamento] = useState("");
   const [sucessoVisivel, setSucessoVisivel] = useState(false);
@@ -104,21 +108,30 @@ export default function TelaAgendamentos() {
   const usuarioId = getUsuarioId(usuarioLogado);
 
   useEffect(() => {
-    buscarDados();
+    buscarDados(0);
   }, []);
 
-  const buscarDados = async () => {
+  const buscarDados = async (pagina = paginaAtual) => {
     try {
       setIsLoading(true);
-      const response = await api.get("/agendamentos");
+      const response = await api.get("/agendamentos", {
+        params: { page: pagina, size: 10 },
+      });
+      const paginaResponse = response.data;
+      const listaAgendamentos = Array.isArray(paginaResponse?.content)
+        ? paginaResponse.content
+        : Array.isArray(paginaResponse)
+          ? paginaResponse
+          : [];
       const agendamentosPermitidos = filtrarAgendamentosPorCargo(
-        response.data,
+        listaAgendamentos,
         cargo,
         usuarioId
       );
-
       setAgendamentos(agendamentosPermitidos);
-      setAgendamentosOriginais(agendamentosPermitidos);
+      setPaginaAtual(paginaResponse?.page ?? pagina);
+      setTotalPaginas(paginaResponse?.totalPages ?? 1);
+      setTotalAgendamentos(paginaResponse?.totalElements ?? listaAgendamentos.length);
     } catch (error) {
       console.error("Erro ao buscar agendamentos:", error);
     } finally {
@@ -180,27 +193,58 @@ export default function TelaAgendamentos() {
   };
 
   const filtrarAgendamentos = async ({ field, value }) => {
+    const filtro = { field, value: value.trim() };
+    setFiltroAtual(filtro);
+
+    if (!filtro.value) {
+      setAgendamentosBusca(null);
+      await buscarDados(0);
+      return;
+    }
+
     try {
       setIsLoading(true);
+      const listaAgendamentos = await getAllPages("/agendamentos");
+      const agendamentosPermitidos = filtrarAgendamentosPorCargo(
+        listaAgendamentos,
+        cargo,
+        usuarioId
+      );
+      const compareValue = normalizarTextoBusca(filtro.value);
+      const resultados = agendamentosPermitidos.filter((agendamento) =>
+        normalizarTextoBusca(obterValorBuscaAgendamento(agendamento, filtro.field))
+          .includes(compareValue)
+      );
 
-      if (!value.trim()) {
-        setAgendamentos(agendamentosOriginais);
-        return;
-      }
-
-      // Filtro local para melhor performance
-      const filtrados = agendamentosOriginais.filter((agendamento) => {
-        const compareValue = normalizarTextoBusca(value);
-        const fieldString = normalizarTextoBusca(obterValorBuscaAgendamento(agendamento, field));
-        return fieldString.includes(compareValue);
-      });
-
-      setAgendamentos(filtrados);
+      setAgendamentosBusca(resultados);
+      setAgendamentos(resultados.slice(0, 10));
+      setPaginaAtual(0);
+      setTotalPaginas(Math.ceil(resultados.length / 10));
+      setTotalAgendamentos(resultados.length);
     } catch (error) {
       console.error("Erro ao filtrar agendamentos:", error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const mudarPagina = (pagina) => {
+    if (agendamentosBusca !== null) {
+      const inicio = pagina * 10;
+      setPaginaAtual(pagina);
+      setAgendamentos(agendamentosBusca.slice(inicio, inicio + 10));
+      return;
+    }
+
+    return buscarDados(pagina);
+  };
+
+  const atualizarDados = () => {
+    if (filtroAtual?.value) {
+      return filtrarAgendamentos(filtroAtual);
+    }
+
+    return buscarDados();
   };
 
   const adicionarDados = () => {
@@ -278,7 +322,7 @@ export default function TelaAgendamentos() {
         ? "Agendamento atualizado com sucesso"
         : "Agendamento cadastrado com sucesso"
     );
-    buscarDados();
+    atualizarDados();
   };
 
   const normalizarAgendamentoParaModal = (agendamento) => ({
@@ -361,7 +405,7 @@ export default function TelaAgendamentos() {
 
       exibirSucesso("Agendamento confirmado com sucesso");
       setAgendamentoParaConfirmar(null);
-      await buscarDados();
+      await atualizarDados();
     } catch (error) {
       console.error("Erro ao confirmar agendamento:", error);
       window.alert("Não foi possível confirmar o agendamento. Tente novamente.");
@@ -390,7 +434,7 @@ export default function TelaAgendamentos() {
       setAgendamentoParaCancelar(null);
       setObservacaoCancelamento("");
       setErroCancelamento("");
-      await buscarDados();
+      await atualizarDados();
     } catch (error) {
       console.error("Erro ao cancelar agendamento:", error);
       window.alert("Não foi possível cancelar o agendamento. Tente novamente.");
@@ -413,7 +457,7 @@ export default function TelaAgendamentos() {
 
       exibirSucesso("Agendamento finalizado com sucesso");
       setAgendamentoParaFinalizar(null);
-      await buscarDados();
+      await atualizarDados();
     } catch (error) {
       console.error("Erro ao finalizar agendamento:", error);
       window.alert("Não foi possível finalizar o agendamento. Tente novamente.");
@@ -467,6 +511,11 @@ export default function TelaAgendamentos() {
         <AgendamentosTable
           agendamentos={agendamentos}
           onViewDetails={visualizarDetalhes}
+          currentPage={paginaAtual}
+          totalPages={totalPaginas}
+          totalElements={totalAgendamentos}
+          isLoading={isLoading}
+          onPageChange={mudarPagina}
         />
       </div>
 
