@@ -227,7 +227,7 @@ export default function TelaAgendamentos() {
         observacao: agendamentoParaConfirmar.observacao || "",
       });
 
-      exibirSucesso("Agendamento confirmado com sucesso");
+      exibirSucessoLocal("Agendamento confirmado com sucesso");
       setAgendamentoParaConfirmar(null);
       await atualizarDados();
     } catch (error) {
@@ -254,7 +254,7 @@ export default function TelaAgendamentos() {
         observacao,
       });
 
-      exibirSucesso("Agendamento cancelado com sucesso");
+      exibirSucessoLocal("Agendamento cancelado com sucesso");
       setAgendamentoParaCancelar(null);
       setObservacaoCancelamento("");
       setErroCancelamento("");
@@ -279,7 +279,7 @@ export default function TelaAgendamentos() {
         observacao: agendamentoParaFinalizar.observacao || "",
       });
 
-      exibirSucesso("Agendamento finalizado com sucesso");
+      exibirSucessoLocal("Agendamento finalizado com sucesso");
       setAgendamentoParaFinalizar(null);
       await atualizarDados();
     } catch (error) {
@@ -288,26 +288,6 @@ export default function TelaAgendamentos() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const formatarValor = (valor) => {
-    if (Array.isArray(valor)) {
-      return valor
-        .map((item) => {
-          if (item && typeof item === "object") {
-            return item.nome ?? item.nomeCompleto ?? item.descricao ?? item.titulo ?? item.razaoSocial ?? item.aluno?.nome ?? "-";
-          }
-          return item ?? "-";
-        })
-        .filter((item) => item !== "-")
-        .join(", ") || "-";
-    }
-
-    if (valor && typeof valor === "object") {
-      return valor.nome ?? valor.nomeCompleto ?? valor.descricao ?? valor.titulo ?? valor.razaoSocial ?? valor.aluno?.nome ?? "-";
-    }
-
-    return valor ?? "-";
   };
 
   return (
