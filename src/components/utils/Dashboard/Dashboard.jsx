@@ -1,4 +1,4 @@
-import api from "../../../provider/api";
+import api, { getAllPages } from "../../../provider/api";
 import { useEffect, useState } from "react";
 
 import { Bar } from "react-chartjs-2";
@@ -63,14 +63,14 @@ export function Dashboard() {
                 responseCondominios,
                 responseAgendamentos
             ] = await Promise.all([
-                api.get("/usuarios"),
+                getAllPages("/usuarios"),
                 api.get("/condominios"),
-                api.get("/agendamentos")
+                getAllPages("/agendamentos")
             ]);
 
-            setUsuarios(responseUsuarios.data);
+            setUsuarios(responseUsuarios);
             setCondominios(responseCondominios.data);
-            setAgendamentos(responseAgendamentos.data);
+            setAgendamentos(responseAgendamentos);
 
         } catch (error) {
 
