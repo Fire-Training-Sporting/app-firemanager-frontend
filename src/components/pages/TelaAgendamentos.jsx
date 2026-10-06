@@ -142,7 +142,9 @@ export default function TelaAgendamentos() {
     exibirSucessoLocal(
       acao === "updated"
         ? "Agendamento atualizado com sucesso"
-        : "Agendamento cadastrado com sucesso"
+        : acao === "recorrente"
+          ? "Agendamentos recorrentes criados com sucesso"
+          : "Agendamento cadastrado com sucesso"
     );
     atualizarDados();
   };

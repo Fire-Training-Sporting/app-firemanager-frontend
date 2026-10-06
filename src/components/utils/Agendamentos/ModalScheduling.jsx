@@ -20,6 +20,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
     { funcionarioId: "", funcao: "Auxiliar" },
   ]);
   const [observacao, setObservacao] = useState("");
+  const [quantidadeAulas, setQuantidadeAulas] = useState(1);
   const [condominios, setCondominios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [listaServicos, setListaServicos] = useState([]);
@@ -96,6 +97,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
         { funcionarioId: "", funcao: "Auxiliar" },
       ]);
       setObservacao("");
+      setQuantidadeAulas(1);
       setMensagemValidacao("");
       return;
     }
@@ -158,6 +160,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       },
     ]);
     setObservacao(agendamento.observacao || "");
+    setQuantidadeAulas(1);
     setMensagemValidacao("");
   }, [agendamento]);
 
@@ -244,6 +247,16 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       return;
     }
 
+    // Work-around para bug de data no backend de agendamento recorrente
+    // O backend subtrai 1 dia, então enviamos o dia seguinte para compensar
+    const dataParaEnviar = (quantidadeAulas > 1 && data)
+      ? (() => {
+          const d = new Date(data);
+          d.setDate(d.getDate() + 1);
+          return d.toISOString().split('T')[0];
+        })()
+      : data;
+
     const agendamentoData = {
       aluno: alunosIds[0] ?? null,
       alunos: alunosIds,
@@ -253,7 +266,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       rebatedor: funcionarioRebatedor?.funcionarioId ? Number(funcionarioRebatedor.funcionarioId) : null,
       servico: servico ? Number(servico) : null,
       condominio: local ? Number(local) : null,
-      data,
+      data: dataParaEnviar,
       horaInicio: formatarHoraPayload(horaInicio),
       horaFim: formatarHoraPayload(horaFim),
       observacao,
@@ -268,15 +281,26 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
           onCreated(isEditMode ? "updated" : "created");
         }
       } else {
-        await api.post("/agendamentos", agendamentoData);
-        if (onCreated) {
-          onCreated(isEditMode ? "updated" : "created");
+        if (quantidadeAulas > 1) {
+          const recorrenteData = {
+            ...agendamentoData,
+            quantidadeRecorrencias: quantidadeAulas
+          };
+          await api.post("/agendamentos/recorrente", recorrenteData);
+          if (onCreated) {
+            onCreated("recorrente");
+          }
+        } else {
+          await api.post("/agendamentos", agendamentoData);
+          if (onCreated) {
+            onCreated(isEditMode ? "updated" : "created");
+          }
         }
       }
       onClose();
     } catch (err) {
       console.error(isEditMode ? "Erro ao atualizar agendamento:" : "Erro ao criar agendamento:", err);
-      
+
       if (err.response?.data?.message) {
         mostrarErroValidacao(err.response.data.message);
       } else {
@@ -330,24 +354,23 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
 
           <form
             onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-3"
+            className="flex flex-col gap-3"
           >
 
-            {/* DATA */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Data
-              </label>
-              <input
-                type="date"
-                className="w-full rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
-                value={data}
-                onChange={(e) => setData(e.target.value)}
-              />
-            </div>
-
-            {/* HORÁRIOS */}
+            {/* PRIMEIRA LINHA: Data, Início, Fim */}
             <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Data
+                </label>
+                <input
+                  type="date"
+                  className="w-full rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
+                  value={data}
+                  onChange={(e) => setData(e.target.value)}
+                />
+              </div>
+
               <div className="flex-1">
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
                   Início
@@ -373,6 +396,70 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
               </div>
             </div>
 
+            {/* SEGUNDA LINHA: Quantidade de aulas e Serviço */}
+            {!isEditMode && (
+              <div className="flex gap-2">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Quantidade de aulas
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <select
+                      className="w-24 rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
+                      value={quantidadeAulas}
+                      onChange={(e) => setQuantidadeAulas(parseInt(e.target.value))}
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                        <option key={num} value={num}>
+                          {num}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="text-sm text-gray-600">aula(s)</span>
+                  </div>
+                </div>
+
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Serviço
+                  </label>
+                  <select
+                    className="w-full rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
+                    value={servico}
+                    onChange={(e) => setServico(e.target.value)}
+                  >
+                    <option value="">Selecione</option>
+                    {servicosAtivos.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* SERVIÇO - sozinho quando em modo edição */}
+            {isEditMode && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Serviço
+                </label>
+                <select
+                  className="w-full rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
+                  value={servico}
+                  onChange={(e) => setServico(e.target.value)}
+                >
+                  <option value="">Selecione</option>
+                  {servicosAtivos.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* CONDOMÍNIO */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -392,27 +479,8 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
               </select>
             </div>
 
-            {/* SERVIÇO */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Serviço
-              </label>
-              <select
-                className="w-full rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
-                value={servico}
-                onChange={(e) => setServico(e.target.value)}
-              >
-                <option value="">Selecione</option>
-                {servicosAtivos.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             {/* ALUNOS */}
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Alunos
               </label>
@@ -455,7 +523,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
             </div>
 
             {/* FUNCIONÁRIOS */}
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Funcionários
               </label>
@@ -514,7 +582,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
             </div>
 
             {/* OBSERVAÇÃO */}
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Observação
               </label>
@@ -528,7 +596,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
             </div>
 
             {/* BOTÕES */}
-            <div className="md:col-span-2 flex justify-end gap-2 pt-1">
+            <div className="flex justify-end gap-2 pt-1">
               <button
                 type="button"
                 onClick={onClose}
