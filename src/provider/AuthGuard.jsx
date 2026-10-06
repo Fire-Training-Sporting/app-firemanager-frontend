@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { normalizarCargo } from "../utils/helpers";
 
 const ROUTE_PERMISSIONS = {
   "/dashboard": ["root"],
@@ -11,10 +12,6 @@ const ROUTE_PERMISSIONS = {
   "/pagamento": ["root", "administracao", "professor"],
   "/acesso-nao-autorizado": ["root", "administracao", "professor", "aluno"],
 };
-
-function normalizarCargo(cargo) {
-  return String(cargo ?? "").trim().toLowerCase();
-}
 
 export default function AuthGuard() {
   const token = sessionStorage.getItem("token");

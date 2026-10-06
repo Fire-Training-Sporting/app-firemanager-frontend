@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
+import AuthGuard from "./AuthGuard";
 
 const TelaLogin = lazy(() => import("../components/pages/TelaLogin").then((module) => ({ default: module.TelaLogin })));
 const TelaAgendamentos = lazy(() => import("../components/pages/TelaAgendamentos"));
@@ -12,7 +13,6 @@ const TelaServico = lazy(() => import("../components/pages/TelaServico"));
 const TelaPagamentos = lazy(() => import("../components/pages/TelaPagamentos").then((module) => ({ default: module.TelaPagamentos })));
 const Tela404 = lazy(() => import("../components/pages/Tela404"));
 const TelaAcessoNegado = lazy(() => import("../components/pages/TelaAcessoNegado"));
-const AuthGuard = lazy(() => import("./AuthGuard"));
 
 export const router = createBrowserRouter([
     {
