@@ -1,0 +1,10 @@
+# Code Owners
+# Define quem precisa aprovar mudanças em diferentes partes do código
+
+# Todos os arquivos - code owners
+* @gabrielramossptech @thalitalourenco
+
+# Opcional: você pode definir code owners por diretório ou tipo de arquivo
+# src/ @gabrielramossptech
+# *.js @gabrielramossptech
+# *.tsx @gabrielramossptech
