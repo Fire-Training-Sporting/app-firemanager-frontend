@@ -1,14 +1,18 @@
+import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
-import { TelaLogin } from "../components/pages/TelaLogin";
-import TelaAgendamentos from "../components/pages/TelaAgendamentos";
-import TelaAlunos from "../components/pages/TelaAlunos";
-import TelaCondominios from "../components/pages/TelaCondominios";
-import { TelaDashboard } from "../components/pages/TelaDashboard";
-import TelaFuncionarios from "../components/pages/TelaFuncionarios";
-import TelaServico from "../components/pages/TelaServico";
-import { TelaPagamentos } from "../components/pages/TelaPagamentos";
-import Tela404 from "../components/pages/Tela404";
 import AuthGuard from "./AuthGuard";
+
+const TelaLogin = lazy(() => import("../components/pages/TelaLogin").then((module) => ({ default: module.TelaLogin })));
+const TelaAgendamentos = lazy(() => import("../components/pages/TelaAgendamentos"));
+const TelaAlunos = lazy(() => import("../components/pages/TelaAlunos"));
+const TelaCondominios = lazy(() => import("../components/pages/TelaCondominios"));
+const TelaDashboard = lazy(() => import("../components/pages/TelaDashboard").then((module) => ({ default: module.TelaDashboard })));
+const TelaFuncionarios = lazy(() => import("../components/pages/TelaFuncionarios"));
+const TelaPerfil = lazy(() => import("../components/pages/TelaPerfil"));
+const TelaServico = lazy(() => import("../components/pages/TelaServico"));
+const TelaPagamentos = lazy(() => import("../components/pages/TelaPagamentos").then((module) => ({ default: module.TelaPagamentos })));
+const Tela404 = lazy(() => import("../components/pages/Tela404"));
+const TelaAcessoNegado = lazy(() => import("../components/pages/TelaAcessoNegado"));
 
 export const router = createBrowserRouter([
     {
@@ -31,6 +35,10 @@ export const router = createBrowserRouter([
                 element: <TelaAlunos />,
             },
             {
+                path: "/perfil",
+                element: <TelaPerfil />,
+            },
+            {
                 path: "/condominios",
                 element: <TelaCondominios />,
             },
@@ -45,6 +53,10 @@ export const router = createBrowserRouter([
             {
                 path: "/pagamento",
                 element: <TelaPagamentos />,
+            },
+            {
+                path: "/acesso-nao-autorizado",
+                element: <TelaAcessoNegado />,
             },
             {
                 path: "*",

@@ -12,6 +12,11 @@ import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
 
 export async function login(email, senha) {
+    // Limpar qualquer token existente antes do login
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("cargo");
+    sessionStorage.removeItem("usuario");
+
     const response = await api.post("/usuarios/login", { email, senha });
     const data = response.data;
 
@@ -50,7 +55,7 @@ export function TelaLogin() {
     return (
         <main className="min-h-screen font-[Montserrat,sans-serif]">
             <section className="grid min-h-screen md:grid-cols-[34%_66%]">
-                <aside className="flex items-center justify-center bg-white px-8 py-16 md:px-8 md:py-12">
+                <aside className="hidden items-center justify-center bg-white px-8 py-16 md:flex md:px-8 md:py-12">
                     <img
                         className="h-auto w-[min(470px,80%)] object-contain md:w-[min(540px,84%)]"
                         src={logoFire}

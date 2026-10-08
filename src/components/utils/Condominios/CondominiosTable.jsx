@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { CondominiosRow } from './CondominiosRow.jsx';
 import CondominiosTh from './CondominiosTh';
 
@@ -6,48 +5,16 @@ export function CondominiosTable({
   condominios = [],
   onEdit = () => { },
   onDelete = () => { },
+  currentPage = 0,
+  totalPages = 0,
+  totalItems = 0,
+  isLoading = false,
+  onPageChange = () => {},
 }) {
-
-  const ITEMS_PER_PAGE = 20;
   const showActions = sessionStorage.getItem("cargo") !== "Professor";
-
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const totalItems = condominios.length;
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(totalItems / ITEMS_PER_PAGE)
-  );
-
-  const startIndex =
-    (currentPage - 1) * ITEMS_PER_PAGE;
-
-  const endIndex =
-    startIndex + ITEMS_PER_PAGE;
-
-  const pageItems = condominios.slice(
-    startIndex,
-    endIndex
-  );
-
-  const goPrev = () =>
-    setCurrentPage((p) =>
-      Math.max(1, p - 1)
-    );
-
-  const goNext = () =>
-    setCurrentPage((p) =>
-      Math.min(totalPages, p + 1)
-    );
-
-  useEffect(() => {
-
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-
-  }, [totalPages]);
+  const totalPagesExibidas = Math.max(1, totalPages);
+  const startItem = totalItems === 0 ? 0 : currentPage * 10 + 1;
+  const endItem = Math.min(totalItems, (currentPage + 1) * 10);
 
   return (
     <div className="w-full overflow-x-auto">
@@ -100,9 +67,9 @@ export function CondominiosTable({
 
           <tbody className="bg-white">
 
-            {pageItems.length > 0 ? (
+            {condominios.length > 0 ? (
 
-              pageItems.map((cond) => (
+              condominios.map((cond) => (
 
                 <CondominiosRow
                   key={cond.id}
@@ -140,9 +107,9 @@ export function CondominiosTable({
         <div className="text-xs text-gray-600">
 
           Mostrando{" "}
-          {Math.min(totalItems, startIndex + 1)}
+          {startItem}
           -
-          {Math.min(totalItems, endIndex)} de{" "}
+          {endItem} de{" "}
           {totalItems}
 
         </div>
@@ -150,9 +117,9 @@ export function CondominiosTable({
         <div className="flex items-center gap-2">
 
           <button
-            onClick={goPrev}
-            disabled={currentPage === 1}
-            className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 1
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 0 || isLoading}
+            className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 0 || isLoading
                 ? 'opacity-50 cursor-not-allowed'
                 : 'hover:bg-gray-100'
               }`}
@@ -162,14 +129,14 @@ export function CondominiosTable({
 
           <div className="text-xs">
 
-            Página {currentPage} de {totalPages}
+            Página {currentPage + 1} de {totalPagesExibidas}
 
           </div>
 
           <button
-            onClick={goNext}
-            disabled={currentPage === totalPages}
-            className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === totalPages
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={totalPages === 0 || currentPage >= totalPages - 1 || isLoading}
+            className={`px-2 py-0.5 text-sm rounded-md border ${totalPages === 0 || currentPage >= totalPages - 1 || isLoading
                 ? 'opacity-50 cursor-not-allowed'
                 : 'hover:bg-gray-100'
               }`}

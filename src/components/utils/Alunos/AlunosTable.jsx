@@ -1,45 +1,20 @@
-import { useState, useEffect } from "react";
 import { AlunosRow } from "./AlunosRow";
 import AlunosTh from "./AlunoTh";
 
 export function AlunosTable({
   alunos = [],
-  onDelete = () => {},
-  onEdit = () => {},
-  onAddSaldo = () => {},
+  onDetails = () => {},
+  currentPage = 0,
+  totalPages = 0,
+  totalItems = 0,
+  isLoading = false,
+  onPageChange = () => {},
 }) {
-  const ITEMS_PER_PAGE = 20;
   const cargo = sessionStorage.getItem("cargo");
   const showContato = cargo !== "Professor";
-  const showActions = sessionStorage.getItem("cargo") !== "Professor";
-  const showSaldos = sessionStorage.getItem("cargo") !== "Professor";
-
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const totalItems = alunos.length;
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(totalItems / ITEMS_PER_PAGE)
-  );
-
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-
-  const pageItems = alunos.slice(startIndex, endIndex);
-
-  const goPrev = () =>
-    setCurrentPage((p) => Math.max(1, p - 1));
-
-  const goNext = () =>
-    setCurrentPage((p) => Math.min(totalPages, p + 1));
-
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [totalPages]);
+  const totalPagesExibidas = Math.max(1, totalPages);
+  const startItem = totalItems === 0 ? 0 : currentPage * 10 + 1;
+  const endItem = Math.min(totalItems, (currentPage + 1) * 10);
 
   return (
     <div className="w-full overflow-x-auto">
@@ -75,53 +50,23 @@ export function AlunosTable({
                 Endereço
               </AlunosTh>
 
-              {showSaldos && (
-                <>
-                  <AlunosTh className="text-left w-32">
-                    Tênis
-                  </AlunosTh>
-
-                  <AlunosTh className="text-left w-40">
-                    Beach Tennis
-                  </AlunosTh>
-
-                  <AlunosTh className="text-left w-32">
-                    Funcional
-                  </AlunosTh>
-                </>
-              )}
-
-              {showActions && (
-                <AlunosTh className="text-left w-40">
-                  Ações
-                </AlunosTh>
-              )}
-
             </tr>
           </thead>
 
           <tbody className="bg-white">
-            {pageItems.length > 0 ? (
-              pageItems.map((aluno) => (
+            {alunos.length > 0 ? (
+              alunos.map((aluno) => (
                 <AlunosRow
                   key={aluno.id}
                   {...aluno}
-                  onDelete={() => onDelete(aluno)}
-                  onEdit={() => onEdit(aluno)}
-                  onAddSaldo={() => onAddSaldo(aluno)}
-                  showActions={showActions}
-                  showSaldos={showSaldos}
+                  onDetails={() => onDetails(aluno)}
                   showContato={showContato}
                 />
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={
-                    (showContato ? 5 : 3) +
-                    (showSaldos ? 3 : 0) +
-                    (showActions ? 1 : 0)
-                  }
+                  colSpan={showContato ? 5 : 3}
                   className="p-4 text-center text-gray-500"
                 >
                   Nenhum aluno encontrado.
@@ -137,19 +82,19 @@ export function AlunosTable({
 
         <div className="text-xs text-gray-600">
           Mostrando{" "}
-          {Math.min(totalItems, startIndex + 1)}
+          {startItem}
           -
-          {Math.min(totalItems, endIndex)}
+          {endItem}
           {" "}de {totalItems}
         </div>
 
         <div className="flex items-center gap-2">
 
           <button
-            onClick={goPrev}
-            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 0 || isLoading}
             className={`px-2 py-0.5 text-sm rounded-md border ${
-              currentPage === 1
+              currentPage === 0 || isLoading
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-gray-100"
             }`}
@@ -158,14 +103,14 @@ export function AlunosTable({
           </button>
 
           <div className="text-xs">
-            Página {currentPage} de {totalPages}
+            Página {currentPage + 1} de {totalPagesExibidas}
           </div>
 
           <button
-            onClick={goNext}
-            disabled={currentPage === totalPages}
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={totalPages === 0 || currentPage >= totalPages - 1 || isLoading}
             className={`px-2 py-0.5 text-sm rounded-md border ${
-              currentPage === totalPages
+              totalPages === 0 || currentPage >= totalPages - 1 || isLoading
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-gray-100"
             }`}

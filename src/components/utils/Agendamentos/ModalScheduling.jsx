@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import api from "../../../provider/api";
+import api, { getAllPages } from "../../../provider/api";
 import AlertMessage from "../AlertMessage";
 
 export default function ModalScheduling({ agendamento = null, onClose, onCreated }) {
-  const isEditMode = !!agendamento;
+  const isEditMode = !!agendamento?.id;
+  const isDuplicateMode = !!agendamento && !agendamento?.id;
 
   const [data, setData] = useState("");
   const [horaInicio, setHoraInicio] = useState("");
@@ -19,10 +20,12 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
     { funcionarioId: "", funcao: "Auxiliar" },
   ]);
   const [observacao, setObservacao] = useState("");
+  const [quantidadeAulas, setQuantidadeAulas] = useState(1);
   const [condominios, setCondominios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [listaServicos, setListaServicos] = useState([]);
   const [mensagemValidacao, setMensagemValidacao] = useState("");
+  const [mensagemValidacaoId, setMensagemValidacaoId] = useState(0);
   const [loading, setLoading] = useState(false);
   const podeAdicionarFuncionario = funcionarios.length < 3;
 
@@ -31,12 +34,12 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       try {
         const [condominiosResponse, usuariosResponse, servicosResponse] = await Promise.all([
           api.get("/condominios"),
-          api.get("/usuarios"),
+          getAllPages("/usuarios"),
           api.get("/servicos"),
         ]);
 
         setCondominios(condominiosResponse.data || []);
-        setUsuarios(usuariosResponse.data || []);
+        setUsuarios(usuariosResponse || []);
         setListaServicos(servicosResponse.data || []);
       } catch (err) {
         console.error("Erro ao buscar dados para o agendamento:", err);
@@ -94,6 +97,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
         { funcionarioId: "", funcao: "Auxiliar" },
       ]);
       setObservacao("");
+      setQuantidadeAulas(1);
       setMensagemValidacao("");
       return;
     }
@@ -101,21 +105,77 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
     setData(agendamento.data || "");
     setHoraInicio(agendamento.horaInicio || "");
     setHoraFim(agendamento.horaFim || "");
-    setLocal(String(agendamento.condominio || ""));
-    setAlunosSelecionados([
-      { alunoId: String(agendamento.aluno || "") }
-    ]);
-    setServico(String(agendamento.servico || ""));
+    
+    let condominioValue = "";
+    if (typeof agendamento.condominio === 'object' && agendamento.condominio !== null) {
+      condominioValue = String(agendamento.condominio?.id ?? agendamento.condominio?.codigo ?? agendamento.condominio?.value ?? "");
+    } else {
+      condominioValue = String(agendamento.condominio ?? "");
+    }
+    
+    setLocal(condominioValue);
+    
+    // Suporte para múltiplos alunos na duplicação
+    if (Array.isArray(agendamento.alunos) && agendamento.alunos.length > 0) {
+      setAlunosSelecionados(
+        agendamento.alunos.map((aluno) => ({
+          alunoId: String(typeof aluno === 'object' ? aluno.id : aluno)
+        }))
+      );
+    } else {
+      setAlunosSelecionados([
+        { alunoId: String(agendamento.aluno || "") }
+      ]);
+    }
+    
+    setServico(String(
+      typeof agendamento.servico === 'object' 
+        ? agendamento.servico?.id ?? agendamento.servico?.codigo ?? agendamento.servico?.value ?? ""
+        : agendamento.servico ?? ""
+    ));
     setFuncionarios([
-      { funcionarioId: String(agendamento.professor || ""), funcao: "Professor" },
-      { funcionarioId: String(agendamento.rebatedor || ""), funcao: "Rebatedor" },
-      { funcionarioId: String(agendamento.auxiliar || ""), funcao: "Auxiliar" },
+      { 
+        funcionarioId: String(
+          typeof agendamento.professor === 'object' 
+            ? agendamento.professor?.id ?? agendamento.professor?.codigo ?? agendamento.professor?.value ?? ""
+            : agendamento.professor ?? ""
+        ), 
+        funcao: "Professor" 
+      },
+      { 
+        funcionarioId: String(
+          typeof agendamento.rebatedor === 'object' 
+            ? agendamento.rebatedor?.id ?? agendamento.rebatedor?.codigo ?? agendamento.rebatedor?.value ?? ""
+            : agendamento.rebatedor ?? ""
+        ), 
+        funcao: "Rebatedor" 
+      },
+      { 
+        funcionarioId: String(
+          typeof agendamento.auxiliar === 'object' 
+            ? agendamento.auxiliar?.id ?? agendamento.auxiliar?.codigo ?? agendamento.auxiliar?.value ?? ""
+            : agendamento.auxiliar ?? ""
+        ), 
+        funcao: "Auxiliar" 
+      },
     ]);
     setObservacao(agendamento.observacao || "");
+    setQuantidadeAulas(1);
     setMensagemValidacao("");
   }, [agendamento]);
 
+  // Converte nome do condomínio para ID quando a lista de condomínios estiver disponível
+  useEffect(() => {
+    if (local && isNaN(local) && condominiosOptions.length > 0) {
+      const condominioEncontrado = condominiosOptions.find(c => c.nome === local);
+      if (condominioEncontrado) {
+        setLocal(condominioEncontrado.id);
+      }
+    }
+  }, [local, condominiosOptions]);
+
   const mostrarErroValidacao = (mensagem) => {
+    setMensagemValidacaoId((idAtual) => idAtual + 1);
     setMensagemValidacao(mensagem);
   };
 
@@ -167,6 +227,13 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       return;
     }
 
+    const temFuncionarioSelecionado = funcionarios.some((item) => item.funcionarioId);
+
+    if (!temFuncionarioSelecionado) {
+      mostrarErroValidacao("Erro: Selecione ao menos um funcionário.");
+      return;
+    }
+
     const funcionarioProfessor = funcionarios.find((item) => item.funcao === "Professor" && item.funcionarioId);
     const funcionarioRebatedor = funcionarios.find((item) => item.funcao === "Rebatedor" && item.funcionarioId);
     const funcionarioAuxiliar = funcionarios.find((item) => item.funcao === "Auxiliar" && item.funcionarioId);
@@ -180,6 +247,16 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       return;
     }
 
+    // Work-around para bug de data no backend de agendamento recorrente
+    // O backend subtrai 1 dia, então enviamos o dia seguinte para compensar
+    const dataParaEnviar = (quantidadeAulas > 1 && data)
+      ? (() => {
+          const d = new Date(data);
+          d.setDate(d.getDate() + 1);
+          return d.toISOString().split('T')[0];
+        })()
+      : data;
+
     const agendamentoData = {
       aluno: alunosIds[0] ?? null,
       alunos: alunosIds,
@@ -189,7 +266,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       rebatedor: funcionarioRebatedor?.funcionarioId ? Number(funcionarioRebatedor.funcionarioId) : null,
       servico: servico ? Number(servico) : null,
       condominio: local ? Number(local) : null,
-      data,
+      data: dataParaEnviar,
       horaInicio: formatarHoraPayload(horaInicio),
       horaFim: formatarHoraPayload(horaFim),
       observacao,
@@ -204,14 +281,31 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
           onCreated(isEditMode ? "updated" : "created");
         }
       } else {
-        await api.post("/agendamentos", agendamentoData);
-        if (onCreated) {
-          onCreated(isEditMode ? "updated" : "created");
+        if (quantidadeAulas > 1) {
+          const recorrenteData = {
+            ...agendamentoData,
+            quantidadeRecorrencias: quantidadeAulas
+          };
+          await api.post("/agendamentos/recorrente", recorrenteData);
+          if (onCreated) {
+            onCreated("recorrente");
+          }
+        } else {
+          await api.post("/agendamentos", agendamentoData);
+          if (onCreated) {
+            onCreated(isEditMode ? "updated" : "created");
+          }
         }
       }
       onClose();
     } catch (err) {
       console.error(isEditMode ? "Erro ao atualizar agendamento:" : "Erro ao criar agendamento:", err);
+
+      if (err.response?.data?.message) {
+        mostrarErroValidacao(err.response.data.message);
+      } else {
+        mostrarErroValidacao("Erro ao agendar. Tente novamente.");
+      }
     } finally {
       setLoading(false);
     }
@@ -237,12 +331,12 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-xl flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col max-h-[90vh] overflow-hidden">
 
         {/* HEADER */}
         <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-4 py-2 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
-          <h2 className="text-white text-base font-bold">
-            {isEditMode ? "Editar Agendamento" : "Novo Agendamento"}
+          <h2 className="text-white text-lg font-bold">
+            {isEditMode ? "Editar Agendamento" : isDuplicateMode ? "Duplicar Agendamento" : "Criar Agendamento"}
           </h2>
 
           <button
@@ -256,60 +350,123 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
 
         {/* FORM */}
         <div className="overflow-y-auto px-4 py-3">
-          <AlertMessage variant="error" message={mensagemValidacao} />
+          <AlertMessage key={mensagemValidacaoId} variant="error" message={mensagemValidacao} />
 
           <form
             onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-3"
+            className="flex flex-col gap-3"
           >
 
-            {/* DATA */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Data
-              </label>
-              <input
-                type="date"
-                className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
-                value={data}
-                onChange={(e) => setData(e.target.value)}
-              />
-            </div>
-
-            {/* HORÁRIOS */}
+            {/* PRIMEIRA LINHA: Data, Início, Fim */}
             <div className="flex gap-2">
               <div className="flex-1">
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Data
+                </label>
+                <input
+                  type="date"
+                  className="w-full rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]"
+                  value={data}
+                  onChange={(e) => setData(e.target.value)}
+                />
+              </div>
+
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
                   Início
                 </label>
                 <input
                   type="time"
-                  className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm text-black focus:ring-2 focus:ring-[#F8821E]"
+                  className="w-full rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
                   value={horaInicio}
                   onChange={(e) => setHoraInicio(e.target.value)}
                 />
               </div>
 
               <div className="flex-1">
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
                   Fim
                 </label>
                 <input
                   type="time"
-                  className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm text-black focus:ring-2 focus:ring-[#F8821E]"
+                  className="w-full rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
                   value={horaFim}
                   onChange={(e) => setHoraFim(e.target.value)}
                 />
               </div>
             </div>
 
+            {/* SEGUNDA LINHA: Quantidade de aulas e Serviço */}
+            {!isEditMode && (
+              <div className="flex gap-2">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Quantidade de aulas
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <select
+                      className="w-24 rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
+                      value={quantidadeAulas}
+                      onChange={(e) => setQuantidadeAulas(parseInt(e.target.value))}
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                        <option key={num} value={num}>
+                          {num}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="text-sm text-gray-600">aula(s)</span>
+                  </div>
+                </div>
+
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Serviço
+                  </label>
+                  <select
+                    className="w-full rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
+                    value={servico}
+                    onChange={(e) => setServico(e.target.value)}
+                  >
+                    <option value="">Selecione</option>
+                    {servicosAtivos.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* SERVIÇO - sozinho quando em modo edição */}
+            {isEditMode && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Serviço
+                </label>
+                <select
+                  className="w-full rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
+                  value={servico}
+                  onChange={(e) => setServico(e.target.value)}
+                >
+                  <option value="">Selecione</option>
+                  {servicosAtivos.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* CONDOMÍNIO */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Condomínio
               </label>
               <select
-                className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm text-black focus:ring-2 focus:ring-[#F8821E]"
+                className="w-full rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
                 value={local}
                 onChange={(e) => setLocal(e.target.value)}
               >
@@ -322,35 +479,16 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
               </select>
             </div>
 
-            {/* SERVIÇO */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Serviço
-              </label>
-              <select
-                className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm text-black focus:ring-2 focus:ring-[#F8821E]"
-                value={servico}
-                onChange={(e) => setServico(e.target.value)}
-              >
-                <option value="">Selecione</option>
-                {servicosAtivos.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             {/* ALUNOS */}
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Alunos
               </label>
 
               {alunosSelecionados.map((a, index) => (
                 <div key={index} className="flex gap-2 mb-1 items-center">
                   <select
-                    className="flex-1 rounded-lg border border-gray-300 px-2 py-2 text-sm text-black focus:ring-2 focus:ring-[#F8821E]"
+                    className="flex-1 rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
                     value={a.alunoId}
                     onChange={(e) => updateAluno(index, e.target.value)}
                   >
@@ -376,7 +514,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 <button
                   type="button"
                   onClick={addAluno}
-                  className="mt-1 px-3 py-1 text-xs rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200"
+                  className="mt-1 px-3 py-1 text-sm rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200"
                 >
                   + Adicionar aluno
                 </button>
@@ -385,15 +523,15 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
             </div>
 
             {/* FUNCIONÁRIOS */}
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Funcionários
               </label>
 
               {funcionarios.map((f, index) => (
                 <div key={index} className="flex gap-2 mb-1 items-center">
                   <select
-                    className="flex-1 rounded-lg border border-gray-300 px-2 py-2 text-sm text-black focus:ring-2 focus:ring-[#F8821E]"
+                    className="flex-1 rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
                     value={f.funcionarioId}
                     onChange={(e) =>
                       updateFuncionario(index, "funcionarioId", e.target.value)
@@ -408,7 +546,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                   </select>
 
                   <select
-                    className="flex-1 rounded-lg border border-gray-300 px-2 py-2 text-sm text-black focus:ring-2 focus:ring-[#F8821E]"
+                    className="flex-1 rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
                     value={f.funcao}
                     onChange={(e) =>
                       updateFuncionario(index, "funcao", e.target.value)
@@ -435,7 +573,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 <button
                   type="button"
                   onClick={addFuncionario}
-                  className="mt-1 px-3 py-1 text-xs rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200"
+                  className="mt-1 px-3 py-1 text-sm rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200"
                 >
                   + Adicionar funcionário
                 </button>
@@ -444,13 +582,13 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
             </div>
 
             {/* OBSERVAÇÃO */}
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Observação
               </label>
 
               <textarea
-                className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm text-black focus:ring-2 focus:ring-[#F8821E]"
+                className="w-full rounded-lg border border-gray-300 px-2 py-2 text-base text-black focus:ring-2 focus:ring-[#F8821E]"
                 rows="2"
                 value={observacao}
                 onChange={(e) => setObservacao(e.target.value)}
@@ -458,11 +596,11 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
             </div>
 
             {/* BOTÕES */}
-            <div className="md:col-span-2 flex justify-end gap-2 pt-1">
+            <div className="flex justify-end gap-2 pt-1">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded-md hover:bg-gray-300"
+                className="px-3 py-1.5 bg-gray-200 text-gray-700 text-base rounded-md hover:bg-gray-300"
               >
                 Cancelar
               </button>
@@ -470,13 +608,15 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
               <button
                 type="submit"
                 disabled={loading}
-                className="px-3 py-1.5 bg-linear-to-r from-[#F8821E] to-[#EA580C] text-white text-sm font-semibold rounded-md shadow-md hover:scale-105 transition disabled:opacity-50"
+                className="px-3 py-1.5 bg-linear-to-r from-[#F8821E] to-[#EA580C] text-white text-base font-semibold rounded-md shadow-md hover:scale-105 transition disabled:opacity-50"
               >
                 {loading
                   ? "Processando..."
                   : isEditMode
                     ? "Salvar alterações"
-                    : "Criar agendamento"}
+                    : isDuplicateMode
+                      ? "Criar agendamento duplicado"
+                      : "Criar agendamento"}
               </button>
             </div>
           </form>
