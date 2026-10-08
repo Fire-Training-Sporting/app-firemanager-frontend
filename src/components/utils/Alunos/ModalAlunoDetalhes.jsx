@@ -14,6 +14,7 @@ export default function ModalAlunoDetalhes({
   const [saldos, setSaldos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [copiedField, setCopiedField] = useState(null);
 
   const normalizarCargo = (cargo) =>
     String(cargo ?? "")
@@ -121,12 +122,46 @@ export default function ModalAlunoDetalhes({
     return String(alunoId) === String(aluno.id);
   });
 
-  const InfoCard = ({ title, value }) => (
-    <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-      <span className="block text-[11px] font-bold uppercase text-gray-500 mb-1 tracking-wide">
-        {title}
-      </span>
-      <span className="text-sm text-gray-800 font-medium">{value || "-"}</span>
+  const copyToClipboard = async (text, fieldName) => {
+    if (!text || text === "-") return;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (err) {
+      console.error("Erro ao copiar para área de transferência:", err);
+    }
+  };
+
+  const InfoCard = ({ title, value, className, fieldName }) => (
+    <div className={`bg-gray-50 border border-gray-200 rounded-xl p-3 ${className || ""}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <span className="block text-[11px] font-bold uppercase text-gray-500 mb-1 tracking-wide">
+            {title}
+          </span>
+          <span className="text-sm text-gray-800 font-medium">{value || "-"}</span>
+        </div>
+        {value && value !== "-" && (
+          <button
+            type="button"
+            onClick={() => copyToClipboard(value, fieldName)}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200"
+            title="Copiar"
+          >
+            {copiedField === fieldName ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            )}
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -166,21 +201,31 @@ export default function ModalAlunoDetalhes({
 
           {/* GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <InfoCard title="Nome" value={aluno.nome} />
+            <InfoCard
+              title="Email"
+              value={aluno.email}
+              className="md:col-span-2"
+              fieldName="email"
+            />
 
-            <InfoCard title="Email" value={aluno.email} />
+            <InfoCard title="Nome" value={aluno.nome} fieldName="nome" />
 
             <InfoCard
               title="Telefone"
               value={formatarTelefone(aluno.telefone)}
+              fieldName="telefone"
             />
 
-            <InfoCard title="Condomínio" value={getDisplayValue(condominio)} />
+            <InfoCard
+              title="Condomínio"
+              value={getDisplayValue(condominio)}
+              fieldName="condominio"
+            />
 
             <InfoCard
               title="Endereço"
               value={aluno.endereco || getDisplayValue(condominio?.endereco)}
-              className="md:col-span-2"
+              fieldName="endereco"
             />
           </div>
 

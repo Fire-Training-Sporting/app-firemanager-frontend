@@ -22,6 +22,7 @@ export default function ModalAgendamentoDetalhes({
   const [listaServicos, setListaServicos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [copiedField, setCopiedField] = useState(null);
 
   const formatDateValue = (value) => {
     if (!value) return "-";
@@ -79,6 +80,18 @@ export default function ModalAgendamentoDetalhes({
     }
 
     return value ?? "-";
+  };
+
+  const copyToClipboard = async (text, fieldName) => {
+    if (!text || text === "-") return;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (err) {
+      console.error("Erro ao copiar para área de transferência:", err);
+    }
   };
 
   useEffect(() => {
@@ -149,15 +162,37 @@ export default function ModalAgendamentoDetalhes({
     endereco
   )}`;
 
-  const InfoCard = ({ title, value }) => (
+  const InfoCard = ({ title, value, fieldName }) => (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-      <span className="block text-[11px] font-bold uppercase text-gray-500 mb-1 tracking-wide">
-        {title}
-      </span>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <span className="block text-[11px] font-bold uppercase text-gray-500 mb-1 tracking-wide">
+            {title}
+          </span>
 
-      <span className="text-sm text-gray-800 font-medium wrap-break-word">
-        {value || "-"}
-      </span>
+          <span className="text-sm text-gray-800 font-medium wrap-break-word">
+            {value || "-"}
+          </span>
+        </div>
+        {value && value !== "-" && (
+          <button
+            type="button"
+            onClick={() => copyToClipboard(value, fieldName)}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200"
+            title="Copiar"
+          >
+            {copiedField === fieldName ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            )}
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -219,41 +254,49 @@ export default function ModalAgendamentoDetalhes({
             <InfoCard
               title="Data"
               value={formatDateValue(agendamento.data)}
+              fieldName="data"
             />
 
             <InfoCard
               title="Serviço"
               value={getDisplayValue(agendamento.servico)}
+              fieldName="servico"
             />
 
             <InfoCard
               title="Hora início"
               value={formatTimeValue(agendamento.horaInicio)}
+              fieldName="horaInicio"
             />
 
             <InfoCard
               title="Hora fim"
               value={formatTimeValue(agendamento.horaFim)}
+              fieldName="horaFim"
             />
 
             <InfoCard
               title="Professor"
               value={getDisplayValue(agendamento.professor)}
+              fieldName="professor"
             />
 
             <InfoCard
               title="Rebatedor"
               value={getDisplayValue(agendamento.rebatedor)}
+              fieldName="rebatedor"
             />
 
             <InfoCard
               title="Auxiliar"
               value={getDisplayValue(agendamento.auxiliar)}
+              fieldName="auxiliar"
             />
 
             <InfoCard
               title="Tipo"
               value={agendamento.tipo}
+              fieldName="tipo"
             />
 
           </div>
@@ -266,14 +309,33 @@ export default function ModalAgendamentoDetalhes({
 
             <div className="flex flex-wrap gap-2">
               {(agendamento.alunos || []).length > 0 ? (
-                agendamento.alunos.map((aluno, index) => (
-                  <div
-                    key={index}
-                    className="px-3 py-2 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-700 font-medium"
-                  >
-                    {getDisplayValue(aluno)}
-                  </div>
-                ))
+                agendamento.alunos.map((aluno, index) => {
+                  const alunoNome = getDisplayValue(aluno);
+                  return (
+                    <div
+                      key={index}
+                      className="px-3 py-2 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-700 font-medium flex items-center gap-2"
+                    >
+                      <span>{alunoNome}</span>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(alunoNome, `aluno-${index}`)}
+                        className="flex-shrink-0 text-orange-400 hover:text-orange-600 transition p-1 rounded hover:bg-orange-200"
+                        title="Copiar"
+                      >
+                        {copiedField === `aluno-${index}` ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })
               ) : (
                 <div className="px-3 py-2 rounded-xl bg-gray-100 text-sm text-gray-600">
                   {getDisplayValue(agendamento.aluno)}
@@ -284,9 +346,29 @@ export default function ModalAgendamentoDetalhes({
 
           {/* OBSERVAÇÃO */}
           <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-            <h4 className="text-sm font-bold text-gray-800 mb-2">
-              Observação
-            </h4>
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h4 className="text-sm font-bold text-gray-800">
+                Observação
+              </h4>
+              {agendamento.observacao && (
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(agendamento.observacao, "observacao")}
+                  className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200"
+                  title="Copiar"
+                >
+                  {copiedField === "observacao" ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
+              )}
+            </div>
 
             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
               {agendamento.observacao || "Nenhuma observação cadastrada."}
@@ -319,13 +401,35 @@ export default function ModalAgendamentoDetalhes({
 
             <div className="mb-4">
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-                <span className="block text-[11px] font-bold uppercase text-gray-500 mb-1 tracking-wide">
-                  Endereço
-                </span>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <span className="block text-[11px] font-bold uppercase text-gray-500 mb-1 tracking-wide">
+                      Endereço
+                    </span>
 
-                <span className="text-sm text-gray-800 font-medium">
-                  {enderecoExibicao}
-                </span>
+                    <span className="text-sm text-gray-800 font-medium">
+                      {enderecoExibicao}
+                    </span>
+                  </div>
+                  {enderecoDisponivel && (
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(enderecoExibicao, "endereco")}
+                      className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200"
+                      title="Copiar"
+                    >
+                      {copiedField === "endereco" ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
