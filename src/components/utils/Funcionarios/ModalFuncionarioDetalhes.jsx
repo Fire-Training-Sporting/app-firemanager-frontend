@@ -1,17 +1,12 @@
 import { useState, useEffect } from "react";
 import api from "../../../provider/api";
 
-export default function ModalAlunoDetalhes({
-  aluno,
+export default function ModalFuncionarioDetalhes({
+  funcionario,
   onClose,
   onEdit,
   onDelete,
-  onAddSaldo,
-  onRefresh,
 }) {
-  const [condominios, setCondominios] = useState([]);
-  const [servicos, setServicos] = useState([]);
-  const [saldos, setSaldos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [copiedField, setCopiedField] = useState(null);
@@ -21,35 +16,11 @@ export default function ModalAlunoDetalhes({
       .trim()
       .toLowerCase();
 
-  const usuarioPodeGerenciarAluno = (cargo) => {
+  const usuarioPodeGerenciarFuncionario = (cargo) => {
     const cargoNormalizado = normalizarCargo(cargo);
-    return [
-      "root",
-      "administracao",
-      "administrativo",
-      "admnistrativo",
-    ].includes(cargoNormalizado);
-  };
-
-  const getDisplayValue = (value) => {
-    if (Array.isArray(value)) {
-      return (
-        value
-          .map((item) => {
-            if (typeof item === "object") {
-              return item?.nome ?? "-";
-            }
-            return item;
-          })
-          .join(", ") || "-"
-      );
-    }
-
-    if (typeof value === "object") {
-      return value?.nome ?? "-";
-    }
-
-    return value ?? "-";
+    return ["root", "administracao", "administrativo", "admnistrativo"].includes(
+      cargoNormalizado
+    );
   };
 
   const formatarTelefone = (value) => {
@@ -62,65 +33,6 @@ export default function ModalAlunoDetalhes({
     }
     return value;
   };
-
-  useEffect(() => {
-    const buscarDados = async () => {
-      try {
-        setLoading(true);
-        const [condominiosResponse, servicosResponse, saldosResponse] =
-          await Promise.all([
-            api.get("/condominios"),
-            api.get("/servicos"),
-            api.get("/saldos").catch(() => ({ data: [] })),
-          ]);
-
-        setCondominios(condominiosResponse.data || []);
-        setServicos(servicosResponse.data || []);
-        setSaldos(saldosResponse.data || []);
-        setLoading(false);
-      } catch (err) {
-        console.error("Erro ao buscar dados para o aluno:", err);
-        setError("Erro ao carregar dados");
-        setLoading(false);
-      }
-    };
-
-    buscarDados();
-  }, [aluno?.id]);
-
-  if (!aluno) return null;
-
-  const showActions = usuarioPodeGerenciarAluno(
-    sessionStorage.getItem("cargo"),
-  );
-
-  // Extrai o condomínio do aluno
-  const condominioSelecionado = Array.isArray(aluno.condominio)
-    ? aluno.condominio[0]
-    : aluno.condominio;
-  const condominio =
-    condominioSelecionado && typeof condominioSelecionado === "object"
-      ? condominioSelecionado
-      : condominios.find(
-          (item) => String(item.id) === String(condominioSelecionado),
-        );
-
-  // Filtra saldos do aluno
-  const getSaldoAlunoId = (saldo) =>
-    String(
-      saldo.aluno?.id ??
-        saldo.fk_usuario?.id ??
-        saldo.fk_usuario ??
-        saldo.usuario?.id ??
-        saldo.usuario ??
-        saldo.aluno ??
-        "",
-    );
-
-  const saldosDoAluno = saldos.filter((saldo) => {
-    const alunoId = getSaldoAlunoId(saldo);
-    return String(alunoId) === String(aluno.id);
-  });
 
   const copyToClipboard = async (text, fieldName) => {
     if (!text || text === "-") return;
@@ -165,13 +77,19 @@ export default function ModalAlunoDetalhes({
     </div>
   );
 
+  if (!funcionario) return null;
+
+  const showActions = usuarioPodeGerenciarFuncionario(
+    sessionStorage.getItem("cargo")
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/50 backdrop-blur-sm">
       <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
         {/* HEADER */}
         <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
           <div>
-            <h2 className="text-white text-lg font-bold">Detalhes do Aluno</h2>
+            <h2 className="text-white text-lg font-bold">Detalhes do Funcionário</h2>
           </div>
 
           <button
@@ -188,10 +106,8 @@ export default function ModalAlunoDetalhes({
           {/* STATUS */}
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <span className="text-xs text-gray-500 font-medium">
-                ID do Aluno:
-              </span>
-              <h3 className="text-2xl font-bold text-gray-800">#{aluno.id}</h3>
+              <span className="text-xs text-gray-500 font-medium">ID do Funcionário:</span>
+              <h3 className="text-2xl font-bold text-gray-800">#{funcionario.id}</h3>
             </div>
 
             <span className="px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-700">
@@ -203,72 +119,36 @@ export default function ModalAlunoDetalhes({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <InfoCard
               title="Email"
-              value={aluno.email}
-              className="md:col-span-2"
+              value={funcionario.email}
               fieldName="email"
             />
 
-            <InfoCard title="Nome" value={aluno.nome} fieldName="nome" />
-
             <InfoCard
               title="Telefone"
-              value={formatarTelefone(aluno.telefone)}
+              value={formatarTelefone(funcionario.telefone)}
               fieldName="telefone"
             />
 
-            <InfoCard
-              title="Condomínio"
-              value={getDisplayValue(condominio)}
-              fieldName="condominio"
-            />
+            <InfoCard title="Nome" value={funcionario.nome} fieldName="nome" />
 
             <InfoCard
-              title="Endereço"
-              value={aluno.endereco || getDisplayValue(condominio?.endereco)}
-              fieldName="endereco"
+              title="Cargo"
+              value={funcionario.tipoUsuario?.cargo || funcionario.perfil}
+              fieldName="cargo"
             />
-          </div>
 
-          {/* SALDOS */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-            <h4 className="text-sm font-bold text-gray-800 mb-3">
-              Saldos por Serviço
-            </h4>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {["Tênis", "Beach Tennis", "Funcional"].map((servicoNome) => {
-                const saldo = saldosDoAluno.find((s) => {
-                  const servicoId = String(
-                    s.servico?.id ??
-                      s.fk_servico?.id ??
-                      s.fk_servico ??
-                      s.servico_id ??
-                      s.servico ??
-                      "",
-                  );
-                  const servico = servicos.find(
-                    (srv) => String(srv.id) === servicoId,
-                  );
-                  return servico?.nome === servicoNome;
-                });
-
-                const quantidade = saldo?.quantidade || 0;
-
-                return (
-                  <div
-                    key={servicoNome}
-                    className="px-3 py-2 rounded-xl bg-orange-50 border border-orange-200 text-sm"
-                  >
-                    <div className="text-xs text-gray-600 mb-1">
-                      {servicoNome}
-                    </div>
-                    <div className="text-lg font-bold text-orange-700">
-                      {quantidade}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            {funcionario.condominio && (
+              <InfoCard
+                title="Condomínio"
+                value={
+                  typeof funcionario.condominio === "object"
+                    ? funcionario.condominio.nome
+                    : funcionario.condominio
+                }
+                className="md:col-span-2"
+                fieldName="condominio"
+              />
+            )}
           </div>
         </div>
 
@@ -302,16 +182,6 @@ export default function ModalAlunoDetalhes({
                 className="px-3 py-2 rounded-lg bg-yellow-500 text-white text-sm font-semibold hover:bg-yellow-600 transition"
               >
                 Editar
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (showActions) onAddSaldo?.();
-                }}
-                className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition"
-              >
-                Adicionar Saldo
               </button>
             </div>
           )}

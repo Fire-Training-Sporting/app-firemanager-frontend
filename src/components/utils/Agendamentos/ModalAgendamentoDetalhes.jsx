@@ -178,7 +178,7 @@ export default function ModalAgendamentoDetalhes({
           <button
             type="button"
             onClick={() => copyToClipboard(value, fieldName)}
-            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200"
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200 cursor-pointer"
             title="Copiar"
           >
             {copiedField === fieldName ? (
@@ -320,7 +320,7 @@ export default function ModalAgendamentoDetalhes({
                       <button
                         type="button"
                         onClick={() => copyToClipboard(alunoNome, `aluno-${index}`)}
-                        className="flex-shrink-0 text-orange-400 hover:text-orange-600 transition p-1 rounded hover:bg-orange-200"
+                        className="flex-shrink-0 text-orange-400 hover:text-orange-600 transition p-1 rounded hover:bg-orange-200 cursor-pointer"
                         title="Copiar"
                       >
                         {copiedField === `aluno-${index}` ? (
@@ -354,7 +354,7 @@ export default function ModalAgendamentoDetalhes({
                 <button
                   type="button"
                   onClick={() => copyToClipboard(agendamento.observacao, "observacao")}
-                  className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200"
+                  className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200 cursor-pointer"
                   title="Copiar"
                 >
                   {copiedField === "observacao" ? (
@@ -415,7 +415,7 @@ export default function ModalAgendamentoDetalhes({
                     <button
                       type="button"
                       onClick={() => copyToClipboard(enderecoExibicao, "endereco")}
-                      className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200"
+                      className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200 cursor-pointer"
                       title="Copiar"
                     >
                       {copiedField === "endereco" ? (

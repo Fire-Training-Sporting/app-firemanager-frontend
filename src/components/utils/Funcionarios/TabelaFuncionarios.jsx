@@ -1,50 +1,56 @@
-import TableBase from '../TableBase';
-
 export default function TabelaFuncionarios({
   funcionarios = [],
   onEdit = () => {},
   onDelete = () => {},
+  onDetails = () => {},
   currentPage = 0,
   totalPages = 0,
   totalItems = 0,
   isLoading = false,
   onPageChange = () => {},
 }) {
-  const showActions = sessionStorage.getItem("cargo") !== "Professor";
   const totalPagesExibidas = Math.max(1, totalPages);
   const startItem = totalItems === 0 ? 0 : currentPage * 10 + 1;
   const endItem = Math.min(totalItems, (currentPage + 1) * 10);
 
-  const columns = [
-    { label: 'ID', key: 'id', className: 'w-12 text-left' },
-    { label: 'Nome', key: 'nome', className: 'text-left' },
-    { label: 'Email', key: 'email', className: 'text-left' },
-    { label: 'Telefone', key: 'telefone', className: 'text-left' },
-    { label: 'Tipo', key: 'tipoUsuario', className: 'text-left', render: (row) => (row.tipoUsuario?.cargo || row.perfil || '') },
-  ];
-
-  if (showActions) {
-    columns.push({
-      label: 'Ações',
-      key: 'acoes',
-      className: 'text-center w-40',
-      render: (row) => (
-        <div className="flex justify-center gap-2">
-          <button onClick={() => onEdit(row)} className="px-4 py-2 bg-[#2563EA] text-white text-xs font-medium rounded-md hover:bg-[#1E40AF] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer">Editar</button>
-          <button onClick={() => onDelete(row)} className="px-4 py-2 bg-[#DC2625] text-white text-xs font-medium rounded-md hover:bg-[#B91C1C] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer">Excluir</button>
-        </div>
-      ),
-    });
-  }
-
   return (
-    <div className="w-full">
-      <TableBase
-        columns={columns}
-        data={funcionarios}
-        wrapperClassName="w-full overflow-x-auto"
-        tableClassName="w-full min-w-[900px] table-fixed"
-      />
+    <div className="w-full overflow-x-auto">
+      <div className="h-fit max-h-[calc(100vh-300px)] overflow-y-auto">
+        <table className="w-full border-separate border-spacing-0 rounded-lg overflow-hidden shadow-md">
+          <thead className="sticky top-0 z-10">
+            <tr className="border-b-2 border-gray-200">
+              <th className="px-4 py-3 font-semibold text-gray-800 text-md bg-gray-200 w-12 text-left">ID</th>
+              <th className="px-4 py-3 font-semibold text-gray-800 text-md bg-gray-200 text-left">Nome</th>
+              <th className="px-4 py-3 font-semibold text-gray-800 text-md bg-gray-200 text-left">Email</th>
+              <th className="px-4 py-3 font-semibold text-gray-800 text-md bg-gray-200 text-left">Telefone</th>
+              <th className="px-4 py-3 font-semibold text-gray-800 text-md bg-gray-200 text-left">Tipo</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white">
+            {funcionarios.length > 0 ? (
+              funcionarios.map((funcionario) => (
+                <tr
+                  key={funcionario.id}
+                  className="border-b border-gray-200 odd:bg-white even:bg-gray-100 hover:bg-orange-100 transition-colors duration-150 cursor-pointer"
+                  onClick={() => onDetails(funcionario)}
+                >
+                  <td className="px-4 py-3 text-sm align-middle">{funcionario.id}</td>
+                  <td className="px-4 py-3 text-sm align-middle">{funcionario.nome}</td>
+                  <td className="px-4 py-3 text-sm align-middle">{funcionario.email}</td>
+                  <td className="px-4 py-3 text-sm align-middle">{funcionario.telefone}</td>
+                  <td className="px-4 py-3 text-sm align-middle">{funcionario.tipoUsuario?.cargo || funcionario.perfil}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5} className="p-4 text-center text-gray-500">
+                  Nenhum funcionário encontrado.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       <div className="flex flex-col items-stretch justify-between gap-3 px-4 py-2 border-t bg-white sm:flex-row sm:items-center">
         <div className="text-xs text-gray-600">

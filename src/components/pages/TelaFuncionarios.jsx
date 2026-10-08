@@ -3,6 +3,7 @@ import PageLayout from "../utils/PageLayout";
 import SearchFilter from "../utils/SearchFilter";
 import TabelaFuncionarios from "../utils/Funcionarios/TabelaFuncionarios";
 import ModalCadastroFuncionario from "../utils/Funcionarios/ModalCadastroFuncionario";
+import ModalFuncionarioDetalhes from "../utils/Funcionarios/ModalFuncionarioDetalhes";
 import ConfirmationModal from "../utils/ConfirmationModal";
 import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
@@ -34,6 +35,8 @@ export default function TelaFuncionarios() {
 
   const [funcionarioParaExcluir,
     setFuncionarioParaExcluir] = useState(null);
+
+  const [funcionarioDetalhes, setFuncionarioDetalhes] = useState(null);
 
   const [sucessoCadastro,
     setSucessoCadastro] = useState("");
@@ -157,6 +160,21 @@ export default function TelaFuncionarios() {
     setSelectedEmployee(null);
   }
 
+  function handleDetalhes(funcionario) {
+    setFuncionarioDetalhes(funcionario);
+  }
+
+  function handleCloseDetalhesModal() {
+    setFuncionarioDetalhes(null);
+  }
+
+  function onBackFromEdit() {
+    const funcionarioAtual = selectedEmployee;
+    setSelectedEmployee(null);
+    setIsModalOpen(false);
+    setFuncionarioDetalhes(funcionarioAtual);
+  }
+
   function solicitarExclusao(employee) {
 
     setFuncionarioParaExcluir(employee);
@@ -200,15 +218,12 @@ export default function TelaFuncionarios() {
     const exibirSucessoLocal = exibirSucesso(setSucessoCadastro, setSucessoVisivel);
 
     setIsModalOpen(false);
-
     exibirSucessoLocal(
       acao === "updated"
         ? "Funcionário atualizado com sucesso"
         : "Funcionário cadastrado com sucesso"
     );
-
     buscarDados(0, filtroAtual);
-
     setSelectedEmployee(null);
   }
 
@@ -240,6 +255,7 @@ export default function TelaFuncionarios() {
             funcionarios={funcionarios}
             onEdit={handleEdit}
             onDelete={solicitarExclusao}
+            onDetails={handleDetalhes}
             currentPage={paginaAtual}
             totalPages={totalPaginas}
             totalItems={totalFuncionarios}
@@ -252,17 +268,30 @@ export default function TelaFuncionarios() {
       </PageLayout>
 
       {isModalOpen && (
-
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <ModalCadastroFuncionario
             isOpen={isModalOpen}
             onClose={handleModalClose}
             onSuccess={handleSuccess}
             usuario={selectedEmployee}
+            onBack={selectedEmployee ? onBackFromEdit : undefined}
           />
-
         </div>
+      )}
+
+      {funcionarioDetalhes && (
+        <ModalFuncionarioDetalhes
+          funcionario={funcionarioDetalhes}
+          onClose={handleCloseDetalhesModal}
+          onEdit={() => {
+            handleCloseDetalhesModal();
+            handleEdit(funcionarioDetalhes);
+          }}
+          onDelete={() => {
+            handleCloseDetalhesModal();
+            solicitarExclusao(funcionarioDetalhes);
+          }}
+        />
       )}
 
       <ConfirmationModal
