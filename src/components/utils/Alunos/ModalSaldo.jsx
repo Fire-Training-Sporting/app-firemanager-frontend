@@ -18,7 +18,7 @@ function Field({ label, children }) {
   );
 }
 
-export default function ModalSaldo({ aluno = null, onClose }) {
+export default function ModalSaldo({ aluno = null, onClose, onCreated, onBack }) {
   const [servicos, setServicos] = useState([]);
   const [form, setForm] = useState({
     servico: "",
@@ -27,6 +27,7 @@ export default function ModalSaldo({ aluno = null, onClose }) {
   const [loadingServicos, setLoadingServicos] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [submitSuccess, setSubmitSuccess] = useState("");
 
   const alunoId = useMemo(() => aluno?.id ?? "", [aluno]);
 
@@ -74,6 +75,7 @@ export default function ModalSaldo({ aluno = null, onClose }) {
     const { name, value } = event.target;
 
     setSubmitError("");
+    setSubmitSuccess("");
     setForm((current) => ({
       ...current,
       [name]: value,
@@ -91,6 +93,7 @@ export default function ModalSaldo({ aluno = null, onClose }) {
     try {
       setIsSaving(true);
       setSubmitError("");
+      setSubmitSuccess("");
 
       await api.post("/saldos", {
         aluno: Number(alunoId),
@@ -98,7 +101,14 @@ export default function ModalSaldo({ aluno = null, onClose }) {
         servico: Number(form.servico),
       });
 
-      onClose();
+      setSubmitSuccess("Saldo adicionado com sucesso!");
+
+      setTimeout(() => {
+        if (onCreated) {
+          onCreated();
+        }
+        onClose();
+      }, 1500);
     } catch (error) {
       console.error("Erro ao criar saldo:", error);
       setSubmitError(
@@ -114,9 +124,21 @@ export default function ModalSaldo({ aluno = null, onClose }) {
   };
 
   return (
-    <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
       <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
-        <h2 className="text-lg font-bold text-white">Adicionar saldo</h2>
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
+            >
+              ←
+            </button>
+          )}
+          <h2 className="text-lg font-bold text-white">Adicionar saldo</h2>
+        </div>
 
         <button
           type="button"
@@ -167,6 +189,7 @@ export default function ModalSaldo({ aluno = null, onClose }) {
           </Field>
 
           <AlertMessage variant="error" message={submitError} />
+          <AlertMessage variant="success" message={submitSuccess} />
 
           <div className="flex justify-end gap-2 mt-3">
             <button
@@ -186,6 +209,7 @@ export default function ModalSaldo({ aluno = null, onClose }) {
           </div>
         </form>
       </div>
+    </div>
     </div>
   );
 }

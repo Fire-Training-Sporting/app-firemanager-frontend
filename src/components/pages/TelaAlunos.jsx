@@ -3,6 +3,7 @@ import PageLayout from "../utils/PageLayout";
 import SearchFilter from "../utils/SearchFilter";
 import { AlunosTable } from "../utils/Alunos/AlunosTable";
 import ModalAluno from "../utils/Alunos/ModalAlunos";
+import ModalAlunoDetalhes from "../utils/Alunos/ModalAlunoDetalhes";
 import ModalSaldo from "../utils/Alunos/ModalSaldo";
 import ConfirmationModal from "../utils/ConfirmationModal";
 import api from "../../provider/api";
@@ -35,6 +36,9 @@ export default function TelaAlunos() {
     useState(null);
 
   const [alunoParaSaldo, setAlunoParaSaldo] =
+    useState(null);
+
+  const [alunoDetalhes, setAlunoDetalhes] =
     useState(null);
 
   useEffect(() => {
@@ -208,6 +212,50 @@ export default function TelaAlunos() {
 
   };
 
+  const handleDetalhes = (aluno) => {
+
+    setAlunoDetalhes(aluno);
+
+  };
+
+  const handleCloseDetalhesModal = () => {
+
+    setAlunoDetalhes(null);
+
+  };
+
+  const onBackFromSaldo = () => {
+    const alunoAtual = alunoParaSaldo;
+    setAlunoParaSaldo(null);
+    setAlunoDetalhes(alunoAtual);
+  };
+
+  const onSaldoCreated = () => {
+    const alunoAtual = alunoParaSaldo;
+    buscarAlunos(paginaAtual, filtroAtual);
+    if (alunoAtual) {
+      setAlunoParaSaldo(null);
+      setAlunoDetalhes(alunoAtual);
+    }
+  };
+
+  const onBackFromEdit = () => {
+    const alunoAtual = alunoEditando;
+    setAlunoEditando(null);
+    setShowModal(false);
+    setAlunoDetalhes(alunoAtual);
+  };
+
+  const onEditCreated = () => {
+    const alunoAtual = alunoEditando;
+    buscarAlunos(paginaAtual, filtroAtual);
+    if (alunoAtual) {
+      setAlunoEditando(null);
+      setShowModal(false);
+      setAlunoDetalhes(alunoAtual);
+    }
+  };
+
   const solicitarExclusao = (
     aluno
   ) => {
@@ -275,125 +323,104 @@ export default function TelaAlunos() {
   };
 
   return (
-
-    <div
-      className={
-        showModal
-          ? "modal-open"
-          : ""
+    <PageLayout
+      title="Alunos"
+      searchPlaceholder="Pesquisar aluno..."
+      onAdd={handleAdd}
+      addLabel="Cadastrar aluno"
+      customControls={
+        <SearchFilter
+          columns={search_columns}
+          onSearch={filtrarAlunos}
+          isLoading={isLoading}
+        />
       }
     >
-
-      <PageLayout
-        title="Alunos"
-        searchPlaceholder="Pesquisar aluno..."
-        onAdd={handleAdd}
-        addLabel="Cadastrar aluno"
-        customControls={
-          <SearchFilter
-            columns={search_columns}
-            onSearch={filtrarAlunos}
-            isLoading={isLoading}
-          />
-        }
-      >
-
-        <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-
-          <AlunosTable
-            alunos={alunos}
-            onDelete={solicitarExclusao}
-            onEdit={handleEdit}
-            onAddSaldo={handleAddSaldo}
-            currentPage={paginaAtual}
-            totalPages={totalPaginas}
-            totalItems={totalAlunos}
-            isLoading={isLoading}
-            onPageChange={(pagina) => buscarAlunos(pagina)}
-          />
-
-        </div>
-
-        {showModal && (
-
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-
-            <ModalAluno
-              aluno={alunoEditando}
-              onClose={
-                handleCloseModal
-              }
-              onCreated={() => buscarAlunos(0, filtroAtual)}
-            />
-
-          </div>
-
-        )}
-
-        {alunoParaSaldo && (
-
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-
-            <ModalSaldo
-              aluno={alunoParaSaldo}
-              onClose={handleCloseSaldoModal}
-            />
-
-          </div>
-
-        )}
-
-        <ConfirmationModal
-          isOpen={!!alunoParaExcluir}
-          title="Confirmar exclusão"
-          message="Deseja realmente excluir este aluno?"
-          items={
-            alunoParaExcluir
-              ? [
-                  {
-                    label: "ID",
-                    value:
-                      alunoParaExcluir.id,
-                  },
-                  {
-                    label: "Nome",
-                    value:
-                      formatarValor(
-                        alunoParaExcluir.nome
-                      ),
-                  },
-                  {
-                    label: "Email",
-                    value:
-                      formatarValor(
-                        alunoParaExcluir.email
-                      ),
-                  },
-                  {
-                    label: "Telefone",
-                    value:
-                      formatarValor(
-                        alunoParaExcluir.telefone
-                      ),
-                  },
-                  {
-                    label: "Endereço",
-                    value:
-                      formatarValor(
-                        alunoParaExcluir.endereco
-                      ),
-                  },
-                ]
-              : []
-          }
-          confirmLabel="Sim, excluir"
-          cancelLabel="Não, cancelar"
-          onCancel={cancelarExclusao}
-          onConfirm={confirmarExclusao}
+      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+        <AlunosTable
+          alunos={alunos}
+          onDetails={handleDetalhes}
+          currentPage={paginaAtual}
+          totalPages={totalPaginas}
+          totalItems={totalAlunos}
+          isLoading={isLoading}
+          onPageChange={(pagina) => buscarAlunos(pagina)}
         />
+      </div>
+
+      {showModal && (
+        <ModalAluno
+          aluno={alunoEditando}
+          onClose={handleCloseModal}
+          onCreated={onEditCreated}
+          onBack={alunoEditando ? onBackFromEdit : undefined}
+        />
+      )}
+
+      {alunoParaSaldo && (
+        <ModalSaldo
+          aluno={alunoParaSaldo}
+          onClose={handleCloseSaldoModal}
+          onCreated={onSaldoCreated}
+          onBack={onBackFromSaldo}
+        />
+      )}
+
+      {alunoDetalhes && (
+        <ModalAlunoDetalhes
+          aluno={alunoDetalhes}
+          onClose={handleCloseDetalhesModal}
+          onEdit={() => {
+            handleCloseDetalhesModal();
+            handleEdit(alunoDetalhes);
+          }}
+          onDelete={() => {
+            handleCloseDetalhesModal();
+            solicitarExclusao(alunoDetalhes);
+          }}
+          onAddSaldo={() => {
+            setAlunoDetalhes(null);
+            handleAddSaldo(alunoDetalhes);
+          }}
+        />
+      )}
+
+      <ConfirmationModal
+        isOpen={!!alunoParaExcluir}
+        title="Confirmar exclusão"
+        message="Deseja realmente excluir este aluno?"
+        items={
+          alunoParaExcluir
+            ? [
+                {
+                  label: "ID",
+                  value: alunoParaExcluir.id,
+                },
+                {
+                  label: "Nome",
+                  value: formatarValor(alunoParaExcluir.nome),
+                },
+                {
+                  label: "Email",
+                  value: formatarValor(alunoParaExcluir.email),
+                },
+                {
+                  label: "Telefone",
+                  value: formatarValor(alunoParaExcluir.telefone),
+                },
+                {
+                  label: "Endereço",
+                  value: formatarValor(alunoParaExcluir.endereco),
+                },
+              ]
+            : []
+        }
+        confirmLabel="Sim, excluir"
+        cancelLabel="Não, cancelar"
+        onCancel={cancelarExclusao}
+        onConfirm={confirmarExclusao}
+      />
 
       </PageLayout>
-
-    </div>
   );
 }

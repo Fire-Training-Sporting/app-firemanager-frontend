@@ -20,6 +20,7 @@ export default function ModalAluno({
   aluno = null,
   onClose,
   onCreated,
+  onBack,
 }) {
   const isEditMode = !!aluno;
 
@@ -227,13 +228,25 @@ export default function ModalAluno({
   };
 
   return (
-    <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
 
       {/* Cabeçalho */}
       <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
-        <h2 className="text-lg font-bold text-white">
-          {isEditMode ? "Editar Aluno" : "Cadastrar Aluno"}
-        </h2>
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
+            >
+              ←
+            </button>
+          )}
+          <h2 className="text-lg font-bold text-white">
+            {isEditMode ? "Editar Aluno" : "Cadastrar Aluno"}
+          </h2>
+        </div>
 
         <button
           type="button"
@@ -374,6 +387,7 @@ export default function ModalAluno({
           </div>
         </form>
       </div>
+    </div>
     </div>
   );
 }

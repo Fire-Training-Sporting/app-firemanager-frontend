@@ -3,9 +3,7 @@ import AlunosTh from "./AlunoTh";
 
 export function AlunosTable({
   alunos = [],
-  onDelete = () => {},
-  onEdit = () => {},
-  onAddSaldo = () => {},
+  onDetails = () => {},
   currentPage = 0,
   totalPages = 0,
   totalItems = 0,
@@ -14,8 +12,6 @@ export function AlunosTable({
 }) {
   const cargo = sessionStorage.getItem("cargo");
   const showContato = cargo !== "Professor";
-  const showActions = sessionStorage.getItem("cargo") !== "Professor";
-  const showSaldos = sessionStorage.getItem("cargo") !== "Professor";
   const totalPagesExibidas = Math.max(1, totalPages);
   const startItem = totalItems === 0 ? 0 : currentPage * 10 + 1;
   const endItem = Math.min(totalItems, (currentPage + 1) * 10);
@@ -54,28 +50,6 @@ export function AlunosTable({
                 Endereço
               </AlunosTh>
 
-              {showSaldos && (
-                <>
-                  <AlunosTh className="text-left w-32">
-                    Tênis
-                  </AlunosTh>
-
-                  <AlunosTh className="text-left w-40">
-                    Beach Tennis
-                  </AlunosTh>
-
-                  <AlunosTh className="text-left w-32">
-                    Funcional
-                  </AlunosTh>
-                </>
-              )}
-
-              {showActions && (
-                <AlunosTh className="text-left w-40">
-                  Ações
-                </AlunosTh>
-              )}
-
             </tr>
           </thead>
 
@@ -85,22 +59,14 @@ export function AlunosTable({
                 <AlunosRow
                   key={aluno.id}
                   {...aluno}
-                  onDelete={() => onDelete(aluno)}
-                  onEdit={() => onEdit(aluno)}
-                  onAddSaldo={() => onAddSaldo(aluno)}
-                  showActions={showActions}
-                  showSaldos={showSaldos}
+                  onDetails={() => onDetails(aluno)}
                   showContato={showContato}
                 />
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={
-                    (showContato ? 5 : 3) +
-                    (showSaldos ? 3 : 0) +
-                    (showActions ? 1 : 0)
-                  }
+                  colSpan={showContato ? 5 : 3}
                   className="p-4 text-center text-gray-500"
                 >
                   Nenhum aluno encontrado.
