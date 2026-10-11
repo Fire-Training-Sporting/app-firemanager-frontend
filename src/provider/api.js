@@ -6,6 +6,14 @@ const api = axios.create({
 
 // interceptor para adicionar token JWT em todas as requisições
 api.interceptors.request.use((config) => {
+  const skipAuth = config.skipAuth === true;
+  delete config.skipAuth;
+
+  if (skipAuth) {
+    config.headers?.delete?.("Authorization");
+    return config;
+  }
+
   const token = sessionStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
