@@ -2,7 +2,7 @@
 export default function TableBase({ columns, data, wrapperClassName = "w-full", tableClassName = "w-full table-fixed" }) {
   return (
     <div className={`${wrapperClassName} overflow-x-auto`}>
-      <div className="h-fit max-h-[calc(100vh-300px)] overflow-y-auto">
+      <div className="h-fit max-h-[calc(100vh-300px)] lg:max-h-[calc(100vh-126px)] overflow-y-auto">
         <table className={`${tableClassName} border-separate border-spacing-0 rounded-lg overflow-hidden shadow-md`}>
           <thead className="sticky top-0 z-10">
             <tr className="border-b-2 border-gray-200">

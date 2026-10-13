@@ -3,6 +3,13 @@ import { useNavigate } from "react-router-dom";
 import NavLink from "./NavLink";
 import fireIcon from "../../assets/fireIcon.png";
 import logoutIcon from "../../assets/logout.png";
+import agendamentosIcon from "../../assets/agendamentos.png";
+import alunosIcon from "../../assets/alunos.png";
+import funcionariosIcon from "../../assets/funcionarios.png";
+import condominiosIcon from "../../assets/condominios.png";
+import servicosIcon from "../../assets/servicos.png";
+import pagamentosIcon from "../../assets/pagamentos.png";
+import dashboardIcon from "../../assets/dashboard.png";
 
 const routeMap = {
   Agendamentos: "/agendamentos",
@@ -13,6 +20,16 @@ const routeMap = {
   Dashboard: "/dashboard",
   Perfil: "/perfil",
   Pagamentos: "/pagamento",
+};
+
+const iconMap = {
+  Agendamentos: agendamentosIcon,
+  Alunos: alunosIcon,
+  Funcionários: funcionariosIcon,
+  Condomínios: condominiosIcon,
+  Serviços: servicosIcon,
+  Dashboard: dashboardIcon,
+  Pagamentos: pagamentosIcon,
 };
 
 export default function Header() {
@@ -60,7 +77,44 @@ export default function Header() {
   })();
 
   return (
-    <header className="w-full">
+    <>
+    {/* Sidebar (desktop) */}
+    <aside className="app-sidebar fixed inset-y-0 left-0 z-40 hidden w-60 flex-col bg-linear-to-b from-[#F8821E] to-[#EA580C] shadow-lg lg:flex">
+      <div className="flex items-center gap-3 bg-[#23272F] px-5 py-4">
+        <img src={fireIcon} alt="Logo" className="h-8 w-8" />
+        <span className="text-lg font-semibold tracking-wide text-white">Fire Manager</span>
+      </div>
+
+      <div className="border-b border-white/20 px-5 py-4 text-white">
+        <span className="block truncate font-semibold" title={usuario?.nome ?? "usuário"}>
+          Olá, {usuario?.nome ?? "usuário"}
+        </span>
+      </div>
+
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3 custom-scrollbar">
+        {navItems.map((item) => (
+          <NavLink key={item} to={routeMap[item]} icon={iconMap[item]}>
+            {item}
+          </NavLink>
+        ))}
+      </nav>
+
+      <div className="bg-[#23272F] px-5 py-4 text-sm text-white">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="inline-flex w-full items-center justify-center gap-1 rounded-full border border-white/20 bg-white/10 pl-[11px] pr-[13px] py-1.5 text-sm font-medium transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40"
+          aria-label="Fazer logout"
+          title="Fazer logout"
+        >
+          <img src={logoutIcon} alt="" className="h-[18px] w-[18px] shrink-0" />
+          <span>Sair</span>
+        </button>
+      </div>
+    </aside>
+
+    {/* Topo (mobile/tablet) */}
+    <header className="w-full lg:hidden">
       {/* Top bar */}
       <div className="bg-[#23272F] flex flex-nowrap justify-between items-center gap-2 px-4 py-3 sm:gap-3 sm:px-8">
         <div className="flex items-center gap-3">
@@ -104,12 +158,13 @@ export default function Header() {
           className={`${menuOpen ? "flex" : "hidden"} absolute left-0 right-0 top-full z-50 max-h-[60vh] flex-col gap-2 overflow-x-hidden overflow-y-auto bg-linear-to-r from-[#F8821E] to-[#EA580C] p-4 shadow-lg custom-scrollbar lg:static lg:flex lg:max-h-none lg:flex-row lg:overflow-visible lg:bg-transparent lg:p-0 lg:shadow-none`}
         >
           {navItems.map((item) => (
-            <NavLink key={item} to={routeMap[item]} onClick={() => setMenuOpen(false)}>
+            <NavLink key={item} to={routeMap[item]} icon={iconMap[item]} onClick={() => setMenuOpen(false)}>
               {item}
             </NavLink>
           ))}
         </div>
       </nav>
     </header>
+    </>
   );
 }

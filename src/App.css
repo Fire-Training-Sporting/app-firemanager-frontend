@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Com o menu lateral fixo (desktop), o conteúdo das telas é deslocado para a direita. */
+@media (min-width: 64rem) {
+  body:has(.app-sidebar) #root {
+    padding-left: 15rem;
+  }
+}
+
 /* O Tailwind v4 deixa botões com cursor padrão; aqui todos ganham a mãozinha,
    exceto quando desabilitados. */
 @layer base {
