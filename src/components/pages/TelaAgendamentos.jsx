@@ -8,6 +8,7 @@ import ConfirmationModal from '../utils/ConfirmationModal';
 import AlertMessage from '../utils/AlertMessage';
 import api from "../../provider/api";
 import { getUsuarioLogado, getUsuarioId, getItemId, normalizarCargo, formatarData, formatarHora, getItemName, exibirSucesso, formatarValor } from "../../utils/helpers";
+import calendarWhiteIcon from "../../assets/calendar_white.png";
 
 const search_columns = [
   { label: "Aluno", value: "aluno" },
@@ -364,7 +365,7 @@ export default function TelaAgendamentos() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => mudarPeriodo("hoje")}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition ${
+                className={`inline-flex h-10 items-center px-4 rounded-md font-medium text-sm transition ${
                   periodoSelecionado === "hoje"
                     ? "bg-[#F8821E] text-white"
                     : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
@@ -374,7 +375,7 @@ export default function TelaAgendamentos() {
               </button>
               <button
                 onClick={() => mudarPeriodo("amanha")}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition ${
+                className={`inline-flex h-10 items-center px-4 rounded-md font-medium text-sm transition ${
                   periodoSelecionado === "amanha"
                     ? "bg-[#F8821E] text-white"
                     : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
@@ -384,7 +385,7 @@ export default function TelaAgendamentos() {
               </button>
               <button
                 onClick={() => mudarPeriodo("proximos7dias")}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition ${
+                className={`inline-flex h-10 items-center px-4 rounded-md font-medium text-sm transition ${
                   periodoSelecionado === "proximos7dias"
                     ? "bg-[#F8821E] text-white"
                     : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
@@ -394,7 +395,7 @@ export default function TelaAgendamentos() {
               </button>
               <button
                 onClick={() => mudarPeriodo("proximos30dias")}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition ${
+                className={`inline-flex h-10 items-center px-4 rounded-md font-medium text-sm transition ${
                   periodoSelecionado === "proximos30dias"
                     ? "bg-[#F8821E] text-white"
                     : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
@@ -404,7 +405,7 @@ export default function TelaAgendamentos() {
               </button>
               <button
                 onClick={() => mudarPeriodo("todos")}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition ${
+                className={`inline-flex h-10 items-center px-4 rounded-md font-medium text-sm transition ${
                   periodoSelecionado === "todos"
                     ? "bg-[#F8821E] text-white"
                     : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
@@ -416,9 +417,10 @@ export default function TelaAgendamentos() {
 
             {(cargo === "root" || cargo === "Administracao") && (
               <button
-                className="bg-[#2563EA] hover:bg-[#1E40AF] text-white px-6 py-2 rounded-md font-semibold shadow-md transition-all duration-150"
+                className="inline-flex h-10 items-center justify-center gap-1.5 bg-[#2563EA] hover:bg-[#1E40AF] text-white pl-3.5 pr-4 rounded-md text-sm font-semibold shadow-md transition-all duration-150"
                 onClick={adicionarDados}
               >
+                <img src={calendarWhiteIcon} alt="" className="h-[18px] w-[18px] shrink-0 translate-y-px" />
                 Agendar serviço
               </button>
             )}

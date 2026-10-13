@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Header from "../Header";
 import FormField from "../FormField";
 import Button from "../Button";
+import closeRedIcon from "../../../assets/close_red.png";
 
 const PERFIL_OPTIONS = [
   { value: "", label: "Selecione" },
@@ -81,9 +82,10 @@ function ModalEdicaoFuncionario({ isOpen, onClose, onUpdate, employee }) {
           <button
             type="button"
             onClick={onClose}
-            className={`absolute right-4 top-4 ${colors.text.red} text-5xl font-medium ${colors.hoverText.red}`}
+            className="absolute right-4 top-4 rounded-full p-1 transition hover:bg-red-100"
+            aria-label="Fechar"
           >
-            ×
+            <img src={closeRedIcon} alt="" className="h-7 w-7" />
           </button>
 
           <h2 className="text-3xl font-bold mb-6">Editar Funcionário</h2>

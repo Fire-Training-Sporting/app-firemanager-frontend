@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PageLayout from "../utils/PageLayout";
+import personAddWhiteIcon from "../../assets/person_add_white.png";
 import SearchFilter from "../utils/SearchFilter";
 import { AlunosTable } from "../utils/Alunos/AlunosTable";
 import ModalAluno from "../utils/Alunos/ModalAlunos";
@@ -328,6 +329,7 @@ export default function TelaAlunos() {
       searchPlaceholder="Pesquisar aluno..."
       onAdd={handleAdd}
       addLabel="Cadastrar aluno"
+      addIcon={personAddWhiteIcon}
       customControls={
         <SearchFilter
           columns={search_columns}

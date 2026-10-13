@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
 import api from "../../../provider/api";
+import closeWhiteIcon from "../../../assets/close_white.png";
+import editWhiteIcon from "../../../assets/edit_white.png";
+import deleteWhiteIcon from "../../../assets/delete_white.png";
+import addWhiteIcon from "../../../assets/add_white.png";
+import { modalButton, modalCloseButton, modalIcon } from "../Buttons/modalButtonStyles";
 
 export default function ModalAlunoDetalhes({
   aluno,
@@ -177,9 +182,10 @@ export default function ModalAlunoDetalhes({
           <button
             type="button"
             onClick={onClose}
-            className="text-white hover:text-red-200 transition rounded-full px-2 py-1 bg-black/20"
+            className={modalCloseButton}
+            aria-label="Fechar"
           >
-            ✕
+            <img src={closeWhiteIcon} alt="" className="h-5 w-5" />
           </button>
         </div>
 
@@ -273,24 +279,17 @@ export default function ModalAlunoDetalhes({
         </div>
 
         {/* FOOTER */}
-        <div className="border-t bg-gray-50 px-5 py-3 flex items-center justify-between gap-3 flex-wrap">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-gray-800 text-white text-sm font-semibold hover:bg-black transition"
-          >
-            Fechar
-          </button>
-
-          {showActions && (
+        {showActions && (
+          <div className="border-t bg-gray-50 px-5 py-3 flex items-center justify-end gap-3 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={() => {
                   if (showActions) onDelete?.();
                 }}
-                className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition"
+                className={modalButton("danger", { icon: true })}
               >
+                <img src={deleteWhiteIcon} alt="" className={modalIcon} />
                 Excluir
               </button>
 
@@ -299,8 +298,9 @@ export default function ModalAlunoDetalhes({
                 onClick={() => {
                   if (showActions) onEdit?.();
                 }}
-                className="px-3 py-2 rounded-lg bg-yellow-500 text-white text-sm font-semibold hover:bg-yellow-600 transition"
+                className={modalButton("warning", { icon: true })}
               >
+                <img src={editWhiteIcon} alt="" className={modalIcon} />
                 Editar
               </button>
 
@@ -309,13 +309,14 @@ export default function ModalAlunoDetalhes({
                 onClick={() => {
                   if (showActions) onAddSaldo?.();
                 }}
-                className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition"
+                className={modalButton("info", { icon: true })}
               >
+                <img src={addWhiteIcon} alt="" className={modalIcon} />
                 Adicionar Saldo
               </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
