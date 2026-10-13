@@ -1,9 +1,14 @@
 @import "tailwindcss";
 
-/* Com o menu lateral fixo (desktop), o conteúdo das telas é deslocado para a direita. */
+/* Com o menu lateral fixo (desktop), o conteúdo das telas é deslocado para a direita
+   e os alertas fixos são centralizados na área de conteúdo, não na janela inteira. */
 @media (min-width: 64rem) {
   body:has(.app-sidebar) #root {
     padding-left: 15rem;
+  }
+
+  body:has(.app-sidebar) .app-alert {
+    left: calc(50% + 7.5rem);
   }
 }
 

@@ -13,24 +13,28 @@ export default function NavLink({ children, to, onClick, icon }) {
         }`
       }
     >
-      {icon && (
-        // O PNG é usado como máscara para o ícone herdar a cor do texto
-        // (branco normalmente, laranja quando o item está ativo).
-        <span
-          aria-hidden="true"
-          className="h-5 w-5 shrink-0 bg-current"
-          style={{
-            maskImage: `url(${icon})`,
-            WebkitMaskImage: `url(${icon})`,
-            maskSize: "contain",
-            WebkitMaskSize: "contain",
-            maskRepeat: "no-repeat",
-            WebkitMaskRepeat: "no-repeat",
-            maskPosition: "center",
-            WebkitMaskPosition: "center",
-          }}
-        />
-      )}
+      {/* O PNG é usado como máscara para o ícone herdar a cor do texto
+          (branco normalmente, laranja quando o item está ativo). Sem ícone,
+          o espaço é mantido para o texto continuar alinhado com os demais. */}
+      <span
+        aria-hidden="true"
+        className={`h-5 w-5 shrink-0 ${icon ? "bg-current" : ""}`}
+        style={
+          icon
+            ? {
+                maskImage: `url("${icon}")`,
+                WebkitMaskImage: `url("${icon}")`,
+                maskSize: "contain",
+                WebkitMaskSize: "contain",
+                maskRepeat: "no-repeat",
+                WebkitMaskRepeat: "no-repeat",
+                maskPosition: "center",
+                WebkitMaskPosition: "center",
+              }
+            : undefined
+        }
+      />
+
       <span>{children}</span>
     </RouterNavLink>
   );

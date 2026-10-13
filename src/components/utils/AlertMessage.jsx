@@ -47,7 +47,7 @@ export default function AlertMessage({ variant = "error", message = "", classNam
       ref={alertRef}
       role="alert"
       aria-live="polite"
-      className={`fixed top-4 left-1/2 z-50 -translate-x-1/2 mb-3 flex items-center gap-3 rounded-lg border px-4 py-3 text-sm font-semibold shadow-sm ${styles.container} ${className}`.trim()}
+      className={`app-alert fixed top-4 left-1/2 z-50 -translate-x-1/2 mb-3 flex items-center gap-3 rounded-lg border px-4 py-3 text-sm font-semibold shadow-sm ${styles.container} ${className}`.trim()}
     >
       <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${styles.badge}`}>
         <img src={styles.icon} alt={styles.alt} className="h-4 w-4" />
