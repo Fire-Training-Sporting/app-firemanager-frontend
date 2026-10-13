@@ -20,6 +20,28 @@ export const router = createBrowserRouter([
         element: <TelaLogin />,
     },
     {
+        path: "/recuperar-senha",
+        HydrateFallback: () => (
+            <main className="flex min-h-screen items-center justify-center bg-[#ec7200] font-[Montserrat,sans-serif] text-white" role="status" aria-live="polite">
+                Carregando...
+            </main>
+        ),
+        lazy: async () => ({
+            Component: (await import("../components/pages/TelaRecuperarSenha")).default,
+        }),
+    },
+    {
+        path: "/reset-password",
+        HydrateFallback: () => (
+            <main className="flex min-h-screen items-center justify-center bg-[#ec7200] font-[Montserrat,sans-serif] text-white" role="status" aria-live="polite">
+                Carregando...
+            </main>
+        ),
+        lazy: async () => ({
+            Component: (await import("../components/pages/TelaRedefinirSenha")).default,
+        }),
+    },
+    {
         element: <AuthGuard />,
         children: [
             {
