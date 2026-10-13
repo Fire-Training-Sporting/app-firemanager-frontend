@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logoFire from "../../assets/logo2.png";
 import emailIcon from "../../assets/email.png";
 import lockIcon from "../../assets/lock.png";
@@ -108,6 +108,12 @@ export function TelaLogin() {
                             rightAction={() => setShowPassword((prev) => !prev)}
                             inputClassName="w-full rounded-[9px] border-0 bg-[#e6e7ed] py-[0.88rem] pl-11 pr-12 text-base text-[#1f1f1f] outline-none focus:ring-3 focus:ring-white/25"
                         />
+
+                        <div className="mt-2 text-right">
+                            <Link to="/recuperar-senha" className="text-sm font-medium text-white underline underline-offset-2 hover:text-white/80">
+                                Esqueceu sua senha?
+                            </Link>
+                        </div>
 
                         <AlertMessage variant="error" message={erro} className="mt-2 mb-0" />
 

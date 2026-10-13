@@ -17,10 +17,14 @@ function InputComponent({
   rightIcon,
   rightAction,
   rightActionAriaLabel = "Campo",
+  required = false,
+  minLength,
+  ariaInvalid,
+  ariaDescribedBy,
 }) {
   return (
-    <label className={containerClassName} htmlFor={id}>
-      <span className={labelClassName}>{label}</span>
+    <div className={containerClassName}>
+      <label className={labelClassName} htmlFor={id}>{label}</label>
 
       <div className={inputWrapperClassName}>
         {leftIcon ? (
@@ -36,6 +40,10 @@ function InputComponent({
           value={value}
           onChange={onChange}
           autoComplete={autoComplete}
+          required={required}
+          minLength={minLength}
+          aria-invalid={ariaInvalid}
+          aria-describedby={ariaDescribedBy}
           className={inputClassName}
           placeholder={placeholder || label}
         />
@@ -57,7 +65,7 @@ function InputComponent({
           )
         ) : null}
       </div>
-    </label>
+    </div>
   );
 }
 
