@@ -10,6 +10,7 @@ import condominiosIcon from "../../assets/condominios.png";
 import servicosIcon from "../../assets/servicos.png";
 import pagamentosIcon from "../../assets/pagamentos.png";
 import dashboardIcon from "../../assets/dashboard.png";
+import perfilIcon from "../../assets/perfil.png";
 
 const routeMap = {
   Agendamentos: "/agendamentos",
@@ -30,6 +31,7 @@ const iconMap = {
   Serviços: servicosIcon,
   Dashboard: dashboardIcon,
   Pagamentos: pagamentosIcon,
+  Perfil: perfilIcon,
 };
 
 export default function Header() {
@@ -142,7 +144,7 @@ export default function Header() {
         <button
           type="button"
           onClick={() => setMenuOpen((isOpen) => !isOpen)}
-          className="flex w-full items-center justify-between rounded-lg px-3 py-2 font-semibold text-white hover:bg-[#EA580C] lg:hidden"
+          className="flex w-full items-center justify-between rounded-lg px-3 py-2 font-semibold text-white hover:bg-[#EA580C]"
           aria-expanded={menuOpen}
           aria-controls="main-navigation"
         >
@@ -155,7 +157,7 @@ export default function Header() {
         </button>
         <div
           id="main-navigation"
-          className={`${menuOpen ? "flex" : "hidden"} absolute left-0 right-0 top-full z-50 max-h-[60vh] flex-col gap-2 overflow-x-hidden overflow-y-auto bg-linear-to-r from-[#F8821E] to-[#EA580C] p-4 shadow-lg custom-scrollbar lg:static lg:flex lg:max-h-none lg:flex-row lg:overflow-visible lg:bg-transparent lg:p-0 lg:shadow-none`}
+          className={`${menuOpen ? "flex" : "hidden"} absolute left-0 right-0 top-full z-50 max-h-[60vh] flex-col gap-2 overflow-x-hidden overflow-y-auto bg-linear-to-r from-[#F8821E] to-[#EA580C] p-4 shadow-lg custom-scrollbar`}
         >
           {navItems.map((item) => (
             <NavLink key={item} to={routeMap[item]} icon={iconMap[item]} onClick={() => setMenuOpen(false)}>
