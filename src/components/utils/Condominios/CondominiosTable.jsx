@@ -19,7 +19,7 @@ export function CondominiosTable({
   return (
     <div className="w-full overflow-x-auto">
 
-      <div className="max-h-115 overflow-y-auto">
+      <div className="max-h-115 lg:max-h-[calc(100vh-208px)] overflow-y-auto">
 
         <table className="w-full border-separate border-spacing-0 rounded-lg overflow-hidden">
 
