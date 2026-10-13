@@ -1,20 +1,36 @@
 import { useState, useEffect } from "react";
-import api from "../../../provider/api";
+import api, { getAllPages } from "../../../provider/api";
 
 export default function ModalAgendamentoDetalhes({
   agendamento,
   onClose,
+  onEdit,
+  onConfirm,
+  onDelete,
+  onFinalize,
+  onDuplicate,
 }) {
+  const normalizarCargo = (cargo) => String(cargo ?? "").trim().toLowerCase();
+
+  const usuarioPodeGerenciarAgendamento = (cargo) => {
+    const cargoNormalizado = normalizarCargo(cargo);
+    return ["root", "administracao", "administrativo", "admnistrativo"].includes(cargoNormalizado);
+  };
+
   const [condominios, setCondominios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [listaServicos, setListaServicos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  if (!agendamento) return null;
+  const [copiedField, setCopiedField] = useState(null);
 
   const formatDateValue = (value) => {
     if (!value) return "-";
+
+    if (typeof value === "string") {
+      const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+    }
 
     const d = new Date(value);
 
@@ -66,18 +82,30 @@ export default function ModalAgendamentoDetalhes({
     return value ?? "-";
   };
 
+  const copyToClipboard = async (text, fieldName) => {
+    if (!text || text === "-") return;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (err) {
+      console.error("Erro ao copiar para área de transferência:", err);
+    }
+  };
+
   useEffect(() => {
     const buscarDados = async () => {
       try {
         setLoading(true);
         const [condominiosResponse, usuariosResponse, servicosResponse] = await Promise.all([
           api.get("/condominios"),
-          api.get("/usuarios"),
+          getAllPages("/usuarios"),
           api.get("/servicos"),
         ]);
 
         setCondominios(condominiosResponse.data || []);
-        setUsuarios(usuariosResponse.data || []);
+        setUsuarios(usuariosResponse || []);
         setListaServicos(servicosResponse.data || []);
         setLoading(false);
       } catch (err) {
@@ -90,11 +118,41 @@ export default function ModalAgendamentoDetalhes({
     buscarDados();
   }, []);
 
+  if (!agendamento) return null;
+
+  const statusNormalizado = String(agendamento.status || "").trim().toLowerCase();
+  const showActions = usuarioPodeGerenciarAgendamento(sessionStorage.getItem("cargo"));
+  const parseDate = (value) => {
+    if (!value) return null;
+    const date = new Date(String(value).replace(" ", "T"));
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+  const dataFim = parseDate(agendamento.data);
+
+  if (dataFim && agendamento.horaFim) {
+    const [hours, minutes] = String(agendamento.horaFim).split(":").map(Number);
+    dataFim.setHours(hours || 0, minutes || 0, 0, 0);
+  }
+
+  const podeFinalizar = statusNormalizado === "confirmado"
+    && dataFim
+    && new Date() > dataFim;
+
   // Extrai o endereço do condomínio associado
-  const condominio = Array.isArray(agendamento.condominio)
+  const condominioSelecionado = Array.isArray(agendamento.condominio)
     ? agendamento.condominio[0]
     : agendamento.condominio;
-  const endereco = condominio?.endereco || "Endereço não disponível";
+  const condominio = condominioSelecionado && typeof condominioSelecionado === "object"
+    ? condominioSelecionado
+    : condominios.find((item) => String(item.id) === String(condominioSelecionado));
+  const endereco = condominio?.endereco || [
+    condominio?.logradouro ?? condominio?.rua,
+    condominio?.numero,
+    condominio?.bairro,
+    condominio?.cidade,
+  ].filter(Boolean).join(", ");
+  const enderecoDisponivel = Boolean(endereco);
+  const enderecoExibicao = endereco || "Endereço não cadastrado";
 
   const mapsEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(
     endereco
@@ -104,21 +162,43 @@ export default function ModalAgendamentoDetalhes({
     endereco
   )}`;
 
-  const InfoCard = ({ title, value }) => (
+  const InfoCard = ({ title, value, fieldName }) => (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-      <span className="block text-[11px] font-bold uppercase text-gray-500 mb-1 tracking-wide">
-        {title}
-      </span>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <span className="block text-[11px] font-bold uppercase text-gray-500 mb-1 tracking-wide">
+            {title}
+          </span>
 
-      <span className="text-sm text-gray-800 font-medium break-words">
-        {value || "-"}
-      </span>
+          <span className="text-sm text-gray-800 font-medium wrap-break-word">
+            {value || "-"}
+          </span>
+        </div>
+        {value && value !== "-" && (
+          <button
+            type="button"
+            onClick={() => copyToClipboard(value, fieldName)}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200 cursor-pointer"
+            title="Copiar"
+          >
+            {copiedField === fieldName ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            )}
+          </button>
+        )}
+      </div>
     </div>
   );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
 
         {/* HEADER */}
         <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
@@ -126,10 +206,6 @@ export default function ModalAgendamentoDetalhes({
             <h2 className="text-white text-lg font-bold">
               Detalhes do Agendamento
             </h2>
-
-            <p className="text-orange-100 text-xs">
-              Visualização completa do agendamento
-            </p>
           </div>
 
           <button
@@ -148,7 +224,7 @@ export default function ModalAgendamentoDetalhes({
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <span className="text-xs text-gray-500 font-medium">
-                ID do Agendamento
+                ID do Agendamento:
               </span>
 
               <h3 className="text-2xl font-bold text-gray-800">
@@ -178,41 +254,49 @@ export default function ModalAgendamentoDetalhes({
             <InfoCard
               title="Data"
               value={formatDateValue(agendamento.data)}
+              fieldName="data"
             />
 
             <InfoCard
               title="Serviço"
               value={getDisplayValue(agendamento.servico)}
+              fieldName="servico"
             />
 
             <InfoCard
               title="Hora início"
               value={formatTimeValue(agendamento.horaInicio)}
+              fieldName="horaInicio"
             />
 
             <InfoCard
               title="Hora fim"
               value={formatTimeValue(agendamento.horaFim)}
+              fieldName="horaFim"
             />
 
             <InfoCard
               title="Professor"
               value={getDisplayValue(agendamento.professor)}
+              fieldName="professor"
             />
 
             <InfoCard
               title="Rebatedor"
               value={getDisplayValue(agendamento.rebatedor)}
+              fieldName="rebatedor"
             />
 
             <InfoCard
               title="Auxiliar"
               value={getDisplayValue(agendamento.auxiliar)}
+              fieldName="auxiliar"
             />
 
             <InfoCard
               title="Tipo"
               value={agendamento.tipo}
+              fieldName="tipo"
             />
 
           </div>
@@ -225,14 +309,33 @@ export default function ModalAgendamentoDetalhes({
 
             <div className="flex flex-wrap gap-2">
               {(agendamento.alunos || []).length > 0 ? (
-                agendamento.alunos.map((aluno, index) => (
-                  <div
-                    key={index}
-                    className="px-3 py-2 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-700 font-medium"
-                  >
-                    {getDisplayValue(aluno)}
-                  </div>
-                ))
+                agendamento.alunos.map((aluno, index) => {
+                  const alunoNome = getDisplayValue(aluno);
+                  return (
+                    <div
+                      key={index}
+                      className="px-3 py-2 rounded-xl bg-orange-50 border border-orange-200 text-sm text-orange-700 font-medium flex items-center gap-2"
+                    >
+                      <span>{alunoNome}</span>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(alunoNome, `aluno-${index}`)}
+                        className="flex-shrink-0 text-orange-400 hover:text-orange-600 transition p-1 rounded hover:bg-orange-200 cursor-pointer"
+                        title="Copiar"
+                      >
+                        {copiedField === `aluno-${index}` ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })
               ) : (
                 <div className="px-3 py-2 rounded-xl bg-gray-100 text-sm text-gray-600">
                   {getDisplayValue(agendamento.aluno)}
@@ -243,9 +346,29 @@ export default function ModalAgendamentoDetalhes({
 
           {/* OBSERVAÇÃO */}
           <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-            <h4 className="text-sm font-bold text-gray-800 mb-2">
-              Observação
-            </h4>
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h4 className="text-sm font-bold text-gray-800">
+                Observação
+              </h4>
+              {agendamento.observacao && (
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(agendamento.observacao, "observacao")}
+                  className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200 cursor-pointer"
+                  title="Copiar"
+                >
+                  {copiedField === "observacao" ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
+              )}
+            </div>
 
             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
               {agendamento.observacao || "Nenhuma observação cadastrada."}
@@ -268,8 +391,9 @@ export default function ModalAgendamentoDetalhes({
 
               <button
                 type="button"
-                onClick={() => window.open(mapsRedirectUrl, "_blank")}
-                className="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition"
+                onClick={() => enderecoDisponivel && window.open(mapsRedirectUrl, "_blank")}
+                disabled={!enderecoDisponivel}
+                className="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Abrir no Maps
               </button>
@@ -277,32 +401,60 @@ export default function ModalAgendamentoDetalhes({
 
             <div className="mb-4">
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-                <span className="block text-[11px] font-bold uppercase text-gray-500 mb-1 tracking-wide">
-                  Endereço
-                </span>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <span className="block text-[11px] font-bold uppercase text-gray-500 mb-1 tracking-wide">
+                      Endereço
+                    </span>
 
-                <span className="text-sm text-gray-800 font-medium">
-                  {condominio?.logradouro + ", " + condominio?.numero || "Endereço não disponível"}
-                </span>
+                    <span className="text-sm text-gray-800 font-medium">
+                      {enderecoExibicao}
+                    </span>
+                  </div>
+                  {enderecoDisponivel && (
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(enderecoExibicao, "endereco")}
+                      className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-200 cursor-pointer"
+                      title="Copiar"
+                    >
+                      {copiedField === "endereco" ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
-              <iframe
-                title="Mapa"
-                src={mapsEmbedUrl}
-                width="100%"
-                height="300"
-                loading="lazy"
-                allowFullScreen
-                className="border-0"
-              />
-            </div>
+            {!enderecoDisponivel ? (
+              <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                Não foi possível abrir o mapa porque este condomínio não possui um endereço cadastrado.
+              </p>
+            ) : (
+              <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
+                <iframe
+                  title="Mapa"
+                  src={mapsEmbedUrl}
+                  width="100%"
+                  height="300"
+                  loading="lazy"
+                  allowFullScreen
+                  className="border-0"
+                />
+              </div>
+            )}
           </div>
         </div>
 
         {/* FOOTER */}
-        <div className="border-t bg-gray-50 px-5 py-3 flex justify-end">
+        <div className="border-t bg-gray-50 px-5 py-3 flex items-center justify-between gap-3 flex-wrap">
           <button
             type="button"
             onClick={onClose}
@@ -310,6 +462,67 @@ export default function ModalAgendamentoDetalhes({
           >
             Fechar
           </button>
+
+          {showActions && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {statusNormalizado !== "finalizado" && statusNormalizado !== "cancelado" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (showActions) onDelete?.();
+                    }}
+                    className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (showActions) onEdit?.();
+                    }}
+                    className="px-3 py-2 rounded-lg bg-yellow-500 text-white text-sm font-semibold hover:bg-yellow-600 transition"
+                  >
+                    Editar
+                  </button>
+                </>
+              )}
+              
+              <button
+                type="button"
+                onClick={() => {
+                  if (showActions) onDuplicate?.();
+                }}
+                className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition"
+              >
+                Duplicar
+              </button>
+
+              {statusNormalizado === "pendente" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (showActions) onConfirm?.();
+                  }}
+                  className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition"
+                >
+                  Confirmar
+                </button>
+              )}
+
+              {podeFinalizar && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (showActions) onFinalize?.();
+                  }}
+                  className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition"
+                >
+                  Finalizar
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

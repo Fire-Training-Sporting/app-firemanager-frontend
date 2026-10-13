@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logoFire from "../../assets/logo2.png";
 import emailIcon from "../../assets/email.png";
 import lockIcon from "../../assets/lock.png";
@@ -12,6 +12,11 @@ import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
 
 export async function login(email, senha) {
+    // Limpar qualquer token existente antes do login
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("cargo");
+    sessionStorage.removeItem("usuario");
+
     const response = await api.post("/usuarios/login", { email, senha });
     const data = response.data;
 
@@ -50,7 +55,7 @@ export function TelaLogin() {
     return (
         <main className="min-h-screen font-[Montserrat,sans-serif]">
             <section className="grid min-h-screen md:grid-cols-[34%_66%]">
-                <aside className="flex items-center justify-center bg-white px-8 py-16 md:px-8 md:py-12">
+                <aside className="hidden items-center justify-center bg-white px-8 py-16 md:flex md:px-8 md:py-12">
                     <img
                         className="h-auto w-[min(470px,80%)] object-contain md:w-[min(540px,84%)]"
                         src={logoFire}
@@ -103,6 +108,12 @@ export function TelaLogin() {
                             rightAction={() => setShowPassword((prev) => !prev)}
                             inputClassName="w-full rounded-[9px] border-0 bg-[#e6e7ed] py-[0.88rem] pl-11 pr-12 text-base text-[#1f1f1f] outline-none focus:ring-3 focus:ring-white/25"
                         />
+
+                        <div className="mt-2 text-right">
+                            <Link to="/recuperar-senha" className="text-sm font-medium text-white underline underline-offset-2 hover:text-white/80">
+                                Esqueceu sua senha?
+                            </Link>
+                        </div>
 
                         <AlertMessage variant="error" message={erro} className="mt-2 mb-0" />
 

@@ -85,7 +85,6 @@ export default function TelaServicos() {
       <AlertMessage
         variant="success"
         message={sucessoVisivel ? sucessoServico : ""}
-        className="fixed right-4 top-30 z-60 w-[min(420px,calc(100vw-2rem))] shadow-lg"
       />
 
       <div className="bg-white rounded-lg shadow-md border overflow-hidden w-full">

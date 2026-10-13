@@ -9,7 +9,7 @@ export default function TableBase({ columns, data, wrapperClassName = "w-full", 
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-4 py-3 font-semibold text-gray-700 text-md bg-[#F3F4F8] ${col.className || ''}`}
+                  className={`px-4 py-3 font-semibold text-gray-800 text-md bg-gray-200 ${col.className || ''}`}
                   style={col.style}
                 >
                   {col.label}
@@ -19,7 +19,7 @@ export default function TableBase({ columns, data, wrapperClassName = "w-full", 
           </thead>
           <tbody className="bg-white">
             {data.map((row, idx) => (
-              <tr key={row.id || idx} className="border-b border-gray-200 hover:bg-[#F3F4F8] transition-colors duration-150">
+              <tr key={row.id || idx} className="border-b border-gray-200 odd:bg-white even:bg-gray-100 hover:bg-orange-100 transition-colors duration-150">
                 {columns.map((col) => (
                   <td
                     key={col.key}

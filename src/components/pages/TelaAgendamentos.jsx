@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import PageLayout from '../utils/PageLayout';
+import Header from '../utils/Header';
 import SearchFilter from '../utils/SearchFilter';
 import { AgendamentosTable } from '../utils/Agendamentos/AgendamentosTable';
 import ModalScheduling from '../utils/Agendamentos/ModalScheduling';
@@ -7,6 +7,7 @@ import ModalAgendamentoDetalhes from '../utils/Agendamentos/ModalAgendamentoDeta
 import ConfirmationModal from '../utils/ConfirmationModal';
 import AlertMessage from '../utils/AlertMessage';
 import api from "../../provider/api";
+import { getUsuarioLogado, getUsuarioId, getItemId, normalizarCargo, formatarData, formatarHora, getItemName, exibirSucesso, formatarValor } from "../../utils/helpers";
 
 const search_columns = [
   { label: "Aluno", value: "aluno" },
@@ -16,40 +17,6 @@ const search_columns = [
   { label: "Professor", value: "professor" },
   { label: "Status", value: "status" },
 ];
-
-function getUsuarioLogado() {
-  const usuarioString = sessionStorage.getItem("usuario");
-
-  if (!usuarioString) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(usuarioString);
-  } catch {
-    return null;
-  }
-}
-
-function getUsuarioId(usuario) {
-  return sessionStorage.getItem("userId") ?? usuario?.userId ?? usuario?.id ?? null;
-}
-
-function getItemId(value) {
-  if (value == null || value === "") {
-    return null;
-  }
-
-  if (typeof value === "object") {
-    return value.id ?? value.codigo ?? value.value ?? null;
-  }
-
-  return value;
-}
-
-function normalizarCargo(cargo) {
-  return String(cargo ?? "").trim().toLowerCase();
-}
 
 function usuarioPodeVerAgendamento(agendamento, cargo, usuarioId) {
   const cargoNormalizado = normalizarCargo(cargo);
@@ -89,7 +56,10 @@ export default function TelaAgendamentos() {
   const [showModal, setShowModal] = useState(false);
   const [editAgendamento, setEditAgendamento] = useState(null);
   const [agendamentos, setAgendamentos] = useState([]);
-  const [agendamentosOriginais, setAgendamentosOriginais] = useState([]);
+  const [paginaAtual, setPaginaAtual] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [totalAgendamentos, setTotalAgendamentos] = useState(0);
+  const [filtroAtual, setFiltroAtual] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sucessoAgendamento, setSucessoAgendamento] = useState("");
   const [sucessoVisivel, setSucessoVisivel] = useState(false);
@@ -99,26 +69,90 @@ export default function TelaAgendamentos() {
   const [observacaoCancelamento, setObservacaoCancelamento] = useState("");
   const [erroCancelamento, setErroCancelamento] = useState("");
   const [agendamentoParaFinalizar, setAgendamentoParaFinalizar] = useState(null);
+  const [periodoSelecionado, setPeriodoSelecionado] = useState("hoje");
   const usuarioLogado = getUsuarioLogado();
   const cargo = sessionStorage.getItem("cargo");
   const usuarioId = getUsuarioId(usuarioLogado);
 
   useEffect(() => {
-    buscarDados();
+    buscarDados(0, null, periodoSelecionado);
   }, []);
 
-  const buscarDados = async () => {
+  const getDataPorPeriodo = (periodo) => {
+    const hoje = new Date();
+    const dataInicio = new Date(hoje);
+    const dataFim = new Date(hoje);
+
+    const formatarDataLocal = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    switch (periodo) {
+      case "hoje":
+        return { dataInicio: formatarDataLocal(dataInicio), dataFim: formatarDataLocal(dataInicio) };
+      case "amanha":
+        dataInicio.setDate(dataInicio.getDate() + 1);
+        return { dataInicio: formatarDataLocal(dataInicio), dataFim: formatarDataLocal(dataInicio) };
+      case "proximos7dias":
+        dataFim.setDate(dataFim.getDate() + 7);
+        return { dataInicio: formatarDataLocal(dataInicio), dataFim: formatarDataLocal(dataFim) };
+      case "proximos30dias":
+        dataFim.setDate(dataFim.getDate() + 30);
+        return { dataInicio: formatarDataLocal(dataInicio), dataFim: formatarDataLocal(dataFim) };
+      case "todos":
+        return { dataInicio: null, dataFim: null };
+      default:
+        return { dataInicio: null, dataFim: null };
+    }
+  };
+
+  const buscarDados = async (pagina = paginaAtual, filtro = filtroAtual, periodo = periodoSelecionado) => {
     try {
       setIsLoading(true);
-      const response = await api.get("/agendamentos");
+      const params = new URLSearchParams();
+
+      // Ordenação: decrescente por data quando é "todos", caso contrário crescente
+      if (periodo === "todos") {
+        params.set("sort", "data,desc");
+      } else {
+        params.set("sort", "data,asc");
+      }
+
+      params.set("page", String(pagina));
+      params.set("size", "20");
+
+      if (filtro?.value) {
+        params.set("campo", filtro.field);
+        params.set("busca", filtro.value);
+      }
+
+      const { dataInicio, dataFim } = getDataPorPeriodo(periodo);
+      if (dataInicio) params.set("dataInicio", dataInicio);
+      if (dataFim) params.set("dataFim", dataFim);
+
+      const response = await api.get("/agendamentos", { params });
+      const paginaResponse = response.data;
+      const listaAgendamentos = paginaResponse?.content || [];
+      const totalPaginasResposta = Number(paginaResponse?.totalPages) || 0;
+      const ultimaPagina = Math.max(0, totalPaginasResposta - 1);
+
+      if (pagina > ultimaPagina) {
+        await buscarDados(ultimaPagina, filtro);
+        return;
+      }
+
       const agendamentosPermitidos = filtrarAgendamentosPorCargo(
-        response.data,
+        listaAgendamentos,
         cargo,
         usuarioId
       );
-
       setAgendamentos(agendamentosPermitidos);
-      setAgendamentosOriginais(agendamentosPermitidos);
+      setPaginaAtual(Number(paginaResponse?.page) || 0);
+      setTotalPaginas(totalPaginasResposta);
+      setTotalAgendamentos(paginaResponse?.totalElements ?? listaAgendamentos.length);
     } catch (error) {
       console.error("Erro ao buscar agendamentos:", error);
     } finally {
@@ -126,42 +160,18 @@ export default function TelaAgendamentos() {
     }
   };
 
-  const filtrarAgendamentos = async ({ field, value }) => {
-    try {
-      setIsLoading(true);
+  const filtrarAgendamentos = ({ field, value }) => {
+    const filtro = value.trim() ? { field, value: value.trim() } : null;
+    setFiltroAtual(filtro);
+    return buscarDados(0, filtro);
+  };
 
-      if (!value.trim()) {
-        setAgendamentos(agendamentosOriginais);
-        return;
-      }
+  const mudarPagina = (pagina) => {
+    return buscarDados(pagina, filtroAtual);
+  };
 
-      // Filtro local para melhor performance
-      const filtrados = agendamentosOriginais.filter((agendamento) => {
-        const fieldValue = agendamento[field];
-        let compareValue = value.toLowerCase();
-
-        // Converter valor do campo para string para comparação
-        let fieldString = "";
-
-        if (typeof fieldValue === "object" && fieldValue !== null) {
-          fieldString = fieldValue.nome ? fieldValue.nome.toLowerCase() : "";
-        } else if (typeof fieldValue === "string") {
-          fieldString = fieldValue.toLowerCase();
-        } else if (typeof fieldValue === "number") {
-          fieldString = fieldValue.toString().toLowerCase();
-        } else if (fieldValue instanceof Date) {
-          fieldString = fieldValue.toLocaleDateString("pt-BR").toLowerCase();
-        }
-
-        return fieldString.includes(compareValue);
-      });
-
-      setAgendamentos(filtrados);
-    } catch (error) {
-      console.error("Erro ao filtrar agendamentos:", error);
-    } finally {
-      setIsLoading(false);
-    }
+  const atualizarDados = () => {
+    return buscarDados(paginaAtual, filtroAtual);
   };
 
   const adicionarDados = () => {
@@ -169,76 +179,27 @@ export default function TelaAgendamentos() {
     setShowModal(true);
   };
 
-  const extrairId = (value) => {
-    if (value == null || value === "") {
-      return "";
-    }
-
-    if (typeof value === "object") {
-      return String(value.id ?? value.codigo ?? value.value ?? "");
-    }
-
-    return String(value);
-  };
-
-  const extrairNome = (value) => {
-    if (value == null || value === "") {
-      return "";
-    }
-
-    if (typeof value === "object") {
-      return value.nome ?? value.descricao ?? value.razaoSocial ?? value.titulo ?? "";
-    }
-
-    return String(value);
-  };
-
-  const formatarData = (valor) => {
-    if (!valor) {
-      return "";
-    }
-
-    if (typeof valor === "string") {
-      return valor.slice(0, 10);
-    }
-
-    if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
-      return valor.toISOString().slice(0, 10);
-    }
-
-    return String(valor).slice(0, 10);
-  };
-
-  const formatarHora = (valor) => {
-    if (!valor) {
-      return "";
-    }
-
-    return String(valor).slice(0, 5);
-  };
-
   const visualizarDetalhes = (agendamento) => {
     setAgendamentoDetalhes(agendamento);
   };
 
-  const exibirSucesso = (mensagem) => {
-    setSucessoAgendamento(mensagem);
-    setSucessoVisivel(true);
-
-    window.clearTimeout(exibirSucesso.timeoutId);
-    exibirSucesso.timeoutId = window.setTimeout(() => {
-      setSucessoAgendamento("");
-      setSucessoVisivel(false);
-    }, 7000);
-  };
+  const exibirSucessoLocal = exibirSucesso(setSucessoAgendamento, setSucessoVisivel);
 
   const handleAgendamentoSalvo = (acao = "created") => {
-    exibirSucesso(
+    exibirSucessoLocal(
       acao === "updated"
         ? "Agendamento atualizado com sucesso"
-        : "Agendamento cadastrado com sucesso"
+        : acao === "recorrente"
+          ? "Agendamentos recorrentes criados com sucesso"
+          : "Agendamento cadastrado com sucesso"
     );
-    buscarDados();
+    atualizarDados();
+  };
+
+  const mudarPeriodo = (periodo) => {
+    setPeriodoSelecionado(periodo);
+    setPaginaAtual(0);
+    return buscarDados(0, filtroAtual, periodo);
   };
 
   const normalizarAgendamentoParaModal = (agendamento) => ({
@@ -246,29 +207,40 @@ export default function TelaAgendamentos() {
     data: formatarData(agendamento?.data),
     horaInicio: formatarHora(agendamento?.horaInicio),
     horaFim: formatarHora(agendamento?.horaFim),
-    condominio: extrairId(agendamento?.condominio),
-    aluno: extrairId(agendamento?.aluno),
+    condominio: getItemId(agendamento?.condominio) || agendamento?.condominio?.nome || "",
+    aluno: getItemId(agendamento?.aluno),
     alunos: agendamento?.alunos || [],
-    servico: extrairId(agendamento?.servico),
-    professor: extrairId(agendamento?.professor),
-    rebatedor: extrairId(agendamento?.rebatedor),
-    auxiliar: extrairId(agendamento?.auxiliar),
+    servico: getItemId(agendamento?.servico),
+    professor: getItemId(agendamento?.professor),
+    rebatedor: getItemId(agendamento?.rebatedor),
+    auxiliar: getItemId(agendamento?.auxiliar),
     observacao: agendamento?.observacao || "",
     nomes: {
-      condominio: extrairNome(agendamento?.condominio),
-      aluno: extrairNome(agendamento?.aluno),
+      condominio: getItemName(agendamento?.condominio),
+      aluno: getItemName(agendamento?.aluno),
       alunos: Array.isArray(agendamento?.alunos)
-        ? agendamento.alunos.map((item) => extrairNome(item))
+        ? agendamento.alunos.map((item) => getItemName(item))
         : [],
-      servico: extrairNome(agendamento?.servico),
-      professor: extrairNome(agendamento?.professor),
-      rebatedor: extrairNome(agendamento?.rebatedor),
-      auxiliar: extrairNome(agendamento?.auxiliar),
+      servico: getItemName(agendamento?.servico),
+      professor: getItemName(agendamento?.professor),
+      rebatedor: getItemName(agendamento?.rebatedor),
+      auxiliar: getItemName(agendamento?.auxiliar),
     },
   });
 
   const editarDados = (agendamento) => {
     setEditAgendamento(normalizarAgendamentoParaModal(agendamento));
+    setShowModal(true);
+  };
+
+  const duplicarAgendamento = (agendamento) => {
+    const agendamentoNormalizado = normalizarAgendamentoParaModal(agendamento);
+    // Remove o ID para criar um novo agendamento
+    const agendamentoDuplicado = {
+      ...agendamentoNormalizado,
+      id: null,
+    };
+    setEditAgendamento(agendamentoDuplicado);
     setShowModal(true);
   };
 
@@ -308,9 +280,9 @@ export default function TelaAgendamentos() {
         observacao: agendamentoParaConfirmar.observacao || "",
       });
 
-      exibirSucesso("Agendamento confirmado com sucesso");
+      exibirSucessoLocal("Agendamento confirmado com sucesso");
       setAgendamentoParaConfirmar(null);
-      await buscarDados();
+      await atualizarDados();
     } catch (error) {
       console.error("Erro ao confirmar agendamento:", error);
       window.alert("Não foi possível confirmar o agendamento. Tente novamente.");
@@ -335,11 +307,11 @@ export default function TelaAgendamentos() {
         observacao,
       });
 
-      exibirSucesso("Agendamento cancelado com sucesso");
+      exibirSucessoLocal("Agendamento cancelado com sucesso");
       setAgendamentoParaCancelar(null);
       setObservacaoCancelamento("");
       setErroCancelamento("");
-      await buscarDados();
+      await atualizarDados();
     } catch (error) {
       console.error("Erro ao cancelar agendamento:", error);
       window.alert("Não foi possível cancelar o agendamento. Tente novamente.");
@@ -360,9 +332,9 @@ export default function TelaAgendamentos() {
         observacao: agendamentoParaFinalizar.observacao || "",
       });
 
-      exibirSucesso("Agendamento finalizado com sucesso");
+      exibirSucessoLocal("Agendamento finalizado com sucesso");
       setAgendamentoParaFinalizar(null);
-      await buscarDados();
+      await atualizarDados();
     } catch (error) {
       console.error("Erro ao finalizar agendamento:", error);
       window.alert("Não foi possível finalizar o agendamento. Tente novamente.");
@@ -371,58 +343,105 @@ export default function TelaAgendamentos() {
     }
   };
 
-  const formatarValor = (valor) => {
-    if (Array.isArray(valor)) {
-      return valor
-        .map((item) => {
-          if (item && typeof item === "object") {
-            return item.nome ?? item.nomeCompleto ?? item.descricao ?? item.titulo ?? item.razaoSocial ?? item.aluno?.nome ?? "-";
-          }
-          return item ?? "-";
-        })
-        .filter((item) => item !== "-")
-        .join(", ") || "-";
-    }
-
-    if (valor && typeof valor === "object") {
-      return valor.nome ?? valor.nomeCompleto ?? valor.descricao ?? valor.titulo ?? valor.razaoSocial ?? valor.aluno?.nome ?? "-";
-    }
-
-    return valor ?? "-";
-  };
-
   return (
     <div className={showModal ? "modal-open" : ""}>
-      <PageLayout
-      title="Agendamentos"
-      searchPlaceholder="Pesquisar agendamento..."
-      onSearch={buscarDados}
-      onAdd={adicionarDados}
-      addLabel="Agendar serviço"
-      customControls={
-        <SearchFilter
-          columns={search_columns}
-          onSearch={filtrarAgendamentos}
-          isLoading={isLoading}
-        />
-      }
-    >
-      <AlertMessage
-        variant="success"
-        message={sucessoVisivel ? sucessoAgendamento : ""}
-        className="fixed right-4 top-30 z-60 w-[min(420px,calc(100vw-2rem))] shadow-lg"
-      />
+      <Header />
+      <main className="flex-1 w-full bg-[#FAFAFA] flex flex-col items-center justify-start overflow-auto">
+        <div className="w-full max-w-7xl flex-1 min-h-0 flex flex-col mt-5 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-[#23272F] mb-5 sm:mb-6">Agendamentos</h1>
 
-      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-        <AgendamentosTable
-          agendamentos={agendamentos}
-          onEdit={editarDados}
-          onConfirm={solicitarConfirmacao}
-          onDelete={solicitarCancelamento}
-          onFinalize={solicitarFinalizacao}
-          onViewDetails={visualizarDetalhes}
-        />
-      </div>
+          {/* TOP CONTAINER - Pesquisa */}
+          <div className="top-container mb-4">
+            <SearchFilter
+              columns={search_columns}
+              onSearch={filtrarAgendamentos}
+              isLoading={isLoading}
+            />
+          </div>
+
+          {/* BOTTOM CONTAINER - Abas + Botão Agendar */}
+          <div className="bottom-container flex flex-col sm:flex-row gap-3 mb-4 items-start sm:items-center justify-between">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => mudarPeriodo("hoje")}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition ${
+                  periodoSelecionado === "hoje"
+                    ? "bg-[#F8821E] text-white"
+                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                Hoje
+              </button>
+              <button
+                onClick={() => mudarPeriodo("amanha")}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition ${
+                  periodoSelecionado === "amanha"
+                    ? "bg-[#F8821E] text-white"
+                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                Amanhã
+              </button>
+              <button
+                onClick={() => mudarPeriodo("proximos7dias")}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition ${
+                  periodoSelecionado === "proximos7dias"
+                    ? "bg-[#F8821E] text-white"
+                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                Próximos 7 dias
+              </button>
+              <button
+                onClick={() => mudarPeriodo("proximos30dias")}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition ${
+                  periodoSelecionado === "proximos30dias"
+                    ? "bg-[#F8821E] text-white"
+                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                Próximos 30 dias
+              </button>
+              <button
+                onClick={() => mudarPeriodo("todos")}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition ${
+                  periodoSelecionado === "todos"
+                    ? "bg-[#F8821E] text-white"
+                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                Todos
+              </button>
+            </div>
+
+            {(cargo === "root" || cargo === "Administracao") && (
+              <button
+                className="bg-[#2563EA] hover:bg-[#1E40AF] text-white px-6 py-2 rounded-md font-semibold shadow-md transition-all duration-150"
+                onClick={adicionarDados}
+              >
+                Agendar serviço
+              </button>
+            )}
+          </div>
+
+          <AlertMessage
+            variant="success"
+            message={sucessoVisivel ? sucessoAgendamento : ""}
+          />
+
+          <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+            <AgendamentosTable
+              agendamentos={agendamentos}
+              onViewDetails={visualizarDetalhes}
+              currentPage={paginaAtual}
+              totalPages={totalPaginas}
+              totalElements={totalAgendamentos}
+              isLoading={isLoading}
+              onPageChange={mudarPagina}
+            />
+          </div>
+        </div>
+      </main>
 
       {showModal && (
         <ModalScheduling
@@ -436,6 +455,26 @@ export default function TelaAgendamentos() {
         <ModalAgendamentoDetalhes
           agendamento={agendamentoDetalhes}
           onClose={() => setAgendamentoDetalhes(null)}
+          onEdit={() => {
+            setAgendamentoDetalhes(null);
+            editarDados(agendamentoDetalhes);
+          }}
+          onConfirm={() => {
+            setAgendamentoDetalhes(null);
+            solicitarConfirmacao(agendamentoDetalhes);
+          }}
+          onDelete={() => {
+            setAgendamentoDetalhes(null);
+            solicitarCancelamento(agendamentoDetalhes.id);
+          }}
+          onFinalize={() => {
+            setAgendamentoDetalhes(null);
+            solicitarFinalizacao(agendamentoDetalhes);
+          }}
+          onDuplicate={() => {
+            setAgendamentoDetalhes(null);
+            duplicarAgendamento(agendamentoDetalhes);
+          }}
         />
       )}
 
@@ -522,7 +561,6 @@ export default function TelaAgendamentos() {
         onCancel={cancelarFinalizacao}
         onConfirm={confirmarFinalizacao}
       />
-    </PageLayout>
-  </div>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import api from "../../../provider/api";
+import api, { getAllPages } from "../../../provider/api";
 import { useEffect, useState } from "react";
 
 import { Bar } from "react-chartjs-2";
@@ -28,10 +28,22 @@ ChartJS.register(
 
 export function Dashboard() {
 
+    const normalizarStatus = (status) => String(status ?? "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    const obterDataCriacao = (usuario) => usuario?.criadoEm
+        ?? usuario?.createdAt
+        ?? usuario?.dataCriacao
+        ?? usuario?.dataCadastro;
+
     const [usuarios, setUsuarios] = useState([]);
     const [condominios, setCondominios] = useState([]);
     const [agendamentos, setAgendamentos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [erro, setErro] = useState("");
 
     const [dataInicio, setDataInicio] = useState("");
     const [dataFim, setDataFim] = useState("");
@@ -51,18 +63,19 @@ export function Dashboard() {
                 responseCondominios,
                 responseAgendamentos
             ] = await Promise.all([
-                api.get("/usuarios"),
+                getAllPages("/usuarios"),
                 api.get("/condominios"),
-                api.get("/agendamentos")
+                getAllPages("/agendamentos")
             ]);
 
-            setUsuarios(responseUsuarios.data);
+            setUsuarios(responseUsuarios);
             setCondominios(responseCondominios.data);
-            setAgendamentos(responseAgendamentos.data);
+            setAgendamentos(responseAgendamentos);
 
         } catch (error) {
 
             console.error("Erro ao buscar dados:", error);
+            setErro("Não foi possível carregar os dados do dashboard.");
 
         } finally {
 
@@ -77,7 +90,7 @@ export function Dashboard() {
             return true;
         }
 
-        const dataCriacao = new Date(usuario.criadoEm);
+        const dataCriacao = new Date(obterDataCriacao(usuario));
 
         if (dataInicio && dataCriacao < new Date(dataInicio)) {
             return false;
@@ -90,42 +103,19 @@ export function Dashboard() {
         return true;
     });
 
+    const agendamentosFiltrados = agendamentos.filter((agendamento) => {
+        const dataAgendamento = String(agendamento.data || agendamento.criadoEm || "").slice(0, 10);
+
+        if (dataInicio && dataAgendamento < dataInicio) return false;
+        if (dataFim && dataAgendamento > dataFim) return false;
+
+        return true;
+    });
+
     const alunos = usuariosFiltrados.filter(
         (usuario) =>
             usuario.tipoUsuario?.cargo?.toLowerCase() === "aluno"
     );
-
-    const funcionarios = usuariosFiltrados.filter(
-        (usuario) =>
-            ["professor", "rebatedor", "auxiliar"].includes(
-                usuario.tipoUsuario?.cargo?.toLowerCase()
-            )
-    );
-
-    const administradores = usuariosFiltrados.filter(
-        (usuario) =>
-            ["adm", "root"].includes(
-                usuario.tipoUsuario?.cargo?.toLowerCase()
-            )
-    );
-
-    const chartOptions = {
-        responsive: true,
-        plugins: {
-            legend: { display: false }
-        },
-        scales: {
-            x: {
-                ticks: { color: "#fff" }
-            },
-            y: {
-                ticks: { color: "#fff" }
-            }
-        }
-    };
-
-    const concluidosData = [60, 50, 80, 90, 110, 120];
-    const canceladosData = [20, 15, 10, 20, 15, 20];
 
     const chartOptionsAtualizado = {
         responsive: true,
@@ -155,27 +145,6 @@ export function Dashboard() {
     const inicioMesPassado = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
     const fimMesPassado = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
 
-    const alunosMesAtual = usuarios.filter((u) => {
-        const data = new Date(u.criadoEm);
-        return data >= inicioMesAtual;
-    });
-
-    const alunosMesPassado = usuarios.filter((u) => {
-        const data = new Date(u.criadoEm);
-        return data >= inicioMesPassado && data <= fimMesPassado;
-    });
-
-    const atual = alunosMesAtual.length;
-    const anterior = alunosMesPassado.length;
-
-    let percentual = 0;
-
-    if (anterior === 0) {
-        percentual = atual > 0 ? 100 : 0;
-    } else {
-        percentual = ((atual - anterior) / anterior) * 100;
-    }
-
     // AGENDAMENTOS
     const agendamentosMesAtual = agendamentos.filter((a) => {
         const data = new Date(a.criadoEm);
@@ -201,14 +170,14 @@ export function Dashboard() {
     const crescimentoAg = percentualAg.toFixed(1);
     const isPositivoAg = percentualAg >= 0;
 
-    const totalAgendamentos = agendamentos.length;
+    const totalAgendamentos = agendamentosFiltrados.length;
 
-    const concluidos = agendamentos.filter(
-        (a) => a.status?.toLowerCase() === "concluido"
+    const concluidos = agendamentosFiltrados.filter(
+        (a) => ["concluido", "finalizado"].includes(normalizarStatus(a.status))
     ).length;
 
-    const cancelados = agendamentos.filter(
-        (a) => a.status?.toLowerCase() === "cancelado"
+    const cancelados = agendamentosFiltrados.filter(
+        (a) => normalizarStatus(a.status) === "cancelado"
     ).length;
 
     let taxaConclusao = 0;
@@ -242,7 +211,7 @@ export function Dashboard() {
     const concluidosPorMes = Array(6).fill(0);
     const canceladosPorMes = Array(6).fill(0);
 
-    agendamentos.forEach((a) => {
+    agendamentosFiltrados.forEach((a) => {
         const data = new Date(a.criadoEm);
 
         ultimos6Meses.forEach((m, index) => {
@@ -250,11 +219,11 @@ export function Dashboard() {
                 data.getMonth() === m.mes &&
                 data.getFullYear() === m.ano
             ) {
-                if (a.status?.toLowerCase() === "concluido") {
+                if (["concluido", "finalizado"].includes(normalizarStatus(a.status))) {
                     concluidosPorMes[index]++;
                 }
 
-                if (a.status?.toLowerCase() === "cancelado") {
+                if (normalizarStatus(a.status) === "cancelado") {
                     canceladosPorMes[index]++;
                 }
             }
@@ -283,21 +252,42 @@ export function Dashboard() {
 
     const contagemPorCondominio = {};
 
-    agendamentos.forEach((a) => {
-        const condominioId =
-            a.condominio?.id || a.condominioId;
+    const normalizarChave = (valor) => String(valor ?? "")
+        .trim()
+        .toLowerCase();
 
-        if (!condominioId) return;
+    const extrairIdentificador = (valor) => {
+        if (valor == null || valor === "") return "";
+        if (typeof valor === "object") {
+            return String(valor.id ?? valor.codigo ?? valor.value ?? valor._id ?? "");
+        }
+        return String(valor);
+    };
 
-        contagemPorCondominio[condominioId] =
-            (contagemPorCondominio[condominioId] || 0) + 1;
+    agendamentosFiltrados.forEach((a) => {
+        const condominioRelacionamento = a.condominio
+            ?? a.condominioId
+            ?? a.fk_condominio
+            ?? a.fkCondominio;
+        const condominioId = extrairIdentificador(condominioRelacionamento);
+        const condominioNome = typeof condominioRelacionamento === "object"
+            ? condominioRelacionamento.nome
+            : condominioRelacionamento;
+        const chave = condominioId || normalizarChave(condominioNome);
+
+        if (!chave) return;
+
+        contagemPorCondominio[chave] =
+            (contagemPorCondominio[chave] || 0) + 1;
     });
 
     const condominiosDestaque = condominios
         .map((c) => ({
             id: c.id,
             nome: c.nome,
-            valor: contagemPorCondominio[c.id] || 0
+            valor: contagemPorCondominio[extrairIdentificador(c.id)]
+                || contagemPorCondominio[normalizarChave(c.nome)]
+                || 0
         }))
         .sort((a, b) => b.valor - a.valor)
         .slice(0, 5);
@@ -314,7 +304,7 @@ export function Dashboard() {
 
     const aulasPorProfessor = {};
 
-    agendamentos.forEach((a) => {
+    agendamentosFiltrados.forEach((a) => {
         const professorId = a.professor?.id || a.professorId;
 
         if (!professorId) return;
@@ -339,27 +329,63 @@ export function Dashboard() {
         .slice(0, 5);
 
     const agendamentosPorAluno = {};
+    const agendamentosAvaliados = agendamentosFiltrados.filter((agendamento) =>
+        ["concluido", "finalizado", "cancelado"].includes(normalizarStatus(agendamento.status))
+    );
 
-    agendamentos.forEach((a) => {
-        const alunoId = a.aluno?.id || a.usuarioId;
+    agendamentosAvaliados.forEach((a) => {
+        const status = normalizarStatus(a.status);
+        const participantes = [
+            ...(Array.isArray(a.alunos) ? a.alunos : []),
+            a.aluno ?? a.usuarioId,
+        ];
+        const alunosDoAgendamento = new Set(
+            participantes
+                .map((participante) => extrairIdentificador(participante))
+                .filter(Boolean)
+        );
 
-        if (!alunoId) return;
+        alunosDoAgendamento.forEach((alunoId) => {
+            if (!agendamentosPorAluno[alunoId]) {
+                agendamentosPorAluno[alunoId] = {
+                    finalizados: 0,
+                    cancelados: 0,
+                };
+            }
 
-        agendamentosPorAluno[alunoId] =
-            (agendamentosPorAluno[alunoId] || 0) + 1;
+            if (["concluido", "finalizado"].includes(status)) {
+                agendamentosPorAluno[alunoId].finalizados += 1;
+            } else {
+                agendamentosPorAluno[alunoId].cancelados += 1;
+            }
+        });
     });
 
     const alunosRanking = usuariosFiltrados
         .filter((u) => u.tipoUsuario?.cargo?.toLowerCase() === "aluno")
-        .map((a) => ({
-            id: a.id,
-            nome: a.nome,
-            frequencia: totalAgendamentos > 0
-                ? ((agendamentosPorAluno[a.id] || 0) / totalAgendamentos * 100).toFixed(1) + "%"
-                : "0%",
-            agendamentos: agendamentosPorAluno[a.id] || 0
-        }))
-        .sort((a, b) => b.agendamentos - a.agendamentos)
+        .map((a) => {
+            const contagem = agendamentosPorAluno[extrairIdentificador(a.id)] || {
+                finalizados: 0,
+                cancelados: 0,
+            };
+            const totalAvaliados = contagem.finalizados + contagem.cancelados;
+            const frequenciaPercentual = totalAvaliados > 0
+                ? (contagem.finalizados / totalAvaliados) * 100
+                : 0;
+
+            return {
+                id: a.id,
+                nome: a.nome,
+                frequencia: `${frequenciaPercentual.toFixed(1)}%`,
+                frequenciaPercentual,
+                finalizados: contagem.finalizados,
+                cancelados: contagem.cancelados,
+                agendamentos: contagem.finalizados,
+            };
+        })
+        .sort((a, b) => b.frequenciaPercentual - a.frequenciaPercentual
+            || b.finalizados - a.finalizados
+            || b.agendamentos - a.agendamentos)
         .slice(0, 5);
 
     function limparFiltro() {
@@ -367,29 +393,31 @@ export function Dashboard() {
         setDataFim("");
     }
 
-    const inicio = dataInicio ? new Date(dataInicio) : null;
-    const fim = dataFim ? new Date(dataFim) : null;
+    const inicio = dataInicio ? new Date(`${dataInicio}T00:00:00`) : null;
+    const fim = dataFim ? new Date(`${dataFim}T23:59:59.999`) : null;
 
-    const inicioAtual = inicio || new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-    const fimAtual = fim || hoje;
-
-    const diferencaDias =
-        (fimAtual - inicioAtual) / (1000 * 60 * 60 * 24);
-
-    const inicioAnterior = new Date(inicioAtual);
-    inicioAnterior.setDate(inicioAnterior.getDate() - diferencaDias);
+    const inicioAtual = inicio || inicioMesAtual;
+    const fimAtual = fim || new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
+    const duracaoDias = Math.round((fimAtual - inicioAtual) / (1000 * 60 * 60 * 24)) + 1;
 
     const fimAnterior = new Date(inicioAtual);
     fimAnterior.setDate(fimAnterior.getDate() - 1);
+    fimAnterior.setHours(23, 59, 59, 999);
+
+    const inicioAnterior = new Date(fimAnterior);
+    inicioAnterior.setDate(inicioAnterior.getDate() - duracaoDias + 1);
+    inicioAnterior.setHours(0, 0, 0, 0);
 
     const alunosPeriodoAtual = usuarios.filter((u) => {
-        const data = new Date(u.criadoEm);
-        return data >= inicioAtual && data <= fimAtual;
+        const data = new Date(obterDataCriacao(u));
+        const cargo = String(u.tipoUsuario?.cargo ?? "").trim().toLowerCase();
+        return cargo === "aluno" && data >= inicioAtual && data <= fimAtual;
     });
 
     const alunosPeriodoAnterior = usuarios.filter((u) => {
-        const data = new Date(u.criadoEm);
-        return data >= inicioAnterior && data <= fimAnterior;
+        const data = new Date(obterDataCriacao(u));
+        const cargo = String(u.tipoUsuario?.cargo ?? "").trim().toLowerCase();
+        return cargo === "aluno" && data >= inicioAnterior && data <= fimAnterior;
     });
 
     const atualAlunos = alunosPeriodoAtual.length;
@@ -407,25 +435,20 @@ export function Dashboard() {
     const crescimentoAlunos = percentualAlunos.toFixed(1);
     const isPositivo = percentualAlunos >= 0;
 
-    const agendamentosPeriodoAtual = agendamentos.filter((a) => {
-        const data = new Date(a.criadoEm);
-        return data >= inicioAtual && data <= fimAtual;
-    });
-
-    const agendamentosPeriodoAnterior = agendamentos.filter((a) => {
-        const data = new Date(a.criadoEm);
-        return data >= inicioAnterior && data <= fimAnterior;
-    });
-
-    if (anteriorAg === 0) {
-        percentualAg = atualAg > 0 ? 100 : 0;
-    } else {
-        percentualAg =
-            ((atualAg - anteriorAg) / anteriorAg) * 100;
-    }
-
     return (
         <div className="min-h-screen bg-[#f1f5f9] px-4 py-4 text-slate-900">
+
+            {erro && (
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {erro}
+                </div>
+            )}
+
+            {loading && (
+                <div className="mb-4 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-700">
+                    Carregando dados do dashboard...
+                </div>
+            )}
 
             <h1 className="text-4xl font-black tracking-tight mb-6">
                 Dashboard administrativa
@@ -451,15 +474,16 @@ export function Dashboard() {
                 </div>
 
                 <div className="
-            flex items-center gap-3
+            flex w-full min-w-0 max-w-full flex-col gap-3
             bg-white
             border border-slate-200
             rounded-2xl
             px-4 py-3
             shadow-sm
+            md:flex-row md:items-center
             ">
 
-                    <div className="flex flex-col">
+                    <div className="flex min-w-0 flex-1 flex-col">
                         <label className="text-xs text-slate-400 font-medium mb-1">
                             Data inicial
                         </label>
@@ -472,13 +496,14 @@ export function Dashboard() {
     text-sm
     bg-transparent
     text-slate-700
+    w-full min-w-0
     "
                         />
                     </div>
 
-                    <div className="h-10 w-px bg-slate-200" />
+                    <div className="h-px w-full bg-slate-200 md:h-10 md:w-px" />
 
-                    <div className="flex flex-col">
+                    <div className="flex min-w-0 flex-1 flex-col">
                         <label className="text-xs text-slate-400 font-medium mb-1">
                             Data final
                         </label>
@@ -492,12 +517,22 @@ export function Dashboard() {
     text-sm
     bg-transparent
     text-slate-700
+    w-full min-w-0
     "
                         />
                     </div>
 
-                    <button className="
-                ml-2
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (dataInicio && dataFim && dataInicio > dataFim) {
+                                setErro("A data inicial não pode ser maior que a data final.");
+                                return;
+                            }
+                            setErro("");
+                        }}
+                        className="
+                w-full
                 rounded-xl
                 bg-orange-500
                 px-4 py-2
@@ -505,13 +540,16 @@ export function Dashboard() {
                 text-white
                 transition-all duration-300
                 hover:bg-orange-600
-                ">
+                md:ml-2 md:w-auto
+                "
+                    >
                         Filtrar
                     </button>
                     <button
+                        type="button"
                         onClick={limparFiltro}
                         className="
-        ml-2
+        w-full
         rounded-xl
         bg-slate-200
         px-4 py-2
@@ -519,6 +557,7 @@ export function Dashboard() {
         text-slate-700
         transition-all duration-300
         hover:bg-slate-300
+        md:ml-2 md:w-auto
     "
                     >
                         Limpar
@@ -527,7 +566,7 @@ export function Dashboard() {
             </div>
 
             {/* TOP CARDS */}
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch">
 
                 {/* CARD 1 */}
                 <div className="
@@ -546,17 +585,17 @@ export function Dashboard() {
 
                     <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-orange-100 opacity-60" />
 
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.25em] text-slate-400 font-medium">
+                    <div className="relative z-10">
+                        <p className="text-[9px] uppercase tracking-[0.1em] text-slate-400 font-medium sm:text-[10px] sm:tracking-[0.25em]">
                             TOTAL DE ALUNOS
                         </p>
 
-                        <h2 className="mt-4 text-5xl font-black tracking-tight text-slate-900">
+                        <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900 sm:mt-4 sm:text-4xl">
                             {alunos.length}
                         </h2>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="relative z-10 flex items-center gap-2">
                         <span className={`
             rounded-full px-3 py-1 text-xs font-semibold
             ${isPositivo
@@ -567,7 +606,7 @@ export function Dashboard() {
                             {isPositivo ? "+" : ""}{crescimentoAlunos}%
                         </span>
 
-                        <span className="text-xs text-slate-500">
+                        <span className="text-[10px] text-slate-500 sm:text-xs">
                             comparado ao mês passado
                         </span>
                     </div>
@@ -588,30 +627,32 @@ export function Dashboard() {
     hover:shadow-xl
 ">
 
-                    <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-orange-100 opacity-50 blur-2xl" />
+                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-orange-100 opacity-60" />
 
-                    <div>
+                    <div className="relative z-10">
                         <p className="
-            text-xs uppercase
-            tracking-[0.25em]
+            text-[9px] uppercase
+            tracking-[0.1em]
             text-slate-400
             font-medium
+            sm:text-[10px] sm:tracking-[0.25em]
         ">
                             TOTAL DE AGENDAMENTOS
                         </p>
 
                         <h2 className="
-            mt-4
-            text-5xl
+            mt-3
+            text-3xl
             font-black
             tracking-tight
             text-slate-900
+            sm:mt-4 sm:text-4xl
         ">
                             {agendamentos.length}
                         </h2>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="relative z-10 flex items-center gap-2">
                         <span className={`
             rounded-full
             px-3 py-1
@@ -624,7 +665,7 @@ export function Dashboard() {
                             {isPositivoAg ? "+" : ""}{crescimentoAg}%
                         </span>
 
-                        <span className="text-xs text-slate-500">
+                        <span className="text-[10px] text-slate-500 sm:text-xs">
                             comparado ao mês passado
                         </span>
                     </div>
@@ -645,14 +686,14 @@ export function Dashboard() {
     hover:shadow-xl
 ">
 
-                    <div className="absolute -right-6 -bottom-6 h-24 w-24 rounded-full bg-orange-100 opacity-60" />
+                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-orange-100 opacity-60" />
 
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.25em] text-slate-400 font-medium">
+                    <div className="relative z-10">
+                        <p className="text-[9px] uppercase tracking-[0.1em] text-slate-400 font-medium sm:text-[10px] sm:tracking-[0.25em]">
                             TAXA DE CONCLUSÃO
                         </p>
 
-                        <div className="flex items-center gap-4 mt-4">
+                        <div className="flex items-center gap-3 mt-3 sm:mt-4 sm:gap-4">
 
                             <div className="
                 flex h-16 w-16
@@ -667,7 +708,7 @@ export function Dashboard() {
                             </div>
 
                             <div>
-                                <h3 className="text-xl font-bold text-slate-900">
+                                <h3 className="text-lg font-bold text-slate-900 sm:text-xl">
                                     Conclusão
                                 </h3>
 
@@ -678,7 +719,7 @@ export function Dashboard() {
                         </div>
                     </div>
 
-                    <div>
+                    <div className="relative z-10">
                         <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
                             <span>Meta</span>
                             <span>85%</span>
@@ -708,14 +749,14 @@ export function Dashboard() {
     hover:shadow-xl
 ">
 
-                    <div className="absolute -left-6 -bottom-6 h-24 w-24 rounded-full bg-orange-100 opacity-60" />
+                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-orange-100 opacity-60" />
 
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.25em] text-slate-400 font-medium">
+                    <div className="relative z-10">
+                        <p className="text-[9px] uppercase tracking-[0.1em] text-slate-400 font-medium sm:text-[10px] sm:tracking-[0.25em]">
                             MÉDIA POR CONDOMÍNIO
                         </p>
 
-                        <h2 className="mt-4 text-5xl font-black tracking-tight text-slate-900">
+                        <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900 sm:mt-4 sm:text-4xl">
                             {mediaFormatada}
                         </h2>
 
@@ -724,7 +765,7 @@ export function Dashboard() {
                         </p>
                     </div>
 
-                    <div className="h-2.5 w-full rounded-full bg-slate-200 overflow-hidden">
+                    <div className="relative z-10 h-2.5 w-full rounded-full bg-slate-200 overflow-hidden">
                         <div
                             className="h-full rounded-full bg-orange-500"
                             style={{
@@ -736,18 +777,18 @@ export function Dashboard() {
             </div>
 
             {/* GRÁFICOS */}
-            <div className="mt-6 grid gap-4 xl:grid-cols-2">
+            <div className="mt-6 grid min-w-0 gap-4 xl:grid-cols-2">
 
                 {/* GRÁFICO */}
                 <div className="
-            rounded-[28px]
+                    min-w-0 rounded-[28px]
             bg-white
             p-5
             border border-slate-200
             shadow-sm
             ">
 
-                    <div className="flex items-center justify-between mb-5">
+                    <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
 
                         <div>
                             <h2 className="text-lg font-bold text-slate-900">
@@ -759,7 +800,7 @@ export function Dashboard() {
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-4 text-sm">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                             <span className="flex items-center gap-2">
                                 <span className="h-3 w-3 rounded-full bg-orange-500"></span>
                                 Concluídos
@@ -782,7 +823,7 @@ export function Dashboard() {
 
                 {/* CONDOMÍNIOS */}
                 <div className="
-    rounded-[28px]
+    min-w-0 rounded-[28px]
     bg-white
     p-5
     border border-slate-200
@@ -798,12 +839,12 @@ export function Dashboard() {
                         {condominiosComProgresso.map((condominio) => (
                             <div key={condominio.nome}>
 
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="font-medium text-slate-700">
+                                <div className="mb-2 flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                                    <span className="min-w-0 break-words font-medium text-slate-700">
                                         {condominio.nome}
                                     </span>
 
-                                    <span className="font-bold text-slate-900">
+                                    <span className="whitespace-nowrap font-bold text-slate-900">
                                         {condominio.valor} agend.
                                     </span>
                                 </div>
@@ -1005,7 +1046,7 @@ export function Dashboard() {
                                         </div>
 
                                         <div className="text-sm text-slate-500">
-                                            Frequência {aluno.frequencia}
+                                            Frequência {aluno.frequencia} · {aluno.finalizados} finalizados · {aluno.cancelados} cancelados
                                         </div>
                                     </div>
 
@@ -1016,7 +1057,7 @@ export function Dashboard() {
                                         </div>
 
                                         <div className="text-sm text-slate-500">
-                                            agendamentos
+                                            aulas
                                         </div>
                                     </div>
 
