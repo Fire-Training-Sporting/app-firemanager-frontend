@@ -1,5 +1,25 @@
 @import "tailwindcss";
 
+/* O Tailwind v4 deixa botões com cursor padrão; aqui todos ganham a mãozinha,
+   exceto quando desabilitados. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  select:disabled,
+  input:disabled {
+    cursor: not-allowed;
+  }
+}
+
 .modal-open input[type="text"][placeholder*="Pesquisar"] {
   pointer-events: none;   /* bloqueia clique e digitação */
   user-select: none;      /* não permite selecionar texto */

@@ -1,4 +1,5 @@
 import Header from './Header';
+import addWhiteIcon from "../../assets/add_white.png";
 
 export default function PageLayout({
   title,
@@ -6,6 +7,7 @@ export default function PageLayout({
   onSearch,
   onAdd,
   addLabel,
+  addIcon = addWhiteIcon,
   children,
   innerClassName = "",
   titleClassName = "",
@@ -33,7 +35,7 @@ export default function PageLayout({
                   type="text"
                   placeholder={searchPlaceholder}
                   onChange={onSearch}
-                  className="w-full lg:w-70 border border-gray-300 rounded-md px-4 py-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  className="h-10 w-full lg:w-70 border border-gray-300 rounded-md px-4 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
                 />
               </div>
             ) : (
@@ -41,9 +43,10 @@ export default function PageLayout({
             )}
             {showAddButton && (role === "root" || role === "Administracao") && (
               <button
-                className="w-full lg:w-auto bg-[#2563EA] hover:bg-[#1E40AF] text-white px-6 py-2 rounded-md font-semibold shadow-md transition-all duration-150"
+                className="inline-flex h-10 items-center justify-center gap-1.5 w-full lg:w-auto bg-[#2563EA] hover:bg-[#1E40AF] text-white pl-3.5 pr-4 rounded-md text-sm font-semibold shadow-md transition-all duration-150"
                 onClick={onAdd}
               >
+                <img src={addIcon} alt="" className="h-[18px] w-[18px] shrink-0 translate-y-px" />
                 {addLabel}
               </button>
             )}

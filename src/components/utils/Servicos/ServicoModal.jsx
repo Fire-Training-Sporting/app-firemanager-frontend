@@ -1,4 +1,7 @@
 import { useState } from "react";
+import closeWhiteIcon from "../../../assets/close_white.png";
+import { modalButton, modalCloseButton, modalIcon, modalIconWhite } from "../Buttons/modalButtonStyles";
+import doneGreenIcon from "../../../assets/done_green.png";
 
 export default function ServicoModal({ onClose, onSave }) {
   const [form, setForm] = useState({
@@ -24,9 +27,10 @@ export default function ServicoModal({ onClose, onSave }) {
         <button
           type="button"
           onClick={onClose}
-          className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
+          className={modalCloseButton}
+          aria-label="Fechar"
         >
-          ✕
+          <img src={closeWhiteIcon} alt="" className="h-5 w-5" />
         </button>
       </div>
 
@@ -49,14 +53,16 @@ export default function ServicoModal({ onClose, onSave }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+              className={modalButton("danger", { icon: true })}
             >
+              <img src={closeWhiteIcon} alt="" className={modalIcon} />
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-gradient-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
+              className={modalButton("success", { icon: true })}
             >
+              <img src={doneGreenIcon} alt="" className={modalIconWhite} />
               Cadastrar serviço
             </button>
           </div>

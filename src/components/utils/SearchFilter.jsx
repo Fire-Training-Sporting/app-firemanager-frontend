@@ -1,4 +1,6 @@
 import { useState } from "react";
+import searchWhiteIcon from "../../assets/search_white.png";
+import deleteWhiteIcon from "../../assets/delete_white.png";
 
 export default function SearchFilter({ columns, onSearch, isLoading = false }) {
   const [searchField, setSearchField] = useState(columns[0]?.value || "");
@@ -34,7 +36,7 @@ export default function SearchFilter({ columns, onSearch, isLoading = false }) {
       <select
         value={searchField}
         onChange={(e) => setSearchField(e.target.value)}
-        className="w-full min-w-0 border border-gray-300 rounded-md px-3 py-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 lg:w-auto"
+        className="h-10 w-full min-w-0 border border-gray-300 rounded-md px-3 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 lg:w-auto"
       >
         {columns.map((col) => (
           <option key={col.value} value={col.value}>
@@ -49,14 +51,15 @@ export default function SearchFilter({ columns, onSearch, isLoading = false }) {
         value={searchValue}
         onChange={(e) => setSearchValue(e.target.value)}
         onKeyPress={handleKeyPress}
-        className="w-full min-w-0 border border-gray-300 rounded-md px-4 py-2 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 lg:w-70"
+        className="h-10 w-full min-w-0 border border-gray-300 rounded-md px-4 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 lg:w-70"
       />
 
       <button
         onClick={handleSearch}
         disabled={isLoading}
-        className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded-md font-semibold shadow-md transition-all duration-150"
+        className="inline-flex h-10 items-center justify-center gap-1.5 w-full lg:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white pl-3.5 pr-4 rounded-md text-sm font-semibold shadow-md transition-all duration-150"
       >
+        <img src={searchWhiteIcon} alt="" className="h-[18px] w-[18px] shrink-0 translate-y-px" />
         {isLoading ? "Buscando..." : "Buscar"}
       </button>
 
@@ -64,8 +67,9 @@ export default function SearchFilter({ columns, onSearch, isLoading = false }) {
         <button
           onClick={handleClear}
           disabled={isLoading}
-          className="w-full lg:w-auto bg-gray-400 hover:bg-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md font-semibold shadow-md transition-all duration-150"
+          className="inline-flex h-10 items-center justify-center gap-1.5 w-full lg:w-auto bg-gray-400 hover:bg-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-white pl-3.5 pr-4 rounded-md text-sm font-semibold shadow-md transition-all duration-150"
         >
+          <img src={deleteWhiteIcon} alt="" className="h-[18px] w-[18px] shrink-0 translate-y-px" />
           Limpar
         </button>
       )}

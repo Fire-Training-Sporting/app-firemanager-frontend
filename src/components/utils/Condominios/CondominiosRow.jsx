@@ -1,3 +1,7 @@
+
+import editWhiteIcon from "../../../assets/edit_white.png";
+import deleteWhiteIcon from "../../../assets/delete_white.png";
+
 export function CondominiosRow({
   id,
   nome,
@@ -51,15 +55,17 @@ export function CondominiosRow({
 
           <button
             onClick={onEdit}
-            className="px-4 py-2 bg-[#2563EA] text-white text-xs font-medium rounded-md hover:bg-[#1E40AF] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#2563EA] text-white text-xs font-medium rounded-md hover:bg-[#1E40AF] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
           >
+            <img src={editWhiteIcon} alt="" className="h-4 w-4" />
             Editar
           </button>
 
           <button
             onClick={onDelete}
-            className="px-4 py-2 bg-[#DC2625] text-white text-xs font-medium rounded-md hover:bg-[#B91C1C] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#DC2625] text-white text-xs font-medium rounded-md hover:bg-[#B91C1C] shadow-sm hover:shadow-md transition-all duration-150 cursor-pointer"
           >
+            <img src={deleteWhiteIcon} alt="" className="h-4 w-4" />
             Excluir
           </button>
 

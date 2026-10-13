@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PageLayout from "../utils/PageLayout";
+import personAddWhiteIcon from "../../assets/person_add_white.png";
 import SearchFilter from "../utils/SearchFilter";
 import TabelaFuncionarios from "../utils/Funcionarios/TabelaFuncionarios";
 import ModalCadastroFuncionario from "../utils/Funcionarios/ModalCadastroFuncionario";
@@ -235,6 +236,7 @@ export default function TelaFuncionarios() {
         searchPlaceholder="Pesquisar funcionário"
         onAdd={handleAdd}
         addLabel="Cadastrar funcionário"
+        addIcon={personAddWhiteIcon}
         customControls={
           <SearchFilter
             columns={search_columns}

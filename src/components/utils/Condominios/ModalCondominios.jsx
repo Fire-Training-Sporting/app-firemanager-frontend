@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import api from "../../../provider/api";
 import AlertMessage from "../AlertMessage";
+import closeWhiteIcon from "../../../assets/close_white.png";
+import searchWhiteIcon from "../../../assets/search_white.png";
+import { modalButton, modalCloseButton, modalIcon, modalIconWhite } from "../Buttons/modalButtonStyles";
+import doneGreenIcon from "../../../assets/done_green.png";
 
 const inputCls =
   "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]";
@@ -243,9 +247,10 @@ export default function ModalCondominio({
         <button
           type="button"
           onClick={onClose}
-          className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
+          className={modalCloseButton}
+          aria-label="Fechar"
         >
-          ✕
+          <img src={closeWhiteIcon} alt="" className="h-5 w-5" />
         </button>
 
       </div>
@@ -295,8 +300,9 @@ export default function ModalCondominio({
               <button
                 type="button"
                 onClick={buscarCep}
-                className="px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
+                className={modalButton("info", { icon: true, size: "field" })}
               >
+                <img src={searchWhiteIcon} alt="" className={modalIcon} />
                 Buscar
               </button>
 
@@ -357,16 +363,18 @@ export default function ModalCondominio({
               type="button"
               onClick={onClose}
               disabled={isSaving}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+              className={modalButton("danger", { icon: true })}
             >
+              <img src={closeWhiteIcon} alt="" className={modalIcon} />
               Cancelar
             </button>
 
             <button
               type="submit"
               disabled={isSaving}
-              className="px-4 py-2 bg-linear-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105"
+              className={modalButton("success", { icon: true })}
             >
+              <img src={doneGreenIcon} alt="" className={modalIconWhite} />
               {isSaving
                 ? "Salvando..."
                 : isEditMode
