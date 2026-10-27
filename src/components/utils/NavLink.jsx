@@ -1,12 +1,16 @@
 import { NavLink as RouterNavLink } from "react-router-dom";
 
-export default function NavLink({ children, to, onClick, icon }) {
+export default function NavLink({ children, to, onClick, icon, collapsed = false }) {
   return (
     <RouterNavLink
       to={to}
       onClick={onClick}
+      title={collapsed ? children : undefined}
+      aria-label={collapsed ? children : undefined}
       className={({ isActive }) =>
-        `flex w-full items-center gap-3 rounded-lg border-2 px-4 py-2 font-semibold transition-colors duration-200 ${
+        `flex w-full items-center gap-3 rounded-lg border-2 py-2 font-semibold whitespace-nowrap transition-colors duration-200 ${
+          collapsed ? "justify-center px-0" : "px-4"
+        } ${
           isActive
             ? "border-white bg-white text-[#F8821E] shadow-md"
             : "border-transparent text-white hover:border-white"
@@ -35,7 +39,7 @@ export default function NavLink({ children, to, onClick, icon }) {
         }
       />
 
-      <span>{children}</span>
+      {!collapsed && <span>{children}</span>}
     </RouterNavLink>
   );
 }
