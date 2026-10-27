@@ -3,6 +3,8 @@ import Header from "../utils/Header";
 import AlertMessage from "../utils/AlertMessage";
 import api, { getAllPages } from "../../provider/api";
 import { formatarData, formatarHora, formatarValor, getUsuarioId } from "../../utils/helpers";
+import leftBlackIcon from "../../assets/left_black.png";
+import rightBlackIcon from "../../assets/right_black.png";
 
 function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalItems, onPageChange }) {
     const totalPagesExibidas = Math.max(1, totalPages);
@@ -73,8 +75,9 @@ function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalIte
                     <button
                         onClick={() => onPageChange(currentPage - 1)}
                         disabled={currentPage === 0 || loading}
-                        className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 0 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                        className={`inline-flex items-center px-3 py-1 text-sm leading-5 rounded-md border border-gray-300 ${currentPage === 0 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
                     >
+                        <img src={leftBlackIcon} alt="" className="-ml-1.5 h-4 w-4 shrink-0" />
                         Anterior
                     </button>
                     <div className="text-xs">
@@ -83,9 +86,10 @@ function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalIte
                     <button
                         onClick={() => onPageChange(currentPage + 1)}
                         disabled={totalPages === 0 || currentPage >= totalPages - 1 || loading}
-                        className={`px-2 py-0.5 text-sm rounded-md border ${totalPages === 0 || currentPage >= totalPages - 1 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                        className={`inline-flex items-center px-3 py-1 text-sm leading-5 rounded-md border border-gray-300 ${totalPages === 0 || currentPage >= totalPages - 1 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
                     >
                         Próxima
+                        <img src={rightBlackIcon} alt="" className="-mr-1.5 h-4 w-4 shrink-0" />
                     </button>
                 </div>
             </div>
@@ -126,7 +130,7 @@ export function TelaPagamentos() {
             }
 
             try {
-                const usuarios = await getAllPages("/usuarios");
+                const usuarios = await getAllPages("/usuarios", { status: "TODOS" });
                 const listaFuncionarios = usuarios.filter((usuario) =>
                         ["professor", "rebatedor", "auxiliar"].includes(
                             usuario.tipoUsuario?.cargo?.toLowerCase()
@@ -225,7 +229,7 @@ export function TelaPagamentos() {
         <div className="min-h-screen bg-gray-50 flex flex-col overflow-hidden ">
             <Header />
 
-            <div className="mx-auto w-full max-w-screen-2xl px-4 py-6">
+            <div className="mx-auto w-[90%] flex-1 py-6">
                 <div className="mb-6">
                     <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-2">Suas aulas</h1>
                     <p className="text-sm text-slate-500">Visualize pagamentos e histórico de aulas por período.</p>
@@ -273,7 +277,7 @@ export function TelaPagamentos() {
                                     <option value="">Selecione um funcionário</option>
                                     {funcionarios.map((funcionario) => (
                                         <option key={funcionario.id} value={funcionario.id}>
-                                            {funcionario.nome}
+                                            {funcionario.nome}{funcionario.arquivado ? " (arquivado)" : ""}
                                         </option>
                                     ))}
                                 </select>

@@ -1,7 +1,9 @@
+import StatusUsuarioBadge from "../Usuarios/StatusUsuarioBadge";
+import leftBlackIcon from "../../../assets/left_black.png";
+import rightBlackIcon from "../../../assets/right_black.png";
+
 export default function TabelaFuncionarios({
   funcionarios = [],
-  onEdit = () => {},
-  onDelete = () => {},
   onDetails = () => {},
   currentPage = 0,
   totalPages = 0,
@@ -15,8 +17,8 @@ export default function TabelaFuncionarios({
 
   return (
     <div className="w-full overflow-x-auto">
-      <div className="h-fit max-h-[calc(100vh-300px)] overflow-y-auto">
-        <table className="w-full border-separate border-spacing-0 rounded-lg overflow-hidden shadow-md">
+      <div className="h-fit max-h-[calc(100vh-300px)] lg:max-h-[calc(100vh-208px)] overflow-y-auto">
+        <table className="w-full border-separate border-spacing-0 shadow-md">
           <thead className="sticky top-0 z-10">
             <tr className="border-b-2 border-gray-200">
               <th className="px-4 py-3 font-semibold text-gray-800 text-md bg-gray-200 w-12 text-left">ID</th>
@@ -35,7 +37,12 @@ export default function TabelaFuncionarios({
                   onClick={() => onDetails(funcionario)}
                 >
                   <td className="px-4 py-3 text-sm align-middle">{funcionario.id}</td>
-                  <td className="px-4 py-3 text-sm align-middle">{funcionario.nome}</td>
+                  <td className="px-4 py-3 text-sm align-middle">
+                    <span className="inline-flex flex-wrap items-center gap-2">
+                      {funcionario.nome}
+                      {funcionario.arquivado && <StatusUsuarioBadge arquivado size="sm" />}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-sm align-middle">{funcionario.email}</td>
                   <td className="px-4 py-3 text-sm align-middle">{funcionario.telefone}</td>
                   <td className="px-4 py-3 text-sm align-middle">{funcionario.tipoUsuario?.cargo || funcionario.perfil}</td>
@@ -52,7 +59,7 @@ export default function TabelaFuncionarios({
         </table>
       </div>
 
-      <div className="flex flex-col items-stretch justify-between gap-3 px-4 py-2 border-t bg-white sm:flex-row sm:items-center">
+      <div className="flex flex-col items-stretch justify-between gap-3 px-4 py-2 border-t border-gray-200 bg-white sm:flex-row sm:items-center">
         <div className="text-xs text-gray-600">
           Mostrando {startItem}-{endItem} de {totalItems}
         </div>
@@ -60,8 +67,9 @@ export default function TabelaFuncionarios({
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 0 || isLoading}
-            className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 0 || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+            className={`inline-flex items-center px-3 py-1 text-sm leading-5 rounded-md border border-gray-300 ${currentPage === 0 || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
           >
+            <img src={leftBlackIcon} alt="" className="-ml-1.5 h-4 w-4 shrink-0" />
             Anterior
           </button>
           <div className="text-xs">
@@ -70,9 +78,10 @@ export default function TabelaFuncionarios({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={totalPages === 0 || currentPage >= totalPages - 1 || isLoading}
-            className={`px-2 py-0.5 text-sm rounded-md border ${totalPages === 0 || currentPage >= totalPages - 1 || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+            className={`inline-flex items-center px-3 py-1 text-sm leading-5 rounded-md border border-gray-300 ${totalPages === 0 || currentPage >= totalPages - 1 || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
           >
             Próxima
+            <img src={rightBlackIcon} alt="" className="-mr-1.5 h-4 w-4 shrink-0" />
           </button>
         </div>
       </div>

@@ -1,12 +1,24 @@
 import { useState, useEffect } from "react";
 import api from "../../../provider/api";
+import closeWhiteIcon from "../../../assets/close_white.png";
+import editWhiteIcon from "../../../assets/edit_white.png";
+import { modalButton, modalCloseButton, modalIcon } from "../Buttons/modalButtonStyles";
+import StatusUsuarioBadge from "../Usuarios/StatusUsuarioBadge";
+import HistoricoUsuario from "../Usuarios/HistoricoUsuario";
+import BotoesAcoesUsuario from "../Usuarios/BotoesAcoesUsuario";
+import { podeArquivarUsuario, podeExcluirUsuario } from "../Usuarios/acoesUsuario";
+import useModalKeyboard from "../../../hooks/useModalKeyboard";
 
 export default function ModalFuncionarioDetalhes({
   funcionario,
   onClose,
   onEdit,
-  onDelete,
+  onArquivar,
+  onDesarquivar,
+  onExcluir,
 }) {
+  useModalKeyboard({ onClose, enabled: Boolean(funcionario) });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [copiedField, setCopiedField] = useState(null);
@@ -79,15 +91,18 @@ export default function ModalFuncionarioDetalhes({
 
   if (!funcionario) return null;
 
-  const showActions = usuarioPodeGerenciarFuncionario(
-    sessionStorage.getItem("cargo")
-  );
+  const arquivado = Boolean(funcionario.arquivado);
+  // Funcionário arquivado não pode ser editado; só desarquivado
+  const showActions =
+    usuarioPodeGerenciarFuncionario(sessionStorage.getItem("cargo")) && !arquivado;
+  const showFooter =
+    showActions || podeArquivarUsuario(funcionario) || podeExcluirUsuario(funcionario);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/50 backdrop-blur-sm">
       <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
         {/* HEADER */}
-        <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+        <div className="bg-[#F8821E] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
           <div>
             <h2 className="text-white text-lg font-bold">Detalhes do Funcionário</h2>
           </div>
@@ -95,9 +110,10 @@ export default function ModalFuncionarioDetalhes({
           <button
             type="button"
             onClick={onClose}
-            className="text-white hover:text-red-200 transition rounded-full px-2 py-1 bg-black/20"
+            className={modalCloseButton}
+            aria-label="Fechar"
           >
-            ✕
+            <img src={closeWhiteIcon} alt="" className="h-5 w-5" />
           </button>
         </div>
 
@@ -110,9 +126,7 @@ export default function ModalFuncionarioDetalhes({
               <h3 className="text-2xl font-bold text-gray-800">#{funcionario.id}</h3>
             </div>
 
-            <span className="px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-700">
-              Ativo
-            </span>
+            <StatusUsuarioBadge arquivado={arquivado} />
           </div>
 
           {/* GRID */}
@@ -150,42 +164,34 @@ export default function ModalFuncionarioDetalhes({
               />
             )}
           </div>
+
+          <HistoricoUsuario usuario={funcionario} />
         </div>
 
         {/* FOOTER */}
-        <div className="border-t bg-gray-50 px-5 py-3 flex items-center justify-between gap-3 flex-wrap">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-gray-800 text-white text-sm font-semibold hover:bg-black transition"
-          >
-            Fechar
-          </button>
-
-          {showActions && (
+        {showFooter && (
+          <div className="border-t bg-gray-50 px-5 py-3 flex items-center justify-end gap-3 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => {
-                  if (showActions) onDelete?.();
-                }}
-                className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition"
-              >
-                Excluir
-              </button>
+              <BotoesAcoesUsuario
+                usuario={funcionario}
+                onArquivar={onArquivar}
+                onDesarquivar={onDesarquivar}
+                onExcluir={onExcluir}
+              />
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (showActions) onEdit?.();
-                }}
-                className="px-3 py-2 rounded-lg bg-yellow-500 text-white text-sm font-semibold hover:bg-yellow-600 transition"
-              >
-                Editar
-              </button>
+              {showActions && (
+                <button
+                  type="button"
+                  onClick={() => onEdit?.()}
+                  className={modalButton("warning", { icon: true })}
+                >
+                  <img src={editWhiteIcon} alt="" className={modalIcon} />
+                  Editar
+                </button>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -213,7 +213,7 @@ export default function TelaCondominios() {
           message={sucessoVisivel ? sucessoCondominio : ""}
         />
 
-        <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
 
           <CondominiosTable
             condominios={condominios}
