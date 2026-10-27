@@ -7,6 +7,7 @@ import StatusUsuarioBadge from "../Usuarios/StatusUsuarioBadge";
 import HistoricoUsuario from "../Usuarios/HistoricoUsuario";
 import BotoesAcoesUsuario from "../Usuarios/BotoesAcoesUsuario";
 import { podeArquivarUsuario, podeExcluirUsuario } from "../Usuarios/acoesUsuario";
+import useModalKeyboard from "../../../hooks/useModalKeyboard";
 
 export default function ModalFuncionarioDetalhes({
   funcionario,
@@ -16,6 +17,8 @@ export default function ModalFuncionarioDetalhes({
   onDesarquivar,
   onExcluir,
 }) {
+  useModalKeyboard({ onClose, enabled: Boolean(funcionario) });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [copiedField, setCopiedField] = useState(null);

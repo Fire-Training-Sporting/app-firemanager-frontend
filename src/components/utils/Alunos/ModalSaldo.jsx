@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useRef, useEffect, useMemo, useState } from "react";
 import api from "../../../provider/api";
 import AlertMessage from "../AlertMessage";
 import closeWhiteIcon from "../../../assets/close_white.png";
 import returnWhiteIcon from "../../../assets/return_white.png";
 import { modalBackButton, modalButton, modalCloseButton, modalIcon, modalIconWhite } from "../Buttons/modalButtonStyles";
 import doneGreenIcon from "../../../assets/done_green.png";
+import useModalKeyboard from "../../../hooks/useModalKeyboard";
 
 const saldoServicesOrder = ["Tênis", "Beach Tennis", "Funcional"];
 
@@ -23,6 +24,9 @@ function Field({ label, children }) {
 }
 
 export default function ModalSaldo({ aluno = null, onClose, onCreated, onBack }) {
+  const confirmButtonRef = useRef(null);
+  useModalKeyboard({ onClose, confirmButtonRef });
+
   const [servicos, setServicos] = useState([]);
   const [form, setForm] = useState({
     servico: "",
@@ -208,6 +212,7 @@ export default function ModalSaldo({ aluno = null, onClose, onCreated, onBack })
             </button>
             <button
               type="submit"
+              ref={confirmButtonRef}
               disabled={isSaving || loadingServicos}
               className={modalButton("success", { icon: true })}
             >

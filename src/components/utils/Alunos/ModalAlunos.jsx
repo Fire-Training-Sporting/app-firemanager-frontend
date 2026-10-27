@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import api from "../../../provider/api";
 import AlertMessage from "../AlertMessage";
 import closeWhiteIcon from "../../../assets/close_white.png";
 import { modalBackButton, modalButton, modalCloseButton, modalIcon, modalIconWhite } from "../Buttons/modalButtonStyles";
 import doneGreenIcon from "../../../assets/done_green.png";
 import personAddWhiteIcon from "../../../assets/person_add_white.png";
+import useModalKeyboard from "../../../hooks/useModalKeyboard";
 
 const inputCls =
   "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]";
@@ -26,6 +27,9 @@ export default function ModalAluno({
   onCreated,
   onBack,
 }) {
+  const confirmButtonRef = useRef(null);
+  useModalKeyboard({ onClose, confirmButtonRef });
+
   const isEditMode = !!aluno;
 
   const [form, setForm] = useState({
@@ -382,6 +386,7 @@ export default function ModalAluno({
 
             <button
               type="submit"
+              ref={confirmButtonRef}
               disabled={isSaving}
               className={modalButton("success", { icon: true })}
             >

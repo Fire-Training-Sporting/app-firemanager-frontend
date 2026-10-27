@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import api, { getAllPages } from "../../../provider/api";
 import closeWhiteIcon from "../../../assets/close_white.png";
 import editWhiteIcon from "../../../assets/edit_white.png";
 import duplicateWhiteIcon from "../../../assets/duplicate_white.png";
 import doneGreenIcon from "../../../assets/done_green.png";
 import { modalButton, modalCloseButton, modalIcon, modalIconWhite } from "../Buttons/modalButtonStyles";
+import useModalKeyboard from "../../../hooks/useModalKeyboard";
 
 export default function ModalAgendamentoDetalhes({
   agendamento,
@@ -15,6 +16,9 @@ export default function ModalAgendamentoDetalhes({
   onFinalize,
   onDuplicate,
 }) {
+  const confirmButtonRef = useRef(null);
+  useModalKeyboard({ onClose, confirmButtonRef, enabled: Boolean(agendamento) });
+
   const normalizarCargo = (cargo) => String(cargo ?? "").trim().toLowerCase();
 
   const usuarioPodeGerenciarAgendamento = (cargo) => {
@@ -502,6 +506,7 @@ export default function ModalAgendamentoDetalhes({
               {statusNormalizado === "pendente" && (
                 <button
                   type="button"
+                  ref={confirmButtonRef}
                   onClick={() => {
                     if (showActions) onConfirm?.();
                   }}
@@ -515,6 +520,7 @@ export default function ModalAgendamentoDetalhes({
               {podeFinalizar && (
                 <button
                   type="button"
+                  ref={statusNormalizado === "pendente" ? undefined : confirmButtonRef}
                   onClick={() => {
                     if (showActions) onFinalize?.();
                   }}
