@@ -412,7 +412,7 @@ export default function ModalCadastroFuncionario({
   return (
     <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
 
-        <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+        <div className="bg-[#F8821E] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
           <div className="flex items-center gap-3">
             {onBack && (
               <button

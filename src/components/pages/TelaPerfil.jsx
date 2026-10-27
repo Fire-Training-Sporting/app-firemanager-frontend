@@ -165,7 +165,7 @@ export default function TelaPerfil() {
                   <>
                     <div className="space-y-3 mb-3">
                       {saldoServicesOrder.map((servico) => (
-                        <div key={servico} className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200 hover:shadow-md transition-shadow">
+                        <div key={servico} className="bg-orange-50 rounded-xl p-4 border border-orange-200 hover:shadow-md transition-shadow">
                           <p className="text-xs font-bold uppercase text-orange-700 mb-1">{servico}</p>
                           <div className="flex items-center gap-2">
                             <p className="text-base font-bold text-orange-800">
@@ -177,7 +177,7 @@ export default function TelaPerfil() {
                       ))}
                     </div>
 
-                    <div className="bg-gradient-to-r from-[#F8821E] to-[#EA580C] rounded-xl p-4 text-white">
+                    <div className="bg-[#F8821E] rounded-xl p-4 text-white">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs font-bold uppercase uppercase opacity-90">Saldo Total</p>

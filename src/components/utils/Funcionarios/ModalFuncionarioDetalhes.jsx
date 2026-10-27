@@ -99,7 +99,7 @@ export default function ModalFuncionarioDetalhes({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/50 backdrop-blur-sm">
       <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
         {/* HEADER */}
-        <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+        <div className="bg-[#F8821E] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
           <div>
             <h2 className="text-white text-lg font-bold">Detalhes do Funcionário</h2>
           </div>

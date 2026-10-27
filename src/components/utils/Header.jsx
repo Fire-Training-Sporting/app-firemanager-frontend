@@ -81,7 +81,7 @@ export default function Header() {
   return (
     <>
     {/* Sidebar (desktop) */}
-    <aside className="app-sidebar fixed inset-y-0 left-0 z-40 hidden w-60 flex-col bg-linear-to-b from-[#F8821E] to-[#EA580C] shadow-lg lg:flex">
+    <aside className="app-sidebar fixed inset-y-0 left-0 z-40 hidden w-60 flex-col bg-[#F8821E] shadow-lg lg:flex">
       <div className="flex items-center gap-3 bg-[#23272F] px-5 py-4">
         <img src={fireIcon} alt="Logo" className="h-8 w-8" />
         <span className="text-lg font-semibold tracking-wide text-white">Fire Manager</span>
@@ -140,7 +140,7 @@ export default function Header() {
         </div>
       </div>
       {/* Navigation bar */}
-      <nav className="relative bg-linear-to-r from-[#F8821E] to-[#EA580C] px-4 py-2 sm:px-8">
+      <nav className="relative bg-[#F8821E] px-4 py-2 sm:px-8">
         <button
           type="button"
           onClick={() => setMenuOpen((isOpen) => !isOpen)}
@@ -157,7 +157,7 @@ export default function Header() {
         </button>
         <div
           id="main-navigation"
-          className={`${menuOpen ? "flex" : "hidden"} absolute left-0 right-0 top-full z-50 max-h-[60vh] flex-col gap-2 overflow-x-hidden overflow-y-auto bg-linear-to-r from-[#F8821E] to-[#EA580C] p-4 shadow-lg custom-scrollbar`}
+          className={`${menuOpen ? "flex" : "hidden"} absolute left-0 right-0 top-full z-50 max-h-[60vh] flex-col gap-2 overflow-x-hidden overflow-y-auto bg-[#F8821E] p-4 shadow-lg custom-scrollbar`}
         >
           {navItems.map((item) => (
             <NavLink key={item} to={routeMap[item]} icon={iconMap[item]} onClick={() => setMenuOpen(false)}>
