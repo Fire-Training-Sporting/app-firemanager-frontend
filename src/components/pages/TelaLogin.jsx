@@ -34,7 +34,9 @@ export function TelaLogin() {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
-    async function handleLogin() {
+    async function handleLogin(event) {
+        event?.preventDefault();
+        if (loading) return;
         setErro("");
         setLoading(true);
         try {
@@ -64,7 +66,10 @@ export function TelaLogin() {
                 </aside>
 
                 <section className="flex items-center justify-center bg-[#ec7200] px-9 py-12 md:px-10 md:py-14">
-                    <div className="w-full max-w-125 rounded-2xl bg-[#242525] p-8 shadow-[0_16px_35px_rgba(0,0,0,0.16)] md:p-10">
+                    <form
+                        onSubmit={handleLogin}
+                        className="w-full max-w-125 rounded-2xl bg-[#242525] p-8 shadow-[0_16px_35px_rgba(0,0,0,0.16)] md:p-10"
+                    >
                         <h1 className="mb-6 text-[clamp(2rem,2.8vw,3rem)] leading-[1.08] font-extrabold text-white">
                             Olá,
                             <br />
@@ -124,11 +129,12 @@ export function TelaLogin() {
                                     <p>{loading ? "Entrando..." : "Entrar"}</p>
                                 </span>
                             )}
-                            onClick={handleLogin}
-                            type="button"
+                            type="submit"
+                            disabled={loading}
+                            ariaBusy={loading}
                             className="mt-[1.35rem] w-full py-2 text-base font-semibold transition hover:brightness-95"
                         />
-                    </div>
+                    </form>
                 </section>
             </section>
         </main>

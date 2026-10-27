@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import closeWhiteIcon from "../../../assets/close_white.png";
 import { modalButton, modalCloseButton, modalIcon, modalIconWhite } from "../Buttons/modalButtonStyles";
 import doneGreenIcon from "../../../assets/done_green.png";
+import useModalKeyboard from "../../../hooks/useModalKeyboard";
 
 export default function ServicoModal({ onClose, onSave }) {
+  const confirmButtonRef = useRef(null);
+  useModalKeyboard({ onClose, confirmButtonRef });
+
   const [form, setForm] = useState({
     nome: ""
   });
@@ -60,6 +64,7 @@ export default function ServicoModal({ onClose, onSave }) {
             </button>
             <button
               type="submit"
+              ref={confirmButtonRef}
               className={modalButton("success", { icon: true })}
             >
               <img src={doneGreenIcon} alt="" className={modalIconWhite} />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import api, { getAllPages } from "../../../provider/api";
 import AlertMessage from "../AlertMessage";
 import closeWhiteIcon from "../../../assets/close_white.png";
@@ -6,8 +6,12 @@ import deleteRedIcon from "../../../assets/delete_red.png";
 import { modalButton, modalCloseButton, modalIcon, modalIconWhite, modalInlineButton, modalRemoveButton } from "../Buttons/modalButtonStyles";
 import doneGreenIcon from "../../../assets/done_green.png";
 import personAddWhiteIcon from "../../../assets/person_add_white.png";
+import useModalKeyboard from "../../../hooks/useModalKeyboard";
 
 export default function ModalScheduling({ agendamento = null, onClose, onCreated }) {
+  const confirmButtonRef = useRef(null);
+  useModalKeyboard({ onClose, confirmButtonRef });
+
   const isEditMode = !!agendamento?.id;
   const isDuplicateMode = !!agendamento && !agendamento?.id;
 
@@ -614,6 +618,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
 
               <button
                 type="submit"
+                ref={confirmButtonRef}
                 disabled={loading}
                 className={modalButton("success", { icon: true })}
               >

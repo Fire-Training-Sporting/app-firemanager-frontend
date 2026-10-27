@@ -8,6 +8,7 @@ import StatusUsuarioBadge from "../Usuarios/StatusUsuarioBadge";
 import HistoricoUsuario from "../Usuarios/HistoricoUsuario";
 import BotoesAcoesUsuario from "../Usuarios/BotoesAcoesUsuario";
 import { podeArquivarUsuario, podeExcluirUsuario } from "../Usuarios/acoesUsuario";
+import useModalKeyboard from "../../../hooks/useModalKeyboard";
 
 export default function ModalAlunoDetalhes({
   aluno,
@@ -19,6 +20,8 @@ export default function ModalAlunoDetalhes({
   onAddSaldo,
   onRefresh,
 }) {
+  useModalKeyboard({ onClose, enabled: Boolean(aluno) });
+
   const [condominios, setCondominios] = useState([]);
   const [servicos, setServicos] = useState([]);
   const [saldos, setSaldos] = useState([]);

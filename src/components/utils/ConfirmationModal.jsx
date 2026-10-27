@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import { modalButton } from "./Buttons/modalButtonStyles";
+import useModalKeyboard from "../../hooks/useModalKeyboard";
 
 export default function ConfirmationModal({
   isOpen,
@@ -13,6 +15,9 @@ export default function ConfirmationModal({
   onConfirm,
   onCancel,
 }) {
+  const confirmButtonRef = useRef(null);
+  useModalKeyboard({ onClose: onCancel, confirmButtonRef, enabled: isOpen });
+
   if (!isOpen) {
     return null;
   }
@@ -69,6 +74,7 @@ export default function ConfirmationModal({
           </button>
           <button
             type="button"
+            ref={confirmButtonRef}
             onClick={onConfirm}
             disabled={confirmDisabled}
             className={confirmButtonClassName}
