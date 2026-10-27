@@ -24,7 +24,7 @@ export default function PageLayout({
     <div className="flex min-h-screen flex-col overflow-hidden">
       <Header />
       <main className="flex-1 w-full bg-[#FAFAFA] flex flex-col items-center justify-start overflow-auto">
-        <div className={`w-full max-w-7xl flex-1 min-h-0 flex flex-col mt-5 px-4 sm:px-6 lg:px-8 ${innerClassName}`}>
+        <div className={`w-[90%] flex-1 min-h-0 flex flex-col mt-5 ${innerClassName}`}>
           <h1 className={`text-3xl sm:text-4xl font-bold text-[#23272F] mb-5 sm:mb-6 ${titleClassName}`}>{title}</h1>
           <div className={`flex flex-col gap-3 mb-4 lg:flex-row lg:items-center ${controlsClassName}`}>
             {customControls ? (

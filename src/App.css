@@ -5,10 +5,20 @@
 @media (min-width: 64rem) {
   body:has(.app-sidebar) #root {
     padding-left: 15rem;
+    transition: padding-left 300ms;
   }
 
   body:has(.app-sidebar) .app-alert {
     left: calc(50% + 7.5rem);
+  }
+
+  /* Menu recolhido: só os ícones, então o conteúdo ocupa quase toda a largura. */
+  body:has(.app-sidebar--collapsed) #root {
+    padding-left: 4.5rem;
+  }
+
+  body:has(.app-sidebar--collapsed) .app-alert {
+    left: calc(50% + 2.25rem);
   }
 }
 

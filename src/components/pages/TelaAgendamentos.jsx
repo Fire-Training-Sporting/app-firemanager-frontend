@@ -345,10 +345,10 @@ export default function TelaAgendamentos() {
   };
 
   return (
-    <div className={showModal ? "modal-open" : ""}>
+    <div className={`flex min-h-screen flex-col ${showModal ? "modal-open" : ""}`}>
       <Header />
       <main className="flex-1 w-full bg-[#FAFAFA] flex flex-col items-center justify-start overflow-auto">
-        <div className="w-full max-w-7xl flex-1 min-h-0 flex flex-col mt-5 px-4 sm:px-6 lg:px-8">
+        <div className="w-[90%] flex-1 min-h-0 flex flex-col mt-5">
           <h1 className="text-3xl sm:text-4xl font-bold text-[#23272F] mb-5 sm:mb-6">Agendamentos</h1>
 
           {/* TOP CONTAINER - Pesquisa */}

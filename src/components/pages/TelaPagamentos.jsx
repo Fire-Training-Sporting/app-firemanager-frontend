@@ -225,7 +225,7 @@ export function TelaPagamentos() {
         <div className="min-h-screen bg-gray-50 flex flex-col overflow-hidden ">
             <Header />
 
-            <div className="mx-auto w-full max-w-screen-2xl px-4 py-6">
+            <div className="mx-auto w-[90%] flex-1 py-6">
                 <div className="mb-6">
                     <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-2">Suas aulas</h1>
                     <p className="text-sm text-slate-500">Visualize pagamentos e histórico de aulas por período.</p>

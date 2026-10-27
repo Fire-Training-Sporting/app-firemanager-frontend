@@ -76,7 +76,6 @@ export default function TelaServicos() {
   return (
     <PageLayout
       title="Serviços"
-      innerClassName="w-full max-w-[760px] mx-auto"
       controlsClassName="justify-between"
       contentClassName="w-full"
       showSearch={false}

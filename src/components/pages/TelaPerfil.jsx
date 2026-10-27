@@ -115,8 +115,8 @@ export default function TelaPerfil() {
 
   return (
     <PageLayout title="Perfil" showSearch={false} showAddButton={false}>
-      <div className="flex justify-center px-4 py-6">
-        <div className="w-full max-w-6xl">
+      <div className="py-6">
+        <div className="w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Informações Pessoais */}
             <div className="bg-white rounded-2xl border shadow-sm p-6">

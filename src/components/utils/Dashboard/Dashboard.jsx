@@ -436,7 +436,7 @@ export function Dashboard() {
     const isPositivo = percentualAlunos >= 0;
 
     return (
-        <div className="min-h-screen bg-[#f1f5f9] px-4 py-4 text-slate-900">
+        <div className="mx-auto w-[90%] flex-1 py-4 text-slate-900">
 
             {erro && (
                 <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
