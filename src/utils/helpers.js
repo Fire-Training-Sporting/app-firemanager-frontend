@@ -64,6 +64,40 @@ export function formatarHora(valor) {
 }
 
 /**
+ * Formata data e hora (ex.: "2026-10-25T23:04:00") para dd/mm/aaaa hh:mm
+ */
+export function formatarDataHora(valor) {
+  if (!valor) {
+    return "-";
+  }
+
+  const data = new Date(String(valor).replace(" ", "T"));
+
+  if (Number.isNaN(data.getTime())) {
+    return String(valor);
+  }
+
+  return data.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * Extrai a mensagem de erro retornada pela API, com fallback
+ */
+export function getMensagemErro(error, fallback) {
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    fallback
+  );
+}
+
+/**
  * Formata um valor para exibição, tratando objetos, arrays e valores primitivos
  */
 export function formatarValor(valor) {

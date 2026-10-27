@@ -1,7 +1,7 @@
+import StatusUsuarioBadge from "../Usuarios/StatusUsuarioBadge";
+
 export default function TabelaFuncionarios({
   funcionarios = [],
-  onEdit = () => {},
-  onDelete = () => {},
   onDetails = () => {},
   currentPage = 0,
   totalPages = 0,
@@ -35,7 +35,12 @@ export default function TabelaFuncionarios({
                   onClick={() => onDetails(funcionario)}
                 >
                   <td className="px-4 py-3 text-sm align-middle">{funcionario.id}</td>
-                  <td className="px-4 py-3 text-sm align-middle">{funcionario.nome}</td>
+                  <td className="px-4 py-3 text-sm align-middle">
+                    <span className="inline-flex flex-wrap items-center gap-2">
+                      {funcionario.nome}
+                      {funcionario.arquivado && <StatusUsuarioBadge arquivado size="sm" />}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-sm align-middle">{funcionario.email}</td>
                   <td className="px-4 py-3 text-sm align-middle">{funcionario.telefone}</td>
                   <td className="px-4 py-3 text-sm align-middle">{funcionario.tipoUsuario?.cargo || funcionario.perfil}</td>

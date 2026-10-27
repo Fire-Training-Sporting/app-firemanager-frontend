@@ -5,10 +5,12 @@ import SearchFilter from "../utils/SearchFilter";
 import TabelaFuncionarios from "../utils/Funcionarios/TabelaFuncionarios";
 import ModalCadastroFuncionario from "../utils/Funcionarios/ModalCadastroFuncionario";
 import ModalFuncionarioDetalhes from "../utils/Funcionarios/ModalFuncionarioDetalhes";
-import ConfirmationModal from "../utils/ConfirmationModal";
 import AlertMessage from "../utils/AlertMessage";
+import StatusUsuarioFilter from "../utils/Usuarios/StatusUsuarioFilter";
+import ConfirmacaoAcaoUsuario from "../utils/Usuarios/ConfirmacaoAcaoUsuario";
+import { ACOES_USUARIO, podeFiltrarStatusUsuario } from "../utils/Usuarios/acoesUsuario";
 import api from "../../provider/api";
-import { formatarValor, exibirSucesso } from "../../utils/helpers";
+import { formatarValor, exibirSucesso, getMensagemErro } from "../../utils/helpers";
 
 const search_columns = [
   { label: "ID", value: "id" },
@@ -30,12 +32,14 @@ export default function TelaFuncionarios() {
   const [totalPaginas, setTotalPaginas] = useState(0);
   const [totalFuncionarios, setTotalFuncionarios] = useState(0);
   const [filtroAtual, setFiltroAtual] = useState(null);
+  const [statusAtual, setStatusAtual] = useState("ATIVO");
 
   const [selectedEmployee,
     setSelectedEmployee] = useState(null);
 
-  const [funcionarioParaExcluir,
-    setFuncionarioParaExcluir] = useState(null);
+  const [acaoUsuario, setAcaoUsuario] = useState(null);
+  const [executandoAcao, setExecutandoAcao] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState("");
 
   const [funcionarioDetalhes, setFuncionarioDetalhes] = useState(null);
 
@@ -66,7 +70,7 @@ export default function TelaFuncionarios() {
     carregarCargosEBuscarFuncionarios();
   }, []);
 
-  async function buscarDados(pagina = paginaAtual, filtro = filtroAtual, cargos = tipoUsuarioCargos) {
+  async function buscarDados(pagina = paginaAtual, filtro = filtroAtual, cargos = tipoUsuarioCargos, status = statusAtual) {
 
     try {
 
@@ -80,7 +84,7 @@ export default function TelaFuncionarios() {
         return;
       }
 
-      const params = new URLSearchParams({ page: String(pagina), size: "10" });
+      const params = new URLSearchParams({ page: String(pagina), size: "10", status });
       cargos.forEach((cargo) => params.append("tipoUsuarioCargo", cargo));
 
       if (filtro?.value) {
@@ -94,7 +98,7 @@ export default function TelaFuncionarios() {
       const ultimaPagina = Math.max(0, totalPaginasResposta - 1);
 
       if (pagina > ultimaPagina) {
-        await buscarDados(ultimaPagina, filtro, cargos);
+        await buscarDados(ultimaPagina, filtro, cargos, status);
         return;
       }
 
@@ -120,6 +124,11 @@ export default function TelaFuncionarios() {
     const filtro = value.trim() ? { field, value: value.trim() } : null;
     setFiltroAtual(filtro);
     return buscarDados(0, filtro);
+  }
+
+  function filtrarPorStatus(status) {
+    setStatusAtual(status);
+    return buscarDados(0, filtroAtual, tipoUsuarioCargos, status);
   }
 
   function handleAdd() {
@@ -176,42 +185,50 @@ export default function TelaFuncionarios() {
     setFuncionarioDetalhes(funcionarioAtual);
   }
 
-  function solicitarExclusao(employee) {
+  function solicitarAcao(tipo, employee) {
 
-    setFuncionarioParaExcluir(employee);
+    setAcaoUsuario({ tipo, usuario: employee });
   }
 
-  function cancelarExclusao() {
+  function cancelarAcao() {
 
-    setFuncionarioParaExcluir(null);
+    setAcaoUsuario(null);
   }
 
-  async function confirmarExclusao() {
+  async function confirmarAcao() {
 
-    if (!funcionarioParaExcluir?.id) {
+    if (!acaoUsuario?.usuario?.id) {
       return;
     }
 
+    const config = ACOES_USUARIO[acaoUsuario.tipo];
+
     try {
 
-      await api.delete(
-        `/usuarios/${funcionarioParaExcluir.id}`
-      );
+      setExecutandoAcao(true);
+      setMensagemErro("");
 
-      setFuncionarioParaExcluir(null);
+      await config.executar(acaoUsuario.usuario.id);
+
+      exibirSucesso(setSucessoCadastro, setSucessoVisivel)(config.sucesso);
 
       await buscarDados(paginaAtual, filtroAtual);
 
     } catch (error) {
 
       console.error(
-        "Erro ao excluir funcionário:",
+        `Erro ao ${acaoUsuario.tipo} funcionário:`,
         error
       );
 
-      window.alert(
-        "Não foi possível excluir o funcionário."
+      setMensagemErro(
+        getMensagemErro(error, `Não foi possível ${acaoUsuario.tipo} o funcionário.`)
       );
+
+    } finally {
+
+      setExecutandoAcao(false);
+      setAcaoUsuario(null);
     }
   }
 
@@ -238,11 +255,22 @@ export default function TelaFuncionarios() {
         addLabel="Cadastrar funcionário"
         addIcon={personAddWhiteIcon}
         customControls={
-          <SearchFilter
-            columns={search_columns}
-            onSearch={filtrarFuncionarios}
-            isLoading={isLoading}
-          />
+          <div className="flex w-full flex-wrap items-center gap-3">
+            {podeFiltrarStatusUsuario() && (
+              <StatusUsuarioFilter
+                value={statusAtual}
+                onChange={filtrarPorStatus}
+                isLoading={isLoading}
+              />
+            )}
+            <div className="w-full min-w-0 lg:w-auto lg:flex-1">
+              <SearchFilter
+                columns={search_columns}
+                onSearch={filtrarFuncionarios}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
         }
       >
 
@@ -251,12 +279,12 @@ export default function TelaFuncionarios() {
           message={sucessoVisivel ? sucessoCadastro : ""}
         />
 
+        <AlertMessage variant="error" message={mensagemErro} />
+
         <div className="bg-white rounded-lg shadow-md border overflow-hidden">
 
           <TabelaFuncionarios
             funcionarios={funcionarios}
-            onEdit={handleEdit}
-            onDelete={solicitarExclusao}
             onDetails={handleDetalhes}
             currentPage={paginaAtual}
             totalPages={totalPaginas}
@@ -289,58 +317,55 @@ export default function TelaFuncionarios() {
             handleCloseDetalhesModal();
             handleEdit(funcionarioDetalhes);
           }}
-          onDelete={() => {
+          onArquivar={() => {
             handleCloseDetalhesModal();
-            solicitarExclusao(funcionarioDetalhes);
+            solicitarAcao("arquivar", funcionarioDetalhes);
+          }}
+          onDesarquivar={() => {
+            handleCloseDetalhesModal();
+            solicitarAcao("desarquivar", funcionarioDetalhes);
+          }}
+          onExcluir={() => {
+            handleCloseDetalhesModal();
+            solicitarAcao("excluir", funcionarioDetalhes);
           }}
         />
       )}
 
-      <ConfirmationModal
-        isOpen={!!funcionarioParaExcluir}
-        title="Confirmar exclusão"
-        message="Deseja realmente excluir este funcionário?"
+      <ConfirmacaoAcaoUsuario
+        acao={acaoUsuario}
+        isLoading={executandoAcao}
         items={
-          funcionarioParaExcluir
+          acaoUsuario?.usuario
             ? [
                 {
                   label: "ID",
-                  value:
-                    funcionarioParaExcluir.id,
+                  value: acaoUsuario.usuario.id,
                 },
                 {
                   label: "Nome",
-                  value: formatarValor(
-                    funcionarioParaExcluir.nome
-                  ),
+                  value: formatarValor(acaoUsuario.usuario.nome),
                 },
                 {
                   label: "Email",
-                  value: formatarValor(
-                    funcionarioParaExcluir.email
-                  ),
+                  value: formatarValor(acaoUsuario.usuario.email),
                 },
                 {
                   label: "Telefone",
-                  value: formatarValor(
-                    funcionarioParaExcluir.telefone
-                  ),
+                  value: formatarValor(acaoUsuario.usuario.telefone),
                 },
                 {
                   label: "Tipo",
                   value: formatarValor(
-                    funcionarioParaExcluir
-                      .tipoUsuario?.cargo ||
-                    funcionarioParaExcluir.perfil
+                    acaoUsuario.usuario.tipoUsuario?.cargo ||
+                    acaoUsuario.usuario.perfil
                   ),
                 },
               ]
             : []
         }
-        confirmLabel="Sim, excluir"
-        cancelLabel="Não, cancelar"
-        onCancel={cancelarExclusao}
-        onConfirm={confirmarExclusao}
+        onCancel={cancelarAcao}
+        onConfirm={confirmarAcao}
       />
 
     </div>

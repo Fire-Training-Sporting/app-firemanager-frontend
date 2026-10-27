@@ -126,7 +126,7 @@ export function TelaPagamentos() {
             }
 
             try {
-                const usuarios = await getAllPages("/usuarios");
+                const usuarios = await getAllPages("/usuarios", { status: "TODOS" });
                 const listaFuncionarios = usuarios.filter((usuario) =>
                         ["professor", "rebatedor", "auxiliar"].includes(
                             usuario.tipoUsuario?.cargo?.toLowerCase()
@@ -273,7 +273,7 @@ export function TelaPagamentos() {
                                     <option value="">Selecione um funcionário</option>
                                     {funcionarios.map((funcionario) => (
                                         <option key={funcionario.id} value={funcionario.id}>
-                                            {funcionario.nome}
+                                            {funcionario.nome}{funcionario.arquivado ? " (arquivado)" : ""}
                                         </option>
                                     ))}
                                 </select>
