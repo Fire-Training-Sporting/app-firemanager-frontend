@@ -21,7 +21,7 @@ export function AlunosTable({
 
       <div className="h-fit max-h-[calc(100vh-300px)] lg:max-h-[calc(100vh-208px)] overflow-y-auto">
 
-        <table className="w-full border-separate border-spacing-0 rounded-lg overflow-hidden">
+        <table className="w-full border-separate border-spacing-0">
 
           <thead className="sticky top-0 z-10">
             <tr className="border-b-2 border-gray-200">
@@ -78,7 +78,7 @@ export function AlunosTable({
         </table>
       </div>
 
-      <div className="flex items-center justify-between gap-4 px-4 py-2 border-t bg-white">
+      <div className="flex items-center justify-between gap-4 px-4 py-2 border-t border-gray-200 bg-white">
 
         <div className="text-xs text-gray-600">
           Mostrando{" "}
@@ -93,7 +93,7 @@ export function AlunosTable({
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 0 || isLoading}
-            className={`px-2 py-0.5 text-sm rounded-md border ${
+            className={`px-2 py-0.5 text-sm rounded-md border border-gray-300 ${
               currentPage === 0 || isLoading
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-gray-100"
@@ -109,7 +109,7 @@ export function AlunosTable({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={totalPages === 0 || currentPage >= totalPages - 1 || isLoading}
-            className={`px-2 py-0.5 text-sm rounded-md border ${
+            className={`px-2 py-0.5 text-sm rounded-md border border-gray-300 ${
               totalPages === 0 || currentPage >= totalPages - 1 || isLoading
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-gray-100"

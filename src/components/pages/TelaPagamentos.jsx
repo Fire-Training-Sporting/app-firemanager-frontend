@@ -73,7 +73,7 @@ function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalIte
                     <button
                         onClick={() => onPageChange(currentPage - 1)}
                         disabled={currentPage === 0 || loading}
-                        className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 0 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                        className={`px-2 py-0.5 text-sm rounded-md border border-gray-300 ${currentPage === 0 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
                     >
                         Anterior
                     </button>
@@ -83,7 +83,7 @@ function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalIte
                     <button
                         onClick={() => onPageChange(currentPage + 1)}
                         disabled={totalPages === 0 || currentPage >= totalPages - 1 || loading}
-                        className={`px-2 py-0.5 text-sm rounded-md border ${totalPages === 0 || currentPage >= totalPages - 1 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                        className={`px-2 py-0.5 text-sm rounded-md border border-gray-300 ${totalPages === 0 || currentPage >= totalPages - 1 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
                     >
                         Próxima
                     </button>

@@ -376,7 +376,7 @@ export default function TelaAlunos() {
 
       <AlertMessage variant="error" message={mensagemErro} />
 
-      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
         <AlunosTable
           alunos={alunos}
           onDetails={handleDetalhes}

@@ -86,7 +86,7 @@ export default function TelaServicos() {
         message={sucessoVisivel ? sucessoServico : ""}
       />
 
-      <div className="bg-white rounded-lg shadow-md border overflow-hidden w-full">
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden w-full">
         <ServicoLista
           servicos={servicos}
           onToggleStatus={toggleStatus}

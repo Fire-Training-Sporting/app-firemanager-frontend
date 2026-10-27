@@ -431,7 +431,7 @@ export default function TelaAgendamentos() {
             message={sucessoVisivel ? sucessoAgendamento : ""}
           />
 
-          <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
             <AgendamentosTable
               agendamentos={agendamentos}
               onViewDetails={visualizarDetalhes}
