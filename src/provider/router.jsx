@@ -2,6 +2,9 @@ import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import AuthGuard from "./AuthGuard";
 
+// Cargos (já normalizados) que podem acessar cada rota protegida; o AuthGuard lê de handle.roles.
+const TODOS_OS_CARGOS = ["root", "administracao", "professor", "aluno"];
+
 const TelaLogin = lazy(() => import("../components/pages/TelaLogin").then((module) => ({ default: module.TelaLogin })));
 const TelaAgendamentos = lazy(() => import("../components/pages/TelaAgendamentos"));
 const TelaAlunos = lazy(() => import("../components/pages/TelaAlunos"));
@@ -47,42 +50,52 @@ export const router = createBrowserRouter([
         children: [
             {
                 path: "/dashboard",
+                handle: { roles: ["root"] },
                 element: <TelaDashboard />,
             },
             {
                 path: "/agendamentos",
+                handle: { roles: TODOS_OS_CARGOS },
                 element: <TelaAgendamentos />,
             },
             {
                 path: "/alunos",
+                handle: { roles: ["root", "administracao", "professor"] },
                 element: <TelaAlunos />,
             },
             {
                 path: "/perfil",
+                handle: { roles: TODOS_OS_CARGOS },
                 element: <TelaPerfil />,
             },
             {
                 path: "/condominios",
+                handle: { roles: ["root", "administracao", "professor"] },
                 element: <TelaCondominios />,
             },
             {
                 path: "/funcionarios",
+                handle: { roles: ["root", "administracao"] },
                 element: <TelaFuncionarios />,
             },
             {
                 path: "/servicos",
+                handle: { roles: ["root", "administracao"] },
                 element: <TelaServico />,
             },
             {
                 path: "/pagamento",
+                handle: { roles: ["root", "administracao", "professor"] },
                 element: <TelaPagamentos />,
             },
             {
                 path: "/acesso-nao-autorizado",
+                handle: { roles: TODOS_OS_CARGOS },
                 element: <TelaAcessoNegado />,
             },
             {
                 path: "*",
+                handle: { roles: TODOS_OS_CARGOS },
                 element: <Tela404 />,
             },
         ],

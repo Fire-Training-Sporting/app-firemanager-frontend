@@ -17,7 +17,7 @@ export function AgendamentosTable({
   return (
     <div className="w-full overflow-x-auto">
       <div className="h-fit max-h-[calc(100vh-360px)] lg:max-h-[calc(100vh-264px)] overflow-y-auto">
-        <table className="w-full border-separate border-spacing-0 rounded-lg">
+        <table className="w-full border-separate border-spacing-0">
           <thead className="sticky top-0 z-10 bg-white">
             <tr className="border-b-2 border-gray-200">
               <AgendamentosTh>ID</AgendamentosTh>
@@ -52,7 +52,7 @@ export function AgendamentosTable({
         </table>
       </div>
 
-      <div className="flex items-center justify-between gap-4 px-4 py-2 border-t bg-white">
+      <div className="flex items-center justify-between gap-4 px-4 py-2 border-t border-gray-200 bg-white">
         <div className="text-xs text-gray-600">
           {totalElements} agendamentos no total
         </div>
@@ -60,7 +60,7 @@ export function AgendamentosTable({
           <button
             onClick={goPrev}
             disabled={currentPage === 0 || isLoading}
-            className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 0 || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
+            className={`px-2 py-0.5 text-sm rounded-md border border-gray-300 ${currentPage === 0 || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
             Anterior
           </button>
           <div className="text-xs">
@@ -69,7 +69,7 @@ export function AgendamentosTable({
           <button
             onClick={goNext}
             disabled={currentPage >= totalPages - 1 || totalPages === 0 || isLoading}
-            className={`px-2 py-0.5 text-sm rounded-md border ${currentPage >= totalPages - 1 || totalPages === 0 || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
+            className={`px-2 py-0.5 text-sm rounded-md border border-gray-300 ${currentPage >= totalPages - 1 || totalPages === 0 || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
             Próxima
           </button>
         </div>

@@ -281,7 +281,7 @@ export default function TelaFuncionarios() {
 
         <AlertMessage variant="error" message={mensagemErro} />
 
-        <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
 
           <TabelaFuncionarios
             funcionarios={funcionarios}

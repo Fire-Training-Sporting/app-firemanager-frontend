@@ -119,7 +119,7 @@ export default function TelaPerfil() {
         <div className="w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Informações Pessoais */}
-            <div className="bg-white rounded-2xl border shadow-sm p-6">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-5 flex items-center gap-2">
                 <span className="w-1 h-7 bg-[#F8821E] rounded-full"></span>
                 Informações Pessoais
@@ -150,7 +150,7 @@ export default function TelaPerfil() {
 
             {/* Saldo de Aulas (apenas para alunos) */}
             {isAluno && (
-              <div className="bg-white rounded-2xl border shadow-sm p-6">
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
                 <h2 className="text-xl font-bold text-gray-800 mb-5 flex items-center gap-2">
                   <span className="w-1 h-7 bg-[#F8821E] rounded-full"></span>
                   Saldo de Aulas
@@ -165,7 +165,7 @@ export default function TelaPerfil() {
                   <>
                     <div className="space-y-3 mb-3">
                       {saldoServicesOrder.map((servico) => (
-                        <div key={servico} className="bg-orange-50 rounded-xl p-4 border border-orange-200 hover:shadow-md transition-shadow">
+                        <div key={servico} className="bg-orange-50 rounded-xl p-4 border border-orange-100 hover:shadow-md transition-shadow">
                           <p className="text-xs font-bold uppercase text-orange-700 mb-1">{servico}</p>
                           <div className="flex items-center gap-2">
                             <p className="text-base font-bold text-orange-800">
