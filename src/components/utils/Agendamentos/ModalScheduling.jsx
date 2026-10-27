@@ -339,7 +339,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col max-h-[90vh] overflow-hidden">
 
         {/* HEADER */}
-        <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-4 py-2 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+        <div className="bg-[#F8821E] px-4 py-2 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
           <h2 className="text-white text-lg font-bold">
             {isEditMode ? "Editar Agendamento" : isDuplicateMode ? "Duplicar Agendamento" : "Criar Agendamento"}
           </h2>

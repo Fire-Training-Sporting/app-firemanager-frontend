@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../../../provider/api";
 import AlertMessage from "../AlertMessage";
 import closeWhiteIcon from "../../../assets/close_white.png";
+import returnWhiteIcon from "../../../assets/return_white.png";
 import { modalBackButton, modalButton, modalCloseButton, modalIcon, modalIconWhite } from "../Buttons/modalButtonStyles";
 import doneGreenIcon from "../../../assets/done_green.png";
 
@@ -129,15 +130,16 @@ export default function ModalSaldo({ aluno = null, onClose, onCreated, onBack })
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
-      <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+      <div className="bg-[#F8821E] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
         <div className="flex items-center gap-3">
           {onBack && (
             <button
               type="button"
               onClick={onBack}
               className={modalBackButton}
+              aria-label="Voltar"
             >
-              ←
+              <img src={returnWhiteIcon} alt="" className="h-5 w-5 -translate-x-px" />
             </button>
           )}
           <h2 className="text-lg font-bold text-white">Adicionar saldo</h2>

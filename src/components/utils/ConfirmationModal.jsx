@@ -20,7 +20,7 @@ export default function ConfirmationModal({
   const headerClassName =
     variant === "danger"
       ? "bg-linear-to-r from-red-600 to-red-500"
-      : "bg-linear-to-r from-[#F8821E] to-[#EA580C]";
+      : "bg-[#F8821E]";
 
   const confirmButtonClassName = modalButton(variant === "success" ? "success" : "danger");
 

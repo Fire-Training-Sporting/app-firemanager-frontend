@@ -29,7 +29,7 @@ export const modalIcon = "h-[18px] w-[18px] shrink-0 translate-y-px";
 export const modalIconWhite = `${modalIcon} brightness-0 invert`;
 
 export const modalCloseButton =
-  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-600 shadow-sm transition-colors hover:bg-red-700 cursor-pointer";
+  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/20 transition-colors hover:bg-black/30 cursor-pointer";
 
 export const modalBackButton =
   "flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/20 text-white transition-colors hover:bg-black/30 cursor-pointer";
