@@ -1,5 +1,7 @@
 import { AlunosRow } from "./AlunosRow";
 import AlunosTh from "./AlunoTh";
+import leftBlackIcon from "../../../assets/left_black.png";
+import rightBlackIcon from "../../../assets/right_black.png";
 
 export function AlunosTable({
   alunos = [],
@@ -93,12 +95,13 @@ export function AlunosTable({
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 0 || isLoading}
-            className={`px-2 py-0.5 text-sm rounded-md border border-gray-300 ${
+            className={`inline-flex items-center px-3 py-1 text-sm leading-5 rounded-md border border-gray-300 ${
               currentPage === 0 || isLoading
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-gray-100"
             }`}
           >
+            <img src={leftBlackIcon} alt="" className="-ml-1.5 h-4 w-4 shrink-0" />
             Anterior
           </button>
 
@@ -109,13 +112,14 @@ export function AlunosTable({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={totalPages === 0 || currentPage >= totalPages - 1 || isLoading}
-            className={`px-2 py-0.5 text-sm rounded-md border border-gray-300 ${
+            className={`inline-flex items-center px-3 py-1 text-sm leading-5 rounded-md border border-gray-300 ${
               totalPages === 0 || currentPage >= totalPages - 1 || isLoading
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-gray-100"
             }`}
           >
             Próxima
+            <img src={rightBlackIcon} alt="" className="-mr-1.5 h-4 w-4 shrink-0" />
           </button>
 
         </div>
