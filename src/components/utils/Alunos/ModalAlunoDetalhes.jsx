@@ -2,15 +2,20 @@ import { useState, useEffect } from "react";
 import api from "../../../provider/api";
 import closeWhiteIcon from "../../../assets/close_white.png";
 import editWhiteIcon from "../../../assets/edit_white.png";
-import deleteWhiteIcon from "../../../assets/delete_white.png";
 import addWhiteIcon from "../../../assets/add_white.png";
 import { modalButton, modalCloseButton, modalIcon } from "../Buttons/modalButtonStyles";
+import StatusUsuarioBadge from "../Usuarios/StatusUsuarioBadge";
+import HistoricoUsuario from "../Usuarios/HistoricoUsuario";
+import BotoesAcoesUsuario from "../Usuarios/BotoesAcoesUsuario";
+import { podeArquivarUsuario, podeExcluirUsuario } from "../Usuarios/acoesUsuario";
 
 export default function ModalAlunoDetalhes({
   aluno,
   onClose,
   onEdit,
-  onDelete,
+  onArquivar,
+  onDesarquivar,
+  onExcluir,
   onAddSaldo,
   onRefresh,
 }) {
@@ -95,9 +100,12 @@ export default function ModalAlunoDetalhes({
 
   if (!aluno) return null;
 
-  const showActions = usuarioPodeGerenciarAluno(
-    sessionStorage.getItem("cargo"),
-  );
+  const arquivado = Boolean(aluno.arquivado);
+  // Aluno arquivado não pode ser editado nem receber saldo; só desarquivado
+  const showActions =
+    usuarioPodeGerenciarAluno(sessionStorage.getItem("cargo")) && !arquivado;
+  const showFooter =
+    showActions || podeArquivarUsuario(aluno) || podeExcluirUsuario(aluno);
 
   // Extrai o condomínio do aluno
   const condominioSelecionado = Array.isArray(aluno.condominio)
@@ -200,9 +208,7 @@ export default function ModalAlunoDetalhes({
               <h3 className="text-2xl font-bold text-gray-800">#{aluno.id}</h3>
             </div>
 
-            <span className="px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-700">
-              Ativo
-            </span>
+            <StatusUsuarioBadge arquivado={arquivado} />
           </div>
 
           {/* GRID */}
@@ -276,44 +282,42 @@ export default function ModalAlunoDetalhes({
               })}
             </div>
           </div>
+
+          <HistoricoUsuario usuario={aluno} />
         </div>
 
         {/* FOOTER */}
-        {showActions && (
+        {showFooter && (
           <div className="border-t bg-gray-50 px-5 py-3 flex items-center justify-end gap-3 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => {
-                  if (showActions) onDelete?.();
-                }}
-                className={modalButton("danger", { icon: true })}
-              >
-                <img src={deleteWhiteIcon} alt="" className={modalIcon} />
-                Excluir
-              </button>
+              <BotoesAcoesUsuario
+                usuario={aluno}
+                onArquivar={onArquivar}
+                onDesarquivar={onDesarquivar}
+                onExcluir={onExcluir}
+              />
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (showActions) onEdit?.();
-                }}
-                className={modalButton("warning", { icon: true })}
-              >
-                <img src={editWhiteIcon} alt="" className={modalIcon} />
-                Editar
-              </button>
+              {showActions && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onEdit?.()}
+                    className={modalButton("warning", { icon: true })}
+                  >
+                    <img src={editWhiteIcon} alt="" className={modalIcon} />
+                    Editar
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (showActions) onAddSaldo?.();
-                }}
-                className={modalButton("info", { icon: true })}
-              >
-                <img src={addWhiteIcon} alt="" className={modalIcon} />
-                Adicionar Saldo
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => onAddSaldo?.()}
+                    className={modalButton("info", { icon: true })}
+                  >
+                    <img src={addWhiteIcon} alt="" className={modalIcon} />
+                    Adicionar Saldo
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}

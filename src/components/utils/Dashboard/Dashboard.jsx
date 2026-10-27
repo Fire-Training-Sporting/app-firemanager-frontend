@@ -63,7 +63,7 @@ export function Dashboard() {
                 responseCondominios,
                 responseAgendamentos
             ] = await Promise.all([
-                getAllPages("/usuarios"),
+                getAllPages("/usuarios", { status: "TODOS" }),
                 api.get("/condominios"),
                 getAllPages("/agendamentos")
             ]);
