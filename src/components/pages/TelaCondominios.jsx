@@ -17,34 +17,16 @@ const search_columns = [
   { label: "Bairro", value: "bairro" },
 ];
 
-const normalizarCampoBusca = (valor) => {
-  if (valor == null) return "";
-
-  if (typeof valor === "object") {
-    return valor.nome ?? "";
-  }
-
-  return String(valor);
-};
-
-const obterValorBusca = (condominio, field) => {
-  if (field === "logradouro") {
-    return normalizarCampoBusca(condominio.logradouro ?? condominio.rua ?? "");
-  }
-
-  return normalizarCampoBusca(condominio[field]);
-};
-
 export default function TelaCondominios() {
 
   const [showModal, setShowModal] = useState(false);
 
   const [condominios, setCondominios] = useState([]);
-
-  const [condominiosOriginais, setCondominiosOriginais] =
-    useState([]);
-
   const [isLoading, setIsLoading] = useState(false);
+  const [paginaAtual, setPaginaAtual] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [totalCondominios, setTotalCondominios] = useState(0);
+  const [filtroAtual, setFiltroAtual] = useState(null);
 
   const [selectedCondominio, setSelectedCondominio] =
     useState(null);
@@ -57,23 +39,35 @@ export default function TelaCondominios() {
   const [sucessoVisivel, setSucessoVisivel] = useState(false);
 
   useEffect(() => {
-    buscarDados();
+    buscarDados(0, null);
   }, []);
 
-  const buscarDados = async () => {
+  const buscarDados = async (pagina = paginaAtual, filtro = filtroAtual) => {
 
     try {
 
       setIsLoading(true);
 
-      const response =
-        await api.get("/condominios");
+      const params = new URLSearchParams({ page: String(pagina), size: "10" });
+      if (filtro?.value) {
+        params.set("campo", filtro.field);
+        params.set("busca", filtro.value);
+      }
 
-      setCondominios(response.data || []);
+      const response = await api.get("/condominios/paginado", { params });
+      const paginaResponse = response.data;
+      const totalPaginasResposta = Number(paginaResponse?.totalPages) || 0;
+      const ultimaPagina = Math.max(0, totalPaginasResposta - 1);
 
-      setCondominiosOriginais(
-        response.data || []
-      );
+      if (pagina > ultimaPagina) {
+        await buscarDados(ultimaPagina, filtro);
+        return;
+      }
+
+      setCondominios(paginaResponse?.content || []);
+      setPaginaAtual(Number(paginaResponse?.page) || 0);
+      setTotalPaginas(totalPaginasResposta);
+      setTotalCondominios(Number(paginaResponse?.totalElements) || 0);
 
     } catch (error) {
 
@@ -89,42 +83,10 @@ export default function TelaCondominios() {
     }
   };
 
-  const filtrarCondominios = ({
-    field,
-    value,
-  }) => {
-
-    try {
-
-      setIsLoading(true);
-
-      const termoBusca = value.trim().toLowerCase();
-
-      if (!termoBusca) {
-
-        setCondominios(condominiosOriginais);
-        return;
-      }
-
-      const filtrados = condominiosOriginais.filter((condominio) => {
-        const campoBusca = obterValorBusca(condominio, field).toLowerCase();
-        return campoBusca.includes(termoBusca);
-      });
-
-      setCondominios(filtrados);
-
-    } catch (error) {
-
-      console.error(
-        "Erro ao filtrar condomínios:",
-        error
-      );
-
-    } finally {
-
-      setIsLoading(false);
-
-    }
+  const filtrarCondominios = ({ field, value }) => {
+    const filtro = value.trim() ? { field, value: value.trim() } : null;
+    setFiltroAtual(filtro);
+    return buscarDados(0, filtro);
   };
 
   const handleAdd = () => {
@@ -165,7 +127,7 @@ export default function TelaCondominios() {
         ? "Condomínio atualizado com sucesso"
         : "Condomínio cadastrado com sucesso"
     );
-    buscarDados();
+    buscarDados(paginaAtual, filtroAtual);
   };
 
   const solicitarExclusao = (condominio) => {
@@ -194,7 +156,7 @@ export default function TelaCondominios() {
 
       setCondominioParaExcluir(null);
 
-      await buscarDados();
+      await buscarDados(paginaAtual, filtroAtual);
 
     } catch (error) {
 
@@ -257,6 +219,11 @@ export default function TelaCondominios() {
             condominios={condominios}
             onEdit={handleEdit}
             onDelete={solicitarExclusao}
+            currentPage={paginaAtual}
+            totalPages={totalPaginas}
+            totalItems={totalCondominios}
+            isLoading={isLoading}
+            onPageChange={(pagina) => buscarDados(pagina)}
           />
 
         </div>

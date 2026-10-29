@@ -1,61 +1,18 @@
-import { useState, useEffect } from "react";
 import { AgendamentosRow } from "./AgendamentosRow";
 import AgendamentosTh from "./AgendamentosTh";
 
-export function AgendamentosTable({ agendamentos = [], onViewDetails }) {
-  const ITEMS_PER_PAGE = 20;
-  const [currentPage, setCurrentPage] = useState(1);
-  const totalItems = agendamentos.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
-
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const parseDateTime = (dateValue, timeValue) => {
-    if (!dateValue) return null;
-    try {
-      if (dateValue instanceof Date) {
-        if (timeValue) {
-          const parts = String(timeValue).split(":");
-          const d = new Date(dateValue.getTime());
-          d.setHours(Number(parts[0] || 0), Number(parts[1] || 0), 0, 0);
-          return d;
-        }
-        return dateValue;
-      }
-
-      const dateStr = String(dateValue).trim();
-      let iso = dateStr.includes("T") ? dateStr : dateStr.replace(" ", "T");
-      if (timeValue) {
-        const t = String(timeValue).trim();
-        if (t) iso = `${dateStr}T${t}`;
-      }
-      const d = new Date(iso);
-      return isNaN(d) ? null : d;
-    } catch {
-      return null;
-    }
-  };
-
-  const sortedAgendamentos = [...agendamentos].sort((a, b) => {
-    const da = parseDateTime(a?.data, a?.horaInicio);
-    const db = parseDateTime(b?.data, b?.horaInicio);
-    if (da && db) return da.getTime() - db.getTime();
-    if (da && !db) return -1;
-    if (!da && db) return 1;
-    return 0;
-  });
-
-  const pageItems = sortedAgendamentos.slice(startIndex, endIndex);
-
-  const goPrev = () => setCurrentPage((p) => Math.max(1, p - 1));
-  const goNext = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
-
-  // Reset page if data changed and current page is out of range
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [totalPages]);
+export function AgendamentosTable({
+  agendamentos = [],
+  onViewDetails,
+  currentPage = 0,
+  totalPages = 0,
+  totalElements = 0,
+  isLoading = false,
+  onPageChange,
+}) {
+  const totalPagesExibidas = Math.max(1, totalPages);
+  const goPrev = () => onPageChange?.(currentPage - 1);
+  const goNext = () => onPageChange?.(currentPage + 1);
 
   return (
     <div className="w-full overflow-x-auto">
@@ -76,8 +33,8 @@ export function AgendamentosTable({ agendamentos = [], onViewDetails }) {
             </tr>
           </thead>
           <tbody className="bg-white">
-            {pageItems.length > 0 ? (
-              pageItems.map((agendamento) => (
+            {agendamentos.length > 0 ? (
+              agendamentos.map((agendamento) => (
                 <AgendamentosRow
                   key={agendamento.id}
                   {...agendamento}
@@ -97,22 +54,22 @@ export function AgendamentosTable({ agendamentos = [], onViewDetails }) {
 
       <div className="flex items-center justify-between gap-4 px-4 py-2 border-t bg-white">
         <div className="text-xs text-gray-600">
-          Mostrando {Math.min(totalItems, startIndex + 1)}-{Math.min(totalItems, endIndex)} de {totalItems}
+          {totalElements} agendamentos no total
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={goPrev}
-            disabled={currentPage === 1}
-            className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
+            disabled={currentPage === 0 || isLoading}
+            className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 0 || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
             Anterior
           </button>
           <div className="text-xs">
-            Página {currentPage} de {totalPages}
+            Página {currentPage + 1} de {totalPagesExibidas}
           </div>
           <button
             onClick={goNext}
-            disabled={currentPage === totalPages}
-            className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
+            disabled={currentPage >= totalPages - 1 || totalPages === 0 || isLoading}
+            className={`px-2 py-0.5 text-sm rounded-md border ${currentPage >= totalPages - 1 || totalPages === 0 || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}>
             Próxima
           </button>
         </div>

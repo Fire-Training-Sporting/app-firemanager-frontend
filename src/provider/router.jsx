@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
+import AuthGuard from "./AuthGuard";
 
 const TelaLogin = lazy(() => import("../components/pages/TelaLogin").then((module) => ({ default: module.TelaLogin })));
 const TelaAgendamentos = lazy(() => import("../components/pages/TelaAgendamentos"));
@@ -18,6 +19,28 @@ export const router = createBrowserRouter([
     {
         path: "/",
         element: <TelaLogin />,
+    },
+    {
+        path: "/recuperar-senha",
+        HydrateFallback: () => (
+            <main className="flex min-h-screen items-center justify-center bg-[#ec7200] font-[Montserrat,sans-serif] text-white" role="status" aria-live="polite">
+                Carregando...
+            </main>
+        ),
+        lazy: async () => ({
+            Component: (await import("../components/pages/TelaRecuperarSenha")).default,
+        }),
+    },
+    {
+        path: "/reset-password",
+        HydrateFallback: () => (
+            <main className="flex min-h-screen items-center justify-center bg-[#ec7200] font-[Montserrat,sans-serif] text-white" role="status" aria-live="polite">
+                Carregando...
+            </main>
+        ),
+        lazy: async () => ({
+            Component: (await import("../components/pages/TelaRedefinirSenha")).default,
+        }),
     },
     {
         element: <AuthGuard />,

@@ -1,34 +1,9 @@
 import { useState, useEffect } from "react";
 import PageLayout from "../utils/PageLayout";
 import api from "../../provider/api";
+import { getUsuarioLogado, formatarValor } from "../../utils/helpers";
 
 const saldoServicesOrder = ["Tênis", "Beach Tennis", "Funcional"];
-
-function getUsuarioLogado() {
-  const usuarioString = sessionStorage.getItem("usuario");
-
-  if (!usuarioString) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(usuarioString);
-  } catch {
-    return null;
-  }
-}
-
-function formatarValor(valor) {
-  if (valor == null || valor === "") {
-    return "-";
-  }
-
-  if (typeof valor === "object") {
-    return valor.nome ?? valor.descricao ?? valor.razaoSocial ?? "-";
-  }
-
-  return String(valor);
-}
 
 export default function TelaPerfil() {
   const usuario = getUsuarioLogado();
