@@ -76,7 +76,6 @@ export default function TelaServicos() {
   return (
     <PageLayout
       title="Serviços"
-      innerClassName="w-full max-w-[760px] mx-auto"
       controlsClassName="justify-between"
       contentClassName="w-full"
       showSearch={false}
@@ -85,10 +84,9 @@ export default function TelaServicos() {
       <AlertMessage
         variant="success"
         message={sucessoVisivel ? sucessoServico : ""}
-        className="fixed right-4 top-30 z-60 w-[min(420px,calc(100vw-2rem))] shadow-lg"
       />
 
-      <div className="bg-white rounded-lg shadow-md border overflow-hidden w-full">
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden w-full">
         <ServicoLista
           servicos={servicos}
           onToggleStatus={toggleStatus}

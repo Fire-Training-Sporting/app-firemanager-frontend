@@ -1,3 +1,7 @@
+import { useRef } from "react";
+import { modalButton } from "./Buttons/modalButtonStyles";
+import useModalKeyboard from "../../hooks/useModalKeyboard";
+
 export default function ConfirmationModal({
   isOpen,
   title = "Confirmar ação",
@@ -11,6 +15,9 @@ export default function ConfirmationModal({
   onConfirm,
   onCancel,
 }) {
+  const confirmButtonRef = useRef(null);
+  useModalKeyboard({ onClose: onCancel, confirmButtonRef, enabled: isOpen });
+
   if (!isOpen) {
     return null;
   }
@@ -18,12 +25,9 @@ export default function ConfirmationModal({
   const headerClassName =
     variant === "danger"
       ? "bg-linear-to-r from-red-600 to-red-500"
-      : "bg-linear-to-r from-[#F8821E] to-[#EA580C]";
+      : "bg-[#F8821E]";
 
-  const confirmButtonClassName =
-    variant === "success"
-      ? "rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-green-700"
-      : "rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-red-700";
+  const confirmButtonClassName = modalButton(variant === "success" ? "success" : "danger");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -64,15 +68,16 @@ export default function ConfirmationModal({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-100"
+            className={modalButton("secondary")}
           >
             {cancelLabel}
           </button>
           <button
             type="button"
+            ref={confirmButtonRef}
             onClick={onConfirm}
             disabled={confirmDisabled}
-            className={`${confirmButtonClassName} ${confirmDisabled ? "cursor-not-allowed opacity-50" : ""}`}
+            className={confirmButtonClassName}
           >
             {confirmLabel}
           </button>

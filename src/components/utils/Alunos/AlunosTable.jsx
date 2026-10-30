@@ -1,52 +1,29 @@
-import { useState, useEffect } from "react";
 import { AlunosRow } from "./AlunosRow";
 import AlunosTh from "./AlunoTh";
+import leftBlackIcon from "../../../assets/left_black.png";
+import rightBlackIcon from "../../../assets/right_black.png";
 
 export function AlunosTable({
   alunos = [],
-  onDelete = () => {},
-  onEdit = () => {},
-  onAddSaldo = () => {},
+  onDetails = () => {},
+  currentPage = 0,
+  totalPages = 0,
+  totalItems = 0,
+  isLoading = false,
+  onPageChange = () => {},
 }) {
-  const ITEMS_PER_PAGE = 20;
   const cargo = sessionStorage.getItem("cargo");
   const showContato = cargo !== "Professor";
-  const showActions = sessionStorage.getItem("cargo") !== "Professor";
-  const showSaldos = sessionStorage.getItem("cargo") !== "Professor";
-
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const totalItems = alunos.length;
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(totalItems / ITEMS_PER_PAGE)
-  );
-
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-
-  const pageItems = alunos.slice(startIndex, endIndex);
-
-  const goPrev = () =>
-    setCurrentPage((p) => Math.max(1, p - 1));
-
-  const goNext = () =>
-    setCurrentPage((p) => Math.min(totalPages, p + 1));
-
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [totalPages]);
+  const totalPagesExibidas = Math.max(1, totalPages);
+  const startItem = totalItems === 0 ? 0 : currentPage * 10 + 1;
+  const endItem = Math.min(totalItems, (currentPage + 1) * 10);
 
   return (
     <div className="w-full overflow-x-auto">
 
-      <div className="h-fit max-h-[calc(100vh-300px)] overflow-y-auto">
+      <div className="h-fit max-h-[calc(100vh-300px)] lg:max-h-[calc(100vh-208px)] overflow-y-auto">
 
-        <table className="w-full border-separate border-spacing-0 rounded-lg overflow-hidden">
+        <table className="w-full border-separate border-spacing-0">
 
           <thead className="sticky top-0 z-10">
             <tr className="border-b-2 border-gray-200">
@@ -75,53 +52,23 @@ export function AlunosTable({
                 Endereço
               </AlunosTh>
 
-              {showSaldos && (
-                <>
-                  <AlunosTh className="text-left w-32">
-                    Tênis
-                  </AlunosTh>
-
-                  <AlunosTh className="text-left w-40">
-                    Beach Tennis
-                  </AlunosTh>
-
-                  <AlunosTh className="text-left w-32">
-                    Funcional
-                  </AlunosTh>
-                </>
-              )}
-
-              {showActions && (
-                <AlunosTh className="text-left w-40">
-                  Ações
-                </AlunosTh>
-              )}
-
             </tr>
           </thead>
 
           <tbody className="bg-white">
-            {pageItems.length > 0 ? (
-              pageItems.map((aluno) => (
+            {alunos.length > 0 ? (
+              alunos.map((aluno) => (
                 <AlunosRow
                   key={aluno.id}
                   {...aluno}
-                  onDelete={() => onDelete(aluno)}
-                  onEdit={() => onEdit(aluno)}
-                  onAddSaldo={() => onAddSaldo(aluno)}
-                  showActions={showActions}
-                  showSaldos={showSaldos}
+                  onDetails={() => onDetails(aluno)}
                   showContato={showContato}
                 />
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={
-                    (showContato ? 5 : 3) +
-                    (showSaldos ? 3 : 0) +
-                    (showActions ? 1 : 0)
-                  }
+                  colSpan={showContato ? 5 : 3}
                   className="p-4 text-center text-gray-500"
                 >
                   Nenhum aluno encontrado.
@@ -133,44 +80,46 @@ export function AlunosTable({
         </table>
       </div>
 
-      <div className="flex items-center justify-between gap-4 px-4 py-2 border-t bg-white">
+      <div className="flex items-center justify-between gap-4 px-4 py-2 border-t border-gray-200 bg-white">
 
         <div className="text-xs text-gray-600">
           Mostrando{" "}
-          {Math.min(totalItems, startIndex + 1)}
+          {startItem}
           -
-          {Math.min(totalItems, endIndex)}
+          {endItem}
           {" "}de {totalItems}
         </div>
 
         <div className="flex items-center gap-2">
 
           <button
-            onClick={goPrev}
-            disabled={currentPage === 1}
-            className={`px-2 py-0.5 text-sm rounded-md border ${
-              currentPage === 1
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 0 || isLoading}
+            className={`inline-flex items-center px-3 py-1 text-sm leading-5 rounded-md border border-gray-300 ${
+              currentPage === 0 || isLoading
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-gray-100"
             }`}
           >
+            <img src={leftBlackIcon} alt="" className="-ml-1.5 h-4 w-4 shrink-0" />
             Anterior
           </button>
 
           <div className="text-xs">
-            Página {currentPage} de {totalPages}
+            Página {currentPage + 1} de {totalPagesExibidas}
           </div>
 
           <button
-            onClick={goNext}
-            disabled={currentPage === totalPages}
-            className={`px-2 py-0.5 text-sm rounded-md border ${
-              currentPage === totalPages
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={totalPages === 0 || currentPage >= totalPages - 1 || isLoading}
+            className={`inline-flex items-center px-3 py-1 text-sm leading-5 rounded-md border border-gray-300 ${
+              totalPages === 0 || currentPage >= totalPages - 1 || isLoading
                 ? "opacity-50 cursor-not-allowed"
                 : "hover:bg-gray-100"
             }`}
           >
             Próxima
+            <img src={rightBlackIcon} alt="" className="-mr-1.5 h-4 w-4 shrink-0" />
           </button>
 
         </div>

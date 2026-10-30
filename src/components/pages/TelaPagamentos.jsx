@@ -1,87 +1,35 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Header from "../utils/Header";
 import AlertMessage from "../utils/AlertMessage";
-import api from "../../provider/api";
+import api, { getAllPages } from "../../provider/api";
+import { formatarData, formatarHora, formatarValor, getUsuarioId } from "../../utils/helpers";
+import leftBlackIcon from "../../assets/left_black.png";
+import rightBlackIcon from "../../assets/right_black.png";
 
-function formatarData(isoDate) {
-    if (!isoDate) return "-";
-
-    const data = new Date(`${isoDate}T12:00:00`);
-    if (Number.isNaN(data.getTime())) {
-        return String(isoDate);
-    }
-
-    return data.toLocaleDateString("pt-BR");
+function formatarDataLocal(data) {
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const dia = String(data.getDate()).padStart(2, "0");
+    return `${ano}-${mes}-${dia}`;
 }
 
-function formatarHora(hora) {
-    if (!hora) return "-";
-
-    return String(hora).slice(0, 5);
+function obterPeriodoUltimos15Dias(dataAtual = new Date()) {
+    const dataInicio = new Date(dataAtual);
+    dataInicio.setDate(dataInicio.getDate() - 15);
+    return {
+        inicio: formatarDataLocal(dataInicio),
+        fim: formatarDataLocal(dataAtual),
+    };
 }
 
-function formatarValor(valor) {
-    if (valor == null || valor === "") {
-        return "-";
-    }
-
-    if (Array.isArray(valor)) {
-        return valor
-            .map((item) => {
-                if (item && typeof item === "object") {
-                    return item.nome ?? item.nomeCompleto ?? item.aluno?.nome ?? "-";
-                }
-
-                return item ?? "-";
-            })
-            .filter((item) => item !== "-")
-            .join(", ") || "-";
-    }
-
-    if (typeof valor === "object") {
-        return valor.nome ?? valor.descricao ?? valor.titulo ?? "-";
-    }
-
-    return String(valor);
-}
-
-function getUsuarioId() {
-    const usuarioString = sessionStorage.getItem("usuario");
-
-    if (!usuarioString) {
-        return null;
-    }
-
-    try {
-        const usuario = JSON.parse(usuarioString);
-        return sessionStorage.getItem("userId") ?? usuario?.userId ?? usuario?.id ?? null;
-    } catch {
-        return sessionStorage.getItem("userId");
-    }
-}
-
-function HistoricoAulasTable({ aulas, loading }) {
-    const ITEMS_PER_PAGE = 5;
-    const [currentPage, setCurrentPage] = useState(1);
-
-    const totalItems = aulas.length;
-    const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    const pageItems = aulas.slice(startIndex, endIndex);
-
-    useEffect(() => {
-        if (currentPage > totalPages) {
-            setCurrentPage(totalPages);
-        }
-    }, [currentPage, totalPages]);
-
-    const goPrev = () => setCurrentPage((page) => Math.max(1, page - 1));
-    const goNext = () => setCurrentPage((page) => Math.min(totalPages, page + 1));
+function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalItems, onPageChange }) {
+    const totalPagesExibidas = Math.max(1, totalPages);
+    const startItem = totalItems === 0 ? 0 : currentPage * 10 + 1;
+    const endItem = Math.min(totalItems, (currentPage + 1) * 10);
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="bg-slate-50 px-5 py-4 border-b border-slate-200">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
+            <div className="border-b border-gray-200 bg-gray-50 px-5 py-4">
                 <div className="flex justify-between items-center gap-4 flex-wrap">
                     <h2 className="text-sm font-semibold text-slate-700 ">
                         Histórico de aulas no período
@@ -94,31 +42,31 @@ function HistoricoAulasTable({ aulas, loading }) {
 
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-50">
+                    <thead className="bg-gray-100">
                         <tr className="border-b border-slate-200">
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">ID</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Aluno</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Data</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Hora Início</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Hora Fim</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Condomínio</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Professor</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Rebatedor</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Auxiliar</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Status</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">ID</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Aluno</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Data</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Hora Início</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Hora Fim</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Condomínio</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Professor</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Rebatedor</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Auxiliar</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Status</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white">
-                        {!loading && pageItems.length > 0 ? (
-                            pageItems.map((agendamento) => (
-                                <tr key={agendamento.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        {!loading && aulas.length > 0 ? (
+                            aulas.map((agendamento) => (
+                                <tr key={agendamento.id} className="border-b border-gray-100 odd:bg-white even:bg-gray-50 hover:bg-orange-50 transition-colors duration-150">
                                     <td className="px-4 py-3 text-sm text-slate-700">{agendamento.id}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.aluno)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarData(agendamento.data)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarHora(agendamento.horaInicio)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarHora(agendamento.horaFim)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.condominio)}</td>
-                                    <td className="px-4 py-3 text-sm text-sky-600 font-medium">{formatarValor(agendamento.professor)}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-700 font-medium">{formatarValor(agendamento.professor)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.rebatedor)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.auxiliar)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.status)}</td>
@@ -135,27 +83,29 @@ function HistoricoAulasTable({ aulas, loading }) {
                 </table>
             </div>
 
-            <div className="flex items-center justify-between gap-4 px-5 pt-4 border-t border-slate-200 mt-4 mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-5 py-4">
                 <div className="text-xs text-slate-500">
-                    Mostrando {totalItems === 0 ? 0 : startIndex + 1}-{Math.min(totalItems, endIndex)} de {totalItems}
+                    Mostrando {startItem}-{endItem} de {totalItems}
                 </div>
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={goPrev}
-                        disabled={currentPage === 1}
-                        className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage === 0 || loading}
+                        className={`inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-sm leading-5 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200 ${currentPage === 0 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
                     >
+                        <img src={leftBlackIcon} alt="" className="-ml-1.5 h-4 w-4 shrink-0" />
                         Anterior
                     </button>
                     <div className="text-xs">
-                        Página {currentPage} de {totalPages}
+                            Página {currentPage + 1} de {totalPagesExibidas}
                     </div>
                     <button
-                        onClick={goNext}
-                        disabled={currentPage === totalPages}
-                        className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === totalPages ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={totalPages === 0 || currentPage >= totalPages - 1 || loading}
+                        className={`inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-sm leading-5 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200 ${totalPages === 0 || currentPage >= totalPages - 1 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
                     >
                         Próxima
+                        <img src={rightBlackIcon} alt="" className="-mr-1.5 h-4 w-4 shrink-0" />
                     </button>
                 </div>
             </div>
@@ -166,21 +116,19 @@ function HistoricoAulasTable({ aulas, loading }) {
 export function TelaPagamentos() {
     const role = sessionStorage.getItem("cargo") || "";
     const isAdmin = ["adm", "root", "administracao"].includes(role.toLowerCase());
-    const hoje = useMemo(() => {
-        const data = new Date();
-        const mes = String(data.getMonth() + 1).padStart(2, "0");
-        const dia = String(data.getDate()).padStart(2, "0");
-        return `${data.getFullYear()}-${mes}-${dia}`;
-    }, []);
-
-    const [dataInicio, setDataInicio] = useState(hoje);
-    const [dataFim, setDataFim] = useState(hoje);
+    const periodoPadrao = useMemo(() => obterPeriodoUltimos15Dias(), []);
+    const [dataInicio, setDataInicio] = useState(periodoPadrao.inicio);
+    const [dataFim, setDataFim] = useState(periodoPadrao.fim);
     const [erroData, setErroData] = useState("");
     const [agendamentos, setAgendamentos] = useState([]);
-    const [saldoProfessor, setSaldoProfessor] = useState(null);
+    const [paginaAtual, setPaginaAtual] = useState(0);
+    const [totalPaginas, setTotalPaginas] = useState(0);
+    const [totalAgendamentos, setTotalAgendamentos] = useState(0);
+    const [resumoAulas, setResumoAulas] = useState({ professor: 0, rebatedor: 0, auxiliar: 0 });
     const [funcionarios, setFuncionarios] = useState([]);
     const [funcionarioSelecionadoId, setFuncionarioSelecionadoId] = useState("");
     const [loading, setLoading] = useState(true);
+    const [erroCarregamento, setErroCarregamento] = useState("");
 
     const usuarioLogadoId = getUsuarioId();
     const usuarioAlvoId = isAdmin ? funcionarioSelecionadoId : usuarioLogadoId;
@@ -192,19 +140,17 @@ export function TelaPagamentos() {
             }
 
             try {
-                const responseUsuarios = await api.get("/usuarios");
-                const listaFuncionarios = Array.isArray(responseUsuarios.data)
-                    ? responseUsuarios.data.filter((usuario) =>
+                const usuarios = await getAllPages("/usuarios", { status: "TODOS" });
+                const listaFuncionarios = usuarios.filter((usuario) =>
                         ["professor", "rebatedor", "auxiliar"].includes(
                             usuario.tipoUsuario?.cargo?.toLowerCase()
                         )
-                    )
-                    : [];
+                    );
 
                 setFuncionarios(listaFuncionarios);
 
-                if (!funcionarioSelecionadoId && listaFuncionarios.length > 0) {
-                    setFuncionarioSelecionadoId(String(listaFuncionarios[0].id));
+                if (listaFuncionarios.length > 0) {
+                    setFuncionarioSelecionadoId((idAtual) => idAtual || String(listaFuncionarios[0].id));
                 }
             } catch (error) {
                 console.error("Erro ao buscar funcionários para pagamentos:", error);
@@ -212,39 +158,64 @@ export function TelaPagamentos() {
         }
 
         carregarFuncionarios();
-    }, [isAdmin, funcionarioSelecionadoId]);
+    }, [isAdmin]);
 
-    useEffect(() => {
-        async function carregarDadosBackend() {
+    const carregarHistorico = useCallback(async (pagina = 0) => {
             if (!usuarioAlvoId) {
                 setAgendamentos([]);
-                setSaldoProfessor(null);
+                setPaginaAtual(0);
+                setTotalPaginas(0);
+                setTotalAgendamentos(0);
+                setResumoAulas({ professor: 0, rebatedor: 0, auxiliar: 0 });
+                setLoading(false);
+                return;
+            }
+
+            if (dataInicio && dataFim && dataInicio > dataFim) {
+                setAgendamentos([]);
+                setPaginaAtual(0);
+                setTotalPaginas(0);
+                setTotalAgendamentos(0);
+                setResumoAulas({ professor: 0, rebatedor: 0, auxiliar: 0 });
                 setLoading(false);
                 return;
             }
 
             setLoading(true);
+            setErroCarregamento("");
 
             try {
-                const [responseSaldo, responseAgendamentos] = await Promise.all([
-                    api.get(`/saldos/professor/${usuarioAlvoId}`),
-                    api.get("/agendamentos"),
-                ]);
+                const params = new URLSearchParams({
+                    participanteId: String(usuarioAlvoId),
+                    page: String(pagina),
+                    size: "10",
+                });
+                if (dataInicio) params.set("dataInicio", dataInicio);
+                if (dataFim) params.set("dataFim", dataFim);
 
-                console.log("Saldo do professor:", responseSaldo.data);
-                console.log("Agendamentos:", responseAgendamentos.data);
+                const responseHistorico = await api.get("/agendamentos/historico-pagamentos", { params });
 
-                setSaldoProfessor(responseSaldo.data);
-                setAgendamentos(Array.isArray(responseAgendamentos.data) ? responseAgendamentos.data : []);
+                const { pagina: paginaResponse, ...resumo } = responseHistorico.data;
+                setAgendamentos(paginaResponse?.content || []);
+                setPaginaAtual(Number(paginaResponse?.page) || 0);
+                setTotalPaginas(Number(paginaResponse?.totalPages) || 0);
+                setTotalAgendamentos(Number(paginaResponse?.totalElements) || 0);
+                setResumoAulas({
+                    professor: Number(resumo.aulasComoProfessor) || 0,
+                    rebatedor: Number(resumo.aulasComoRebatedor) || 0,
+                    auxiliar: Number(resumo.aulasComoAuxiliar) || 0,
+                });
             } catch (error) {
                 console.error("Erro ao buscar dados do backend:", error);
+                setErroCarregamento("Não foi possível carregar os dados de pagamentos.");
             } finally {
                 setLoading(false);
             }
-        }
+    }, [usuarioAlvoId, dataInicio, dataFim]);
 
-        carregarDadosBackend();
-    }, [usuarioAlvoId]);
+    useEffect(() => {
+        carregarHistorico(0);
+    }, [carregarHistorico]);
 
     useEffect(() => {
         if (dataInicio && dataFim && dataInicio > dataFim) {
@@ -254,115 +225,68 @@ export function TelaPagamentos() {
         }
     }, [dataInicio, dataFim]);
 
-    const funcionarioSelecionado = funcionarios.find((usuario) => String(usuario.id) === String(funcionarioSelecionadoId));
-    const nomeProfessor = saldoProfessor?.professor?.nome ?? funcionarioSelecionado?.nome ?? "Professor";
-
     function handleFuncionarioChange(event) {
         setFuncionarioSelecionadoId(event.target.value);
     }
 
-    function campoCorrespondeUsuario(campo) {
-        if (!campo) return false;
-
-        try {
-            if (typeof campo === "object") {
-                const ids = [campo.id, campo._id, campo.userId, campo.professorId, campo.usuarioId];
-                for (const id of ids) {
-                    if (id != null && String(id) === String(usuarioLogadoId)) return true;
-                }
-
-                // comparar por nome quando não houver id
-                const nome = campo.nome ?? campo.nomeCompleto ?? campo.name ?? campo.fullName;
-                if (nome && String(nome).trim() === String(nomeProfessor).trim()) return true;
-                return false;
-            }
-
-            // campo é string/number: comparar diretamente com id ou com nome
-            if (String(campo) === String(usuarioLogadoId)) return true;
-            if (String(campo).trim() === String(nomeProfessor).trim()) return true;
-            return false;
-        } catch {
-            return false;
-        }
-    }
-
-    const agendamentosFiltrados = useMemo(() => {
-        if (erroData) return [];
-
-        return agendamentos.filter((agendamento) => {
-            const dataAgendamento = String(agendamento?.data ?? "").slice(0, 10);
-
-            if (dataInicio && dataAgendamento < dataInicio) return false;
-            if (dataFim && dataAgendamento > dataFim) return false;
-
-            // só incluir agendamentos em que o usuário participa (professor, rebatedor ou auxiliar)
-            const participa = campoCorrespondeUsuario(agendamento?.professor) || campoCorrespondeUsuario(agendamento?.rebatedor) || campoCorrespondeUsuario(agendamento?.auxiliar);
-            return participa;
-        });
-    }, [agendamentos, dataInicio, dataFim, erroData, usuarioAlvoId, nomeProfessor]);
-
-    const totalAgendamentos = agendamentosFiltrados.length;
-    const confirmados = agendamentosFiltrados.filter((agendamento) => String(agendamento?.status ?? "").toLowerCase().includes("confirm")).length;
-    const pendentes = agendamentosFiltrados.filter((agendamento) => String(agendamento?.status ?? "").toLowerCase().includes("pend")).length;
-    const cancelados = agendamentosFiltrados.filter((agendamento) => String(agendamento?.status ?? "").toLowerCase().includes("cancel")).length;
-
-    const aulasComoProfessorCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.professor)).length;
-    const aulasComoRebatedorCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.rebatedor)).length;
-    const aulasComoAuxiliarCount = agendamentosFiltrados.filter((a) => campoCorrespondeUsuario(a?.auxiliar)).length;
+    const aulasComoProfessorCount = resumoAulas.professor;
+    const aulasComoRebatedorCount = resumoAulas.rebatedor;
+    const aulasComoAuxiliarCount = resumoAulas.auxiliar;
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col overflow-hidden ">
+        <div className="flex min-h-screen flex-col bg-[#FAFAFA]">
             <Header />
 
-            <div className="mx-auto w-full max-w-screen-2xl px-4 py-6">
-                <div className="mb-6">
-                    <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-2">Suas aulas</h1>
+            <main className="mx-auto w-[90%] flex-1 py-4">
+                <div className="mb-5">
+                    <h1 className="mb-2 text-3xl font-bold tracking-tight text-[#23272F] sm:text-4xl">Suas aulas</h1>
                     <p className="text-sm text-slate-500">Visualize pagamentos e histórico de aulas por período.</p>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                <div className="mb-5 flex flex-col items-start justify-between gap-4 xl:flex-row xl:items-center">
                     <div>
                         <h2 className="text-lg font-semibold text-slate-800">Filtrar por período</h2>
                         <p className="text-sm text-slate-500">Selecione o intervalo de datas para atualizar os resultados.</p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Data inicial</label>
+                    <div className="flex w-full flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm xl:w-auto">
+                        <div className="flex min-w-36 flex-1 flex-col gap-1">
+                            <label htmlFor="pagamentos-data-inicio" className="text-xs font-semibold text-slate-500">Data inicial</label>
                             <input
+                                id="pagamentos-data-inicio"
                                 type="date"
                                 value={dataInicio}
                                 max={dataFim || undefined}
                                 onChange={(e) => setDataInicio(e.target.value)}
-                                className="outline-none text-sm bg-transparent text-slate-700"
+                                className="min-w-0 rounded-md border border-gray-300 px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
                             />
                         </div>
 
-                        <div className="h-10 w-px bg-slate-200" />
-
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Data final</label>
+                        <div className="flex min-w-36 flex-1 flex-col gap-1">
+                            <label htmlFor="pagamentos-data-fim" className="text-xs font-semibold text-slate-500">Data final</label>
                             <input
+                                id="pagamentos-data-fim"
                                 type="date"
                                 value={dataFim}
                                 min={dataInicio}
                                 onChange={(e) => setDataFim(e.target.value)}
-                                className="outline-none text-sm bg-transparent text-slate-700"
+                                className="min-w-0 rounded-md border border-gray-300 px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
                             />
                         </div>
 
                         {isAdmin && (
-                            <div className="flex flex-col gap-1 w-56">
-                                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Funcionário</label>
+                            <div className="flex min-w-52 flex-1 flex-col gap-1 xl:flex-none">
+                                <label htmlFor="pagamentos-funcionario" className="text-xs font-semibold text-slate-500">Funcionário</label>
                                 <select
+                                    id="pagamentos-funcionario"
                                     value={funcionarioSelecionadoId}
                                     onChange={handleFuncionarioChange}
-                                    className="outline-none text-sm bg-transparent text-slate-700"
+                                    className="min-w-0 rounded-md border border-gray-300 bg-white px-2 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
                                 >
                                     <option value="">Selecione um funcionário</option>
                                     {funcionarios.map((funcionario) => (
                                         <option key={funcionario.id} value={funcionario.id}>
-                                            {funcionario.nome}
+                                            {funcionario.nome}{funcionario.arquivado ? " (arquivado)" : ""}
                                         </option>
                                     ))}
                                 </select>
@@ -375,7 +299,7 @@ export function TelaPagamentos() {
                                 setDataInicio("");
                                 setDataFim("");
                             }}
-                            className="rounded-xl bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-all duration-300 hover:bg-slate-300"
+                            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors duration-150 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2"
                         >
                             Limpar
                         </button>
@@ -383,30 +307,37 @@ export function TelaPagamentos() {
                 </div>
 
                 <AlertMessage variant="error" message={erroData} />
+                <AlertMessage variant="error" message={erroCarregamento} />
 
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch mb-6">
+                <div className="mb-5 grid grid-cols-2 items-stretch gap-3 sm:gap-4 xl:grid-cols-4">
                     {[
                         { label: "Total de aulas", value: totalAgendamentos },
                         { label: "Aulas como professor", value: aulasComoProfessorCount },
                         { label: "Aulas como rebatedor", value: aulasComoRebatedorCount },
                         { label: "Aulas como auxiliar", value: aulasComoAuxiliarCount },
                     ].map((kpi, index) => (
-                        <div key={index} className="relative overflow-hidden rounded-[28px] bg-linear-to-br from-white to-slate-50 p-4 border border-slate-200 shadow-sm h-36 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-                            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-orange-100 opacity-60" />
-                            <div className="relative">
-                                <p className="text-[10px] uppercase tracking-[0.25em] text-slate-400 font-medium">{kpi.label}</p>
-                                <p className="mt-3 text-4xl font-black tracking-tight text-slate-900">{kpi.value}</p>
+                        <div key={index} className="flex h-32 flex-col justify-between rounded-lg border border-gray-200 border-t-2 border-t-[#F8821E] bg-white p-3 shadow-md sm:h-36 sm:p-4">
+                            <div>
+                                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">{kpi.label}</p>
+                                <p className="mt-2 text-3xl font-bold tracking-tight text-[#23272F] sm:mt-3 sm:text-4xl">{kpi.value}</p>
                             </div>
-                            <div className="relative flex items-center gap-2 text-[11px] text-slate-500">
-                                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700 font-semibold">Último período</span>
+                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                                <span className="rounded-md bg-gray-100 px-2 py-1 font-semibold text-gray-700">Período selecionado</span>
                             </div>
                         </div>
                     ))}
                 </div>
-                <div className="bg-white rounded-2xl shadow-sm overflow-hidden w-full h-full">
-                    <HistoricoAulasTable aulas={agendamentosFiltrados} loading={loading} />
+                <div className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
+                    <HistoricoAulasTable
+                        aulas={agendamentos}
+                        loading={loading}
+                        currentPage={paginaAtual}
+                        totalPages={totalPaginas}
+                        totalItems={totalAgendamentos}
+                        onPageChange={carregarHistorico}
+                    />
                 </div>
-            </div>
+            </main>
         </div>
     );
 }
