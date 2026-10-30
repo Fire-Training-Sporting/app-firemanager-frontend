@@ -1,6 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import api from "../../../provider/api";
 import AlertMessage from "../AlertMessage";
+import closeWhiteIcon from "../../../assets/close_white.png";
+import { modalBackButton, modalButton, modalCloseButton, modalIcon, modalIconWhite } from "../Buttons/modalButtonStyles";
+import doneGreenIcon from "../../../assets/done_green.png";
+import personAddWhiteIcon from "../../../assets/person_add_white.png";
+import useModalKeyboard from "../../../hooks/useModalKeyboard";
 
 const inputCls =
   "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-black focus:outline-none focus:ring-2 focus:ring-[#F8821E]";
@@ -22,6 +27,9 @@ export default function ModalAluno({
   onCreated,
   onBack,
 }) {
+  const confirmButtonRef = useRef(null);
+  useModalKeyboard({ onClose, confirmButtonRef });
+
   const isEditMode = !!aluno;
 
   const [form, setForm] = useState({
@@ -232,13 +240,13 @@ export default function ModalAluno({
       <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
 
       {/* Cabeçalho */}
-      <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+      <div className="bg-[#F8821E] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
         <div className="flex items-center gap-3">
           {onBack && (
             <button
               type="button"
               onClick={onBack}
-              className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
+              className={modalBackButton}
             >
               ←
             </button>
@@ -251,9 +259,10 @@ export default function ModalAluno({
         <button
           type="button"
           onClick={onClose}
-          className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
+          className={modalCloseButton}
+          aria-label="Fechar"
         >
-          ✕
+          <img src={closeWhiteIcon} alt="" className="h-5 w-5" />
         </button>
       </div>
 
@@ -369,16 +378,23 @@ export default function ModalAluno({
               type="button"
               onClick={onClose}
               disabled={isSaving}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+              className={modalButton("danger", { icon: true })}
             >
+              <img src={closeWhiteIcon} alt="" className={modalIcon} />
               Cancelar
             </button>
 
             <button
               type="submit"
+              ref={confirmButtonRef}
               disabled={isSaving}
-              className="px-4 py-2 bg-linear-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={modalButton("success", { icon: true })}
             >
+              {isEditMode ? (
+                <img src={doneGreenIcon} alt="" className={modalIconWhite} />
+              ) : (
+                <img src={personAddWhiteIcon} alt="" className={modalIcon} />
+              )}
               {isSaving
                 ? (isEditMode ? "Salvando..." : "Cadastrando...")
                 : (isEditMode ? "Salvar alterações" : "Cadastrar aluno")}

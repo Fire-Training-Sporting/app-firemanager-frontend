@@ -3,6 +3,24 @@ import Header from "../utils/Header";
 import AlertMessage from "../utils/AlertMessage";
 import api, { getAllPages } from "../../provider/api";
 import { formatarData, formatarHora, formatarValor, getUsuarioId } from "../../utils/helpers";
+import leftBlackIcon from "../../assets/left_black.png";
+import rightBlackIcon from "../../assets/right_black.png";
+
+function formatarDataLocal(data) {
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const dia = String(data.getDate()).padStart(2, "0");
+    return `${ano}-${mes}-${dia}`;
+}
+
+function obterPeriodoUltimos15Dias(dataAtual = new Date()) {
+    const dataInicio = new Date(dataAtual);
+    dataInicio.setDate(dataInicio.getDate() - 15);
+    return {
+        inicio: formatarDataLocal(dataInicio),
+        fim: formatarDataLocal(dataAtual),
+    };
+}
 
 function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalItems, onPageChange }) {
     const totalPagesExibidas = Math.max(1, totalPages);
@@ -10,8 +28,8 @@ function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalIte
     const endItem = Math.min(totalItems, (currentPage + 1) * 10);
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="bg-slate-50 px-5 py-4 border-b border-slate-200">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
+            <div className="border-b border-gray-200 bg-gray-50 px-5 py-4">
                 <div className="flex justify-between items-center gap-4 flex-wrap">
                     <h2 className="text-sm font-semibold text-slate-700 ">
                         Histórico de aulas no período
@@ -24,31 +42,31 @@ function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalIte
 
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-200">
+                    <thead className="bg-gray-100">
                         <tr className="border-b border-slate-200">
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">ID</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Aluno</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Data</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Hora Início</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Hora Fim</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Condomínio</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Professor</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Rebatedor</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Auxiliar</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-800">Status</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">ID</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Aluno</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Data</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Hora Início</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Hora Fim</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Condomínio</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Professor</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Rebatedor</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Auxiliar</th>
+                            <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#23272F]">Status</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white">
                         {!loading && aulas.length > 0 ? (
                             aulas.map((agendamento) => (
-                                <tr key={agendamento.id} className="border-b border-gray-100 odd:bg-white even:bg-gray-100 hover:bg-orange-100 transition-colors duration-150">
+                                <tr key={agendamento.id} className="border-b border-gray-100 odd:bg-white even:bg-gray-50 hover:bg-orange-50 transition-colors duration-150">
                                     <td className="px-4 py-3 text-sm text-slate-700">{agendamento.id}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.aluno)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarData(agendamento.data)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarHora(agendamento.horaInicio)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarHora(agendamento.horaFim)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.condominio)}</td>
-                                    <td className="px-4 py-3 text-sm text-sky-600 font-medium">{formatarValor(agendamento.professor)}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-700 font-medium">{formatarValor(agendamento.professor)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.rebatedor)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.auxiliar)}</td>
                                     <td className="px-4 py-3 text-sm text-slate-700">{formatarValor(agendamento.status)}</td>
@@ -65,7 +83,7 @@ function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalIte
                 </table>
             </div>
 
-            <div className="flex items-center justify-between gap-4 px-5 pt-4 border-t border-slate-200 mt-4 mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-5 py-4">
                 <div className="text-xs text-slate-500">
                     Mostrando {startItem}-{endItem} de {totalItems}
                 </div>
@@ -73,8 +91,9 @@ function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalIte
                     <button
                         onClick={() => onPageChange(currentPage - 1)}
                         disabled={currentPage === 0 || loading}
-                        className={`px-2 py-0.5 text-sm rounded-md border ${currentPage === 0 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                        className={`inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-sm leading-5 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200 ${currentPage === 0 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
                     >
+                        <img src={leftBlackIcon} alt="" className="-ml-1.5 h-4 w-4 shrink-0" />
                         Anterior
                     </button>
                     <div className="text-xs">
@@ -83,9 +102,10 @@ function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalIte
                     <button
                         onClick={() => onPageChange(currentPage + 1)}
                         disabled={totalPages === 0 || currentPage >= totalPages - 1 || loading}
-                        className={`px-2 py-0.5 text-sm rounded-md border ${totalPages === 0 || currentPage >= totalPages - 1 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                        className={`inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-sm leading-5 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200 ${totalPages === 0 || currentPage >= totalPages - 1 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
                     >
                         Próxima
+                        <img src={rightBlackIcon} alt="" className="-mr-1.5 h-4 w-4 shrink-0" />
                     </button>
                 </div>
             </div>
@@ -96,15 +116,9 @@ function HistoricoAulasTable({ aulas, loading, currentPage, totalPages, totalIte
 export function TelaPagamentos() {
     const role = sessionStorage.getItem("cargo") || "";
     const isAdmin = ["adm", "root", "administracao"].includes(role.toLowerCase());
-    const hoje = useMemo(() => {
-        const data = new Date();
-        const mes = String(data.getMonth() + 1).padStart(2, "0");
-        const dia = String(data.getDate()).padStart(2, "0");
-        return `${data.getFullYear()}-${mes}-${dia}`;
-    }, []);
-
-    const [dataInicio, setDataInicio] = useState(hoje);
-    const [dataFim, setDataFim] = useState(hoje);
+    const periodoPadrao = useMemo(() => obterPeriodoUltimos15Dias(), []);
+    const [dataInicio, setDataInicio] = useState(periodoPadrao.inicio);
+    const [dataFim, setDataFim] = useState(periodoPadrao.fim);
     const [erroData, setErroData] = useState("");
     const [agendamentos, setAgendamentos] = useState([]);
     const [paginaAtual, setPaginaAtual] = useState(0);
@@ -126,7 +140,7 @@ export function TelaPagamentos() {
             }
 
             try {
-                const usuarios = await getAllPages("/usuarios");
+                const usuarios = await getAllPages("/usuarios", { status: "TODOS" });
                 const listaFuncionarios = usuarios.filter((usuario) =>
                         ["professor", "rebatedor", "auxiliar"].includes(
                             usuario.tipoUsuario?.cargo?.toLowerCase()
@@ -135,8 +149,8 @@ export function TelaPagamentos() {
 
                 setFuncionarios(listaFuncionarios);
 
-                if (!funcionarioSelecionadoId && listaFuncionarios.length > 0) {
-                    setFuncionarioSelecionadoId(String(listaFuncionarios[0].id));
+                if (listaFuncionarios.length > 0) {
+                    setFuncionarioSelecionadoId((idAtual) => idAtual || String(listaFuncionarios[0].id));
                 }
             } catch (error) {
                 console.error("Erro ao buscar funcionários para pagamentos:", error);
@@ -144,7 +158,7 @@ export function TelaPagamentos() {
         }
 
         carregarFuncionarios();
-    }, [isAdmin, funcionarioSelecionadoId]);
+    }, [isAdmin]);
 
     const carregarHistorico = useCallback(async (pagina = 0) => {
             if (!usuarioAlvoId) {
@@ -211,8 +225,6 @@ export function TelaPagamentos() {
         }
     }, [dataInicio, dataFim]);
 
-    const funcionarioSelecionado = funcionarios.find((usuario) => String(usuario.id) === String(funcionarioSelecionadoId));
-
     function handleFuncionarioChange(event) {
         setFuncionarioSelecionadoId(event.target.value);
     }
@@ -222,58 +234,59 @@ export function TelaPagamentos() {
     const aulasComoAuxiliarCount = resumoAulas.auxiliar;
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col overflow-hidden ">
+        <div className="flex min-h-screen flex-col bg-[#FAFAFA]">
             <Header />
 
-            <div className="mx-auto w-full max-w-screen-2xl px-4 py-6">
-                <div className="mb-6">
-                    <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-2">Suas aulas</h1>
+            <main className="mx-auto w-[90%] flex-1 py-4">
+                <div className="mb-5">
+                    <h1 className="mb-2 text-3xl font-bold tracking-tight text-[#23272F] sm:text-4xl">Suas aulas</h1>
                     <p className="text-sm text-slate-500">Visualize pagamentos e histórico de aulas por período.</p>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                <div className="mb-5 flex flex-col items-start justify-between gap-4 xl:flex-row xl:items-center">
                     <div>
                         <h2 className="text-lg font-semibold text-slate-800">Filtrar por período</h2>
                         <p className="text-sm text-slate-500">Selecione o intervalo de datas para atualizar os resultados.</p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Data inicial</label>
+                    <div className="flex w-full flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm xl:w-auto">
+                        <div className="flex min-w-36 flex-1 flex-col gap-1">
+                            <label htmlFor="pagamentos-data-inicio" className="text-xs font-semibold text-slate-500">Data inicial</label>
                             <input
+                                id="pagamentos-data-inicio"
                                 type="date"
                                 value={dataInicio}
                                 max={dataFim || undefined}
                                 onChange={(e) => setDataInicio(e.target.value)}
-                                className="outline-none text-sm bg-transparent text-slate-700"
+                                className="min-w-0 rounded-md border border-gray-300 px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
                             />
                         </div>
 
-                        <div className="h-10 w-px bg-slate-200" />
-
-                        <div className="flex flex-col gap-1">
-                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Data final</label>
+                        <div className="flex min-w-36 flex-1 flex-col gap-1">
+                            <label htmlFor="pagamentos-data-fim" className="text-xs font-semibold text-slate-500">Data final</label>
                             <input
+                                id="pagamentos-data-fim"
                                 type="date"
                                 value={dataFim}
                                 min={dataInicio}
                                 onChange={(e) => setDataFim(e.target.value)}
-                                className="outline-none text-sm bg-transparent text-slate-700"
+                                className="min-w-0 rounded-md border border-gray-300 px-2 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
                             />
                         </div>
 
                         {isAdmin && (
-                            <div className="flex flex-col gap-1 w-56">
-                                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Funcionário</label>
+                            <div className="flex min-w-52 flex-1 flex-col gap-1 xl:flex-none">
+                                <label htmlFor="pagamentos-funcionario" className="text-xs font-semibold text-slate-500">Funcionário</label>
                                 <select
+                                    id="pagamentos-funcionario"
                                     value={funcionarioSelecionadoId}
                                     onChange={handleFuncionarioChange}
-                                    className="outline-none text-sm bg-transparent text-slate-700"
+                                    className="min-w-0 rounded-md border border-gray-300 bg-white px-2 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
                                 >
                                     <option value="">Selecione um funcionário</option>
                                     {funcionarios.map((funcionario) => (
                                         <option key={funcionario.id} value={funcionario.id}>
-                                            {funcionario.nome}
+                                            {funcionario.nome}{funcionario.arquivado ? " (arquivado)" : ""}
                                         </option>
                                     ))}
                                 </select>
@@ -286,7 +299,7 @@ export function TelaPagamentos() {
                                 setDataInicio("");
                                 setDataFim("");
                             }}
-                            className="rounded-xl bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-all duration-300 hover:bg-slate-300"
+                            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors duration-150 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2"
                         >
                             Limpar
                         </button>
@@ -296,26 +309,25 @@ export function TelaPagamentos() {
                 <AlertMessage variant="error" message={erroData} />
                 <AlertMessage variant="error" message={erroCarregamento} />
 
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4 items-stretch mb-6">
+                <div className="mb-5 grid grid-cols-2 items-stretch gap-3 sm:gap-4 xl:grid-cols-4">
                     {[
                         { label: "Total de aulas", value: totalAgendamentos },
                         { label: "Aulas como professor", value: aulasComoProfessorCount },
                         { label: "Aulas como rebatedor", value: aulasComoRebatedorCount },
                         { label: "Aulas como auxiliar", value: aulasComoAuxiliarCount },
                     ].map((kpi, index) => (
-                        <div key={index} className="relative overflow-hidden rounded-[28px] bg-linear-to-br from-white to-slate-50 p-3 sm:p-4 border border-slate-200 shadow-sm h-32 sm:h-36 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-                            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-orange-100 opacity-60" />
-                            <div className="relative">
-                                <p className="text-[9px] uppercase tracking-widest text-slate-400 font-medium sm:text-[10px] sm:tracking-[0.25em]">{kpi.label}</p>
-                                <p className="mt-2 text-3xl font-black tracking-tight text-slate-900 sm:mt-3 sm:text-4xl">{kpi.value}</p>
+                        <div key={index} className="flex h-32 flex-col justify-between rounded-lg border border-gray-200 border-t-2 border-t-[#F8821E] bg-white p-3 shadow-md sm:h-36 sm:p-4">
+                            <div>
+                                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">{kpi.label}</p>
+                                <p className="mt-2 text-3xl font-bold tracking-tight text-[#23272F] sm:mt-3 sm:text-4xl">{kpi.value}</p>
                             </div>
-                            <div className="relative flex items-center gap-2 text-[11px] text-slate-500">
-                                <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-700 font-semibold sm:px-2.5 sm:text-[11px]">Último período</span>
+                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                                <span className="rounded-md bg-gray-100 px-2 py-1 font-semibold text-gray-700">Período selecionado</span>
                             </div>
                         </div>
                     ))}
                 </div>
-                <div className="bg-white rounded-2xl shadow-sm overflow-hidden w-full h-full">
+                <div className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
                     <HistoricoAulasTable
                         aulas={agendamentos}
                         loading={loading}
@@ -325,7 +337,7 @@ export function TelaPagamentos() {
                         onPageChange={carregarHistorico}
                     />
                 </div>
-            </div>
+            </main>
         </div>
     );
 }

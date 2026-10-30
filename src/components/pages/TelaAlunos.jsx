@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import PageLayout from "../utils/PageLayout";
+import personAddWhiteIcon from "../../assets/person_add_white.png";
 import SearchFilter from "../utils/SearchFilter";
 import { AlunosTable } from "../utils/Alunos/AlunosTable";
 import ModalAluno from "../utils/Alunos/ModalAlunos";
 import ModalAlunoDetalhes from "../utils/Alunos/ModalAlunoDetalhes";
 import ModalSaldo from "../utils/Alunos/ModalSaldo";
-import ConfirmationModal from "../utils/ConfirmationModal";
+import AlertMessage from "../utils/AlertMessage";
+import StatusUsuarioFilter from "../utils/Usuarios/StatusUsuarioFilter";
+import ConfirmacaoAcaoUsuario from "../utils/Usuarios/ConfirmacaoAcaoUsuario";
+import { ACOES_USUARIO, podeFiltrarStatusUsuario } from "../utils/Usuarios/acoesUsuario";
 import api from "../../provider/api";
+import { exibirSucesso, getMensagemErro } from "../../utils/helpers";
 
 const saldoServicesOrder = ["Tênis", "Beach Tennis", "Funcional"];
 
@@ -31,9 +36,13 @@ export default function TelaAlunos() {
   const [totalPaginas, setTotalPaginas] = useState(0);
   const [totalAlunos, setTotalAlunos] = useState(0);
   const [filtroAtual, setFiltroAtual] = useState(null);
+  const [statusAtual, setStatusAtual] = useState("ATIVO");
 
-  const [alunoParaExcluir, setAlunoParaExcluir] =
-    useState(null);
+  const [acaoUsuario, setAcaoUsuario] = useState(null);
+  const [executandoAcao, setExecutandoAcao] = useState(false);
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
+  const [sucessoVisivel, setSucessoVisivel] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState("");
 
   const [alunoParaSaldo, setAlunoParaSaldo] =
     useState(null);
@@ -45,7 +54,7 @@ export default function TelaAlunos() {
     buscarAlunos(0, null);
   }, []);
 
-  const buscarAlunos = async (pagina = paginaAtual, filtro = filtroAtual) => {
+  const buscarAlunos = async (pagina = paginaAtual, filtro = filtroAtual, status = statusAtual) => {
 
     try {
 
@@ -55,6 +64,7 @@ export default function TelaAlunos() {
         page: String(pagina),
         size: "10",
         tipoUsuarioCargo: "Aluno",
+        status,
       });
 
       if (filtro?.value) {
@@ -74,7 +84,7 @@ export default function TelaAlunos() {
       const ultimaPagina = Math.max(0, totalPaginasResposta - 1);
 
       if (pagina > ultimaPagina) {
-        await buscarAlunos(ultimaPagina, filtro);
+        await buscarAlunos(ultimaPagina, filtro, status);
         return;
       }
 
@@ -256,49 +266,55 @@ export default function TelaAlunos() {
     }
   };
 
-  const solicitarExclusao = (
-    aluno
-  ) => {
+  const solicitarAcao = (tipo, aluno) => {
 
-    setAlunoParaExcluir(aluno);
+    setAcaoUsuario({ tipo, usuario: aluno });
 
   };
 
-  const cancelarExclusao = () => {
+  const cancelarAcao = () => {
 
-    setAlunoParaExcluir(null);
+    setAcaoUsuario(null);
 
   };
 
-  const confirmarExclusao =
-    async () => {
+  const confirmarAcao = async () => {
 
-      if (!alunoParaExcluir?.id) {
-        return;
-      }
+    if (!acaoUsuario?.usuario?.id) {
+      return;
+    }
 
-      try {
+    const config = ACOES_USUARIO[acaoUsuario.tipo];
 
-        await api.delete(
-          `/usuarios/${alunoParaExcluir.id}`
-        );
+    try {
 
-        setAlunoParaExcluir(null);
+      setExecutandoAcao(true);
+      setMensagemErro("");
 
-        await buscarAlunos(paginaAtual, filtroAtual);
+      await config.executar(acaoUsuario.usuario.id);
 
-      } catch (error) {
+      exibirSucesso(setMensagemSucesso, setSucessoVisivel)(config.sucesso);
 
-        console.error(
-          "Erro ao excluir aluno:",
-          error
-        );
+      await buscarAlunos(paginaAtual, filtroAtual);
 
-        window.alert(
-          "Não foi possível excluir o aluno. Tente novamente."
-        );
-      }
-    };
+    } catch (error) {
+
+      console.error(
+        `Erro ao ${acaoUsuario.tipo} aluno:`,
+        error
+      );
+
+      setMensagemErro(
+        getMensagemErro(error, `Não foi possível ${acaoUsuario.tipo} o aluno. Tente novamente.`)
+      );
+
+    } finally {
+
+      setExecutandoAcao(false);
+      setAcaoUsuario(null);
+
+    }
+  };
 
   const formatarValor = (
     valor
@@ -322,21 +338,45 @@ export default function TelaAlunos() {
     return buscarAlunos(0, filtro);
   };
 
+  const filtrarPorStatus = (status) => {
+    setStatusAtual(status);
+    return buscarAlunos(0, filtroAtual, status);
+  };
+
   return (
     <PageLayout
       title="Alunos"
       searchPlaceholder="Pesquisar aluno..."
       onAdd={handleAdd}
       addLabel="Cadastrar aluno"
+      addIcon={personAddWhiteIcon}
       customControls={
-        <SearchFilter
-          columns={search_columns}
-          onSearch={filtrarAlunos}
-          isLoading={isLoading}
-        />
+        <div className="flex w-full flex-wrap items-center gap-3">
+          {podeFiltrarStatusUsuario() && (
+            <StatusUsuarioFilter
+              value={statusAtual}
+              onChange={filtrarPorStatus}
+              isLoading={isLoading}
+            />
+          )}
+          <div className="w-full min-w-0 lg:w-auto lg:flex-1">
+            <SearchFilter
+              columns={search_columns}
+              onSearch={filtrarAlunos}
+              isLoading={isLoading}
+            />
+          </div>
+        </div>
       }
     >
-      <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+      <AlertMessage
+        variant="success"
+        message={sucessoVisivel ? mensagemSucesso : ""}
+      />
+
+      <AlertMessage variant="error" message={mensagemErro} />
+
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
         <AlunosTable
           alunos={alunos}
           onDetails={handleDetalhes}
@@ -374,9 +414,17 @@ export default function TelaAlunos() {
             handleCloseDetalhesModal();
             handleEdit(alunoDetalhes);
           }}
-          onDelete={() => {
+          onArquivar={() => {
             handleCloseDetalhesModal();
-            solicitarExclusao(alunoDetalhes);
+            solicitarAcao("arquivar", alunoDetalhes);
+          }}
+          onDesarquivar={() => {
+            handleCloseDetalhesModal();
+            solicitarAcao("desarquivar", alunoDetalhes);
+          }}
+          onExcluir={() => {
+            handleCloseDetalhesModal();
+            solicitarAcao("excluir", alunoDetalhes);
           }}
           onAddSaldo={() => {
             setAlunoDetalhes(null);
@@ -385,40 +433,37 @@ export default function TelaAlunos() {
         />
       )}
 
-      <ConfirmationModal
-        isOpen={!!alunoParaExcluir}
-        title="Confirmar exclusão"
-        message="Deseja realmente excluir este aluno?"
+      <ConfirmacaoAcaoUsuario
+        acao={acaoUsuario}
+        isLoading={executandoAcao}
         items={
-          alunoParaExcluir
+          acaoUsuario?.usuario
             ? [
                 {
                   label: "ID",
-                  value: alunoParaExcluir.id,
+                  value: acaoUsuario.usuario.id,
                 },
                 {
                   label: "Nome",
-                  value: formatarValor(alunoParaExcluir.nome),
+                  value: formatarValor(acaoUsuario.usuario.nome),
                 },
                 {
                   label: "Email",
-                  value: formatarValor(alunoParaExcluir.email),
+                  value: formatarValor(acaoUsuario.usuario.email),
                 },
                 {
                   label: "Telefone",
-                  value: formatarValor(alunoParaExcluir.telefone),
+                  value: formatarValor(acaoUsuario.usuario.telefone),
                 },
                 {
                   label: "Endereço",
-                  value: formatarValor(alunoParaExcluir.endereco),
+                  value: formatarValor(acaoUsuario.usuario.endereco),
                 },
               ]
             : []
         }
-        confirmLabel="Sim, excluir"
-        cancelLabel="Não, cancelar"
-        onCancel={cancelarExclusao}
-        onConfirm={confirmarExclusao}
+        onCancel={cancelarAcao}
+        onConfirm={confirmarAcao}
       />
 
       </PageLayout>

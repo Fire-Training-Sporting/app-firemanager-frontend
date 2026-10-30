@@ -1,9 +1,12 @@
+import StatusUsuarioBadge from "../Usuarios/StatusUsuarioBadge";
+
 export function AlunosRow({
   id,
   nome,
   email,
   telefone,
   endereco,
+  arquivado = false,
   onDetails = () => {},
   showContato = true,
 }) {
@@ -19,7 +22,10 @@ export function AlunosRow({
       </td>
 
       <td className="px-4 py-3 text-gray-800 font-normal text-sm align-middle">
-        {nome}
+        <span className="inline-flex flex-wrap items-center gap-2">
+          {nome}
+          {arquivado && <StatusUsuarioBadge arquivado size="sm" />}
+        </span>
       </td>
 
       {showContato && (

@@ -1,8 +1,17 @@
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import api, { getAllPages } from "../../../provider/api";
 import AlertMessage from "../AlertMessage";
+import closeWhiteIcon from "../../../assets/close_white.png";
+import deleteRedIcon from "../../../assets/delete_red.png";
+import { modalButton, modalCloseButton, modalIcon, modalIconWhite, modalInlineButton, modalRemoveButton } from "../Buttons/modalButtonStyles";
+import doneGreenIcon from "../../../assets/done_green.png";
+import personAddWhiteIcon from "../../../assets/person_add_white.png";
+import useModalKeyboard from "../../../hooks/useModalKeyboard";
 
 export default function ModalScheduling({ agendamento = null, onClose, onCreated }) {
+  const confirmButtonRef = useRef(null);
+  useModalKeyboard({ onClose, confirmButtonRef });
+
   const isEditMode = !!agendamento?.id;
   const isDuplicateMode = !!agendamento && !agendamento?.id;
 
@@ -334,7 +343,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
       <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col max-h-[90vh] overflow-hidden">
 
         {/* HEADER */}
-        <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-4 py-2 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+        <div className="bg-[#F8821E] px-4 py-2 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
           <h2 className="text-white text-lg font-bold">
             {isEditMode ? "Editar Agendamento" : isDuplicateMode ? "Duplicar Agendamento" : "Criar Agendamento"}
           </h2>
@@ -342,9 +351,10 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
           <button
             type="button"
             onClick={onClose}
-            className="text-white hover:text-red-200 transition rounded-full px-2 py-1 bg-black/20"
+            className={modalCloseButton}
+            aria-label="Fechar"
           >
-            ✕
+            <img src={closeWhiteIcon} alt="" className="h-5 w-5" />
           </button>
         </div>
 
@@ -503,9 +513,9 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                   <button
                     type="button"
                     onClick={() => removeAluno(index)}
-                    className="px-2 py-1 bg-red-100 text-red-600 rounded-md hover:bg-red-200"
+                    className={modalRemoveButton}
                   >
-                    ✕
+                    <img src={deleteRedIcon} alt="Remover" className="h-5 w-5" />
                   </button>
                 </div>
               ))}
@@ -514,7 +524,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 <button
                   type="button"
                   onClick={addAluno}
-                  className="mt-1 px-3 py-1 text-sm rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200"
+                  className={`mt-1 ${modalInlineButton}`}
                 >
                   + Adicionar aluno
                 </button>
@@ -562,9 +572,9 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                   <button
                     type="button"
                     onClick={() => removeFuncionario(index)}
-                    className="px-2 py-1 bg-red-100 text-red-600 rounded-md hover:bg-red-200"
+                    className={modalRemoveButton}
                   >
-                    ✕
+                    <img src={deleteRedIcon} alt="Remover" className="h-5 w-5" />
                   </button>
                 </div>
               ))}
@@ -573,7 +583,7 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
                 <button
                   type="button"
                   onClick={addFuncionario}
-                  className="mt-1 px-3 py-1 text-sm rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200"
+                  className={`mt-1 ${modalInlineButton}`}
                 >
                   + Adicionar funcionário
                 </button>
@@ -600,16 +610,23 @@ export default function ModalScheduling({ agendamento = null, onClose, onCreated
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 bg-gray-200 text-gray-700 text-base rounded-md hover:bg-gray-300"
+                className={modalButton("danger", { icon: true })}
               >
+                <img src={closeWhiteIcon} alt="" className={modalIcon} />
                 Cancelar
               </button>
 
               <button
                 type="submit"
+                ref={confirmButtonRef}
                 disabled={loading}
-                className="px-3 py-1.5 bg-linear-to-r from-[#F8821E] to-[#EA580C] text-white text-base font-semibold rounded-md shadow-md hover:scale-105 transition disabled:opacity-50"
+                className={modalButton("success", { icon: true })}
               >
+                {isEditMode ? (
+                  <img src={doneGreenIcon} alt="" className={modalIconWhite} />
+                ) : (
+                  <img src={personAddWhiteIcon} alt="" className={modalIcon} />
+                )}
                 {loading
                   ? "Processando..."
                   : isEditMode
