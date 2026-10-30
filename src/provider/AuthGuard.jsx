@@ -1,27 +1,5 @@
-<<<<<<< HEAD
-import { Navigate, Outlet, useLocation } from "react-router-dom";
-
-const ROUTE_PERMISSIONS = {
-  "/dashboard": ["root"],
-  "/agendamentos": ["root", "administracao", "professor", "aluno"],
-  "/alunos": ["root", "administracao", "professor"],
-  "/perfil": ["root", "administracao", "professor", "aluno"],
-  "/condominios": ["root", "administracao", "professor"],
-  "/funcionarios": ["root", "administracao"],
-  "/servicos": ["root", "administracao"],
-  "/pagamento": ["root", "administracao", "professor"],
-  "/acesso-nao-autorizado": ["root", "administracao", "professor", "aluno"],
-};
-
-function normalizarCargo(cargo) {
-  return String(cargo ?? "").trim().toLowerCase();
-}
-
-=======
 import { Navigate, Outlet, useMatches } from "react-router-dom";
 import { normalizarCargo } from "../utils/helpers";
-
->>>>>>> ff702e9 (refactor: update border styles for various components to enhance UI consistency)
 export default function AuthGuard() {
   const token = sessionStorage.getItem("token");
   const cargo = normalizarCargo(sessionStorage.getItem("cargo"));
