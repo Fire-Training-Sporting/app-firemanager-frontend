@@ -1,6 +1,5 @@
 import { Navigate, Outlet, useMatches } from "react-router-dom";
 import { normalizarCargo } from "../utils/helpers";
-
 export default function AuthGuard() {
   const token = sessionStorage.getItem("token");
   const cargo = normalizarCargo(sessionStorage.getItem("cargo"));
