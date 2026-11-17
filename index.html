@@ -19,6 +19,21 @@
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     <script>
       new window.VLibras.Widget('https://vlibras.gov.br/app');
+
+      // O botão do VLibras fica num Shadow DOM e vem centralizado na vertical,
+      // em cima das tabelas. Injetamos um estilo para subi-lo.
+      (function moverBotaoVLibras(tentativas) {
+        const host = document.getElementById('vlibras-access-wrapper');
+        if (host && host.shadowRoot) {
+          const style = document.createElement('style');
+          style.textContent =
+            '#vlibras-access { top: 120px !important; }' +
+            '@media (min-width: 64rem) { #vlibras-access { top: 16px !important; } }';
+          host.shadowRoot.appendChild(style);
+        } else if (tentativas > 0) {
+          setTimeout(function () { moverBotaoVLibras(tentativas - 1); }, 250);
+        }
+      })(40);
     </script>
 
     <!-- React -->

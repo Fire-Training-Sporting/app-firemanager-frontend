@@ -1,11 +1,17 @@
 import { useState, useEffect } from "react";
 import PageLayout from "../utils/PageLayout";
+import personAddWhiteIcon from "../../assets/person_add_white.png";
 import SearchFilter from "../utils/SearchFilter";
 import { AlunosTable } from "../utils/Alunos/AlunosTable";
 import ModalAluno from "../utils/Alunos/ModalAlunos";
+import ModalAlunoDetalhes from "../utils/Alunos/ModalAlunoDetalhes";
 import ModalSaldo from "../utils/Alunos/ModalSaldo";
-import ConfirmationModal from "../utils/ConfirmationModal";
+import AlertMessage from "../utils/AlertMessage";
+import StatusUsuarioFilter from "../utils/Usuarios/StatusUsuarioFilter";
+import ConfirmacaoAcaoUsuario from "../utils/Usuarios/ConfirmacaoAcaoUsuario";
+import { ACOES_USUARIO, podeFiltrarStatusUsuario } from "../utils/Usuarios/acoesUsuario";
 import api from "../../provider/api";
+import { exibirSucesso, getMensagemErro } from "../../utils/helpers";
 
 const saldoServicesOrder = ["Tênis", "Beach Tennis", "Funcional"];
 
@@ -25,36 +31,64 @@ export default function TelaAlunos() {
     useState(null);
 
   const [alunos, setAlunos] = useState([]);
-
-  const [alunosOriginais, setAlunosOriginais] =
-    useState([]);
-
   const [isLoading, setIsLoading] = useState(false);
+  const [paginaAtual, setPaginaAtual] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [totalAlunos, setTotalAlunos] = useState(0);
+  const [filtroAtual, setFiltroAtual] = useState(null);
+  const [statusAtual, setStatusAtual] = useState("ATIVO");
 
-  const [alunoParaExcluir, setAlunoParaExcluir] =
-    useState(null);
+  const [acaoUsuario, setAcaoUsuario] = useState(null);
+  const [executandoAcao, setExecutandoAcao] = useState(false);
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
+  const [sucessoVisivel, setSucessoVisivel] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState("");
 
   const [alunoParaSaldo, setAlunoParaSaldo] =
     useState(null);
 
+  const [alunoDetalhes, setAlunoDetalhes] =
+    useState(null);
+
   useEffect(() => {
-    buscarAlunos();
+    buscarAlunos(0, null);
   }, []);
 
-  const buscarAlunos = async () => {
+  const buscarAlunos = async (pagina = paginaAtual, filtro = filtroAtual, status = statusAtual) => {
 
     try {
 
       setIsLoading(true);
 
+      const params = new URLSearchParams({
+        page: String(pagina),
+        size: "10",
+        tipoUsuarioCargo: "Aluno",
+        status,
+      });
+
+      if (filtro?.value) {
+        params.set("campo", filtro.field);
+        params.set("busca", filtro.value);
+      }
+
       const [usuariosResp, servicosResp, saldosResp] =
         await Promise.all([
-          api.get("/usuarios"),
+          api.get("/usuarios", { params }),
           api.get("/servicos").catch(() => ({ data: [] })),
           api.get("/saldos").catch(() => ({ data: [] })),
         ]);
 
-      const usuarios = usuariosResp.data || [];
+      const paginaResponse = usuariosResp.data;
+      const totalPaginasResposta = Number(paginaResponse?.totalPages) || 0;
+      const ultimaPagina = Math.max(0, totalPaginasResposta - 1);
+
+      if (pagina > ultimaPagina) {
+        await buscarAlunos(ultimaPagina, filtro, status);
+        return;
+      }
+
+      const usuarios = paginaResponse?.content || [];
       const servicos = servicosResp.data || [];
       const saldos = saldosResp.data || [];
 
@@ -114,14 +148,7 @@ export default function TelaAlunos() {
         return mapa;
       }, {});
 
-      const alunosFiltrados =
-        usuarios
-          .filter(
-            (u) =>
-              u.tipoUsuario?.cargo ===
-              "Aluno"
-          )
-          .map((u) => ({
+      const alunosFiltrados = usuarios.map((u) => ({
             ...u,
             endereco:
               u.endereco ||
@@ -141,10 +168,9 @@ export default function TelaAlunos() {
           }));
 
       setAlunos(alunosFiltrados);
-
-      setAlunosOriginais(
-        alunosFiltrados
-      );
+      setPaginaAtual(Number(paginaResponse?.page) || 0);
+      setTotalPaginas(totalPaginasResposta);
+      setTotalAlunos(Number(paginaResponse?.totalElements) || 0);
 
     } catch (err) {
 
@@ -196,49 +222,99 @@ export default function TelaAlunos() {
 
   };
 
-  const solicitarExclusao = (
-    aluno
-  ) => {
+  const handleDetalhes = (aluno) => {
 
-    setAlunoParaExcluir(aluno);
+    setAlunoDetalhes(aluno);
 
   };
 
-  const cancelarExclusao = () => {
+  const handleCloseDetalhesModal = () => {
 
-    setAlunoParaExcluir(null);
+    setAlunoDetalhes(null);
 
   };
 
-  const confirmarExclusao =
-    async () => {
+  const onBackFromSaldo = () => {
+    const alunoAtual = alunoParaSaldo;
+    setAlunoParaSaldo(null);
+    setAlunoDetalhes(alunoAtual);
+  };
 
-      if (!alunoParaExcluir?.id) {
-        return;
-      }
+  const onSaldoCreated = () => {
+    const alunoAtual = alunoParaSaldo;
+    buscarAlunos(paginaAtual, filtroAtual);
+    if (alunoAtual) {
+      setAlunoParaSaldo(null);
+      setAlunoDetalhes(alunoAtual);
+    }
+  };
 
-      try {
+  const onBackFromEdit = () => {
+    const alunoAtual = alunoEditando;
+    setAlunoEditando(null);
+    setShowModal(false);
+    setAlunoDetalhes(alunoAtual);
+  };
 
-        await api.delete(
-          `/usuarios/${alunoParaExcluir.id}`
-        );
+  const onEditCreated = () => {
+    const alunoAtual = alunoEditando;
+    buscarAlunos(paginaAtual, filtroAtual);
+    if (alunoAtual) {
+      setAlunoEditando(null);
+      setShowModal(false);
+      setAlunoDetalhes(alunoAtual);
+    }
+  };
 
-        setAlunoParaExcluir(null);
+  const solicitarAcao = (tipo, aluno) => {
 
-        await buscarAlunos();
+    setAcaoUsuario({ tipo, usuario: aluno });
 
-      } catch (error) {
+  };
 
-        console.error(
-          "Erro ao excluir aluno:",
-          error
-        );
+  const cancelarAcao = () => {
 
-        window.alert(
-          "Não foi possível excluir o aluno. Tente novamente."
-        );
-      }
-    };
+    setAcaoUsuario(null);
+
+  };
+
+  const confirmarAcao = async () => {
+
+    if (!acaoUsuario?.usuario?.id) {
+      return;
+    }
+
+    const config = ACOES_USUARIO[acaoUsuario.tipo];
+
+    try {
+
+      setExecutandoAcao(true);
+      setMensagemErro("");
+
+      await config.executar(acaoUsuario.usuario.id);
+
+      exibirSucesso(setMensagemSucesso, setSucessoVisivel)(config.sucesso);
+
+      await buscarAlunos(paginaAtual, filtroAtual);
+
+    } catch (error) {
+
+      console.error(
+        `Erro ao ${acaoUsuario.tipo} aluno:`,
+        error
+      );
+
+      setMensagemErro(
+        getMensagemErro(error, `Não foi possível ${acaoUsuario.tipo} o aluno. Tente novamente.`)
+      );
+
+    } finally {
+
+      setExecutandoAcao(false);
+      setAcaoUsuario(null);
+
+    }
+  };
 
   const formatarValor = (
     valor
@@ -256,216 +332,140 @@ export default function TelaAlunos() {
     return valor ?? "-";
   };
 
-  const filtrarAlunos = async ({
-    field,
-    value,
-  }) => {
+  const filtrarAlunos = ({ field, value }) => {
+    const filtro = value.trim() ? { field, value: value.trim() } : null;
+    setFiltroAtual(filtro);
+    return buscarAlunos(0, filtro);
+  };
 
-    try {
-
-      setIsLoading(true);
-
-      if (!value.trim()) {
-
-        setAlunos(
-          alunosOriginais
-        );
-
-        return;
-      }
-
-      const filtrados =
-        alunosOriginais.filter(
-          (aluno) => {
-
-            const fieldValue =
-              aluno[field];
-
-            const compareValue =
-              value.toLowerCase();
-
-            let fieldString = "";
-
-            if (
-              typeof fieldValue ===
-                "object" &&
-              fieldValue !== null
-            ) {
-
-              fieldString =
-                fieldValue.nome
-                  ? fieldValue.nome.toLowerCase()
-                  : "";
-
-            } else if (
-              typeof fieldValue ===
-              "string"
-            ) {
-
-              fieldString =
-                fieldValue.toLowerCase();
-
-            } else if (
-              typeof fieldValue ===
-              "number"
-            ) {
-
-              fieldString =
-                fieldValue
-                  .toString()
-                  .toLowerCase();
-
-            } else if (
-              fieldValue instanceof Date
-            ) {
-
-              fieldString =
-                fieldValue
-                  .toLocaleDateString(
-                    "pt-BR"
-                  )
-                  .toLowerCase();
-            }
-
-            return fieldString.includes(
-              compareValue
-            );
-          }
-        );
-
-      setAlunos(filtrados);
-
-    } catch (error) {
-
-      console.error(
-        "Erro ao filtrar alunos:",
-        error
-      );
-
-    } finally {
-
-      setIsLoading(false);
-
-    }
+  const filtrarPorStatus = (status) => {
+    setStatusAtual(status);
+    return buscarAlunos(0, filtroAtual, status);
   };
 
   return (
-
-    <div
-      className={
-        showModal
-          ? "modal-open"
-          : ""
+    <PageLayout
+      title="Alunos"
+      searchPlaceholder="Pesquisar aluno..."
+      onAdd={handleAdd}
+      addLabel="Cadastrar aluno"
+      addIcon={personAddWhiteIcon}
+      customControls={
+        <div className="flex w-full flex-wrap items-center gap-3">
+          {podeFiltrarStatusUsuario() && (
+            <StatusUsuarioFilter
+              value={statusAtual}
+              onChange={filtrarPorStatus}
+              isLoading={isLoading}
+            />
+          )}
+          <div className="w-full min-w-0 lg:w-auto lg:flex-1">
+            <SearchFilter
+              columns={search_columns}
+              onSearch={filtrarAlunos}
+              isLoading={isLoading}
+            />
+          </div>
+        </div>
       }
     >
+      <AlertMessage
+        variant="success"
+        message={sucessoVisivel ? mensagemSucesso : ""}
+      />
 
-      <PageLayout
-        title="Alunos"
-        searchPlaceholder="Pesquisar aluno..."
-        onAdd={handleAdd}
-        addLabel="Cadastrar aluno"
-        customControls={
-          <SearchFilter
-            columns={search_columns}
-            onSearch={filtrarAlunos}
-            isLoading={isLoading}
-          />
-        }
-      >
+      <AlertMessage variant="error" message={mensagemErro} />
 
-        <div className="bg-white rounded-lg shadow-md border overflow-hidden">
-
-          <AlunosTable
-            alunos={alunos}
-            onDelete={solicitarExclusao}
-            onEdit={handleEdit}
-            onAddSaldo={handleAddSaldo}
-          />
-
-        </div>
-
-        {showModal && (
-
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-
-            <ModalAluno
-              aluno={alunoEditando}
-              onClose={
-                handleCloseModal
-              }
-              onCreated={
-                buscarAlunos
-              }
-            />
-
-          </div>
-
-        )}
-
-        {alunoParaSaldo && (
-
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-
-            <ModalSaldo
-              aluno={alunoParaSaldo}
-              onClose={handleCloseSaldoModal}
-            />
-
-          </div>
-
-        )}
-
-        <ConfirmationModal
-          isOpen={!!alunoParaExcluir}
-          title="Confirmar exclusão"
-          message="Deseja realmente excluir este aluno?"
-          items={
-            alunoParaExcluir
-              ? [
-                  {
-                    label: "ID",
-                    value:
-                      alunoParaExcluir.id,
-                  },
-                  {
-                    label: "Nome",
-                    value:
-                      formatarValor(
-                        alunoParaExcluir.nome
-                      ),
-                  },
-                  {
-                    label: "Email",
-                    value:
-                      formatarValor(
-                        alunoParaExcluir.email
-                      ),
-                  },
-                  {
-                    label: "Telefone",
-                    value:
-                      formatarValor(
-                        alunoParaExcluir.telefone
-                      ),
-                  },
-                  {
-                    label: "Endereço",
-                    value:
-                      formatarValor(
-                        alunoParaExcluir.endereco
-                      ),
-                  },
-                ]
-              : []
-          }
-          confirmLabel="Sim, excluir"
-          cancelLabel="Não, cancelar"
-          onCancel={cancelarExclusao}
-          onConfirm={confirmarExclusao}
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+        <AlunosTable
+          alunos={alunos}
+          onDetails={handleDetalhes}
+          currentPage={paginaAtual}
+          totalPages={totalPaginas}
+          totalItems={totalAlunos}
+          isLoading={isLoading}
+          onPageChange={(pagina) => buscarAlunos(pagina)}
         />
+      </div>
+
+      {showModal && (
+        <ModalAluno
+          aluno={alunoEditando}
+          onClose={handleCloseModal}
+          onCreated={onEditCreated}
+          onBack={alunoEditando ? onBackFromEdit : undefined}
+        />
+      )}
+
+      {alunoParaSaldo && (
+        <ModalSaldo
+          aluno={alunoParaSaldo}
+          onClose={handleCloseSaldoModal}
+          onCreated={onSaldoCreated}
+          onBack={onBackFromSaldo}
+        />
+      )}
+
+      {alunoDetalhes && (
+        <ModalAlunoDetalhes
+          aluno={alunoDetalhes}
+          onClose={handleCloseDetalhesModal}
+          onEdit={() => {
+            handleCloseDetalhesModal();
+            handleEdit(alunoDetalhes);
+          }}
+          onArquivar={() => {
+            handleCloseDetalhesModal();
+            solicitarAcao("arquivar", alunoDetalhes);
+          }}
+          onDesarquivar={() => {
+            handleCloseDetalhesModal();
+            solicitarAcao("desarquivar", alunoDetalhes);
+          }}
+          onExcluir={() => {
+            handleCloseDetalhesModal();
+            solicitarAcao("excluir", alunoDetalhes);
+          }}
+          onAddSaldo={() => {
+            setAlunoDetalhes(null);
+            handleAddSaldo(alunoDetalhes);
+          }}
+        />
+      )}
+
+      <ConfirmacaoAcaoUsuario
+        acao={acaoUsuario}
+        isLoading={executandoAcao}
+        items={
+          acaoUsuario?.usuario
+            ? [
+                {
+                  label: "ID",
+                  value: acaoUsuario.usuario.id,
+                },
+                {
+                  label: "Nome",
+                  value: formatarValor(acaoUsuario.usuario.nome),
+                },
+                {
+                  label: "Email",
+                  value: formatarValor(acaoUsuario.usuario.email),
+                },
+                {
+                  label: "Telefone",
+                  value: formatarValor(acaoUsuario.usuario.telefone),
+                },
+                {
+                  label: "Endereço",
+                  value: formatarValor(acaoUsuario.usuario.endereco),
+                },
+              ]
+            : []
+        }
+        onCancel={cancelarAcao}
+        onConfirm={confirmarAcao}
+      />
 
       </PageLayout>
-
-    </div>
   );
 }

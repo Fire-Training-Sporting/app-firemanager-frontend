@@ -1,5 +1,47 @@
 @import "tailwindcss";
 
+/* Com o menu lateral fixo (desktop), o conteúdo das telas é deslocado para a direita
+   e os alertas fixos são centralizados na área de conteúdo, não na janela inteira. */
+@media (min-width: 64rem) {
+  body:has(.app-sidebar) #root {
+    padding-left: 15rem;
+    transition: padding-left 300ms;
+  }
+
+  body:has(.app-sidebar) .app-alert {
+    left: calc(50% + 7.5rem);
+  }
+
+  /* Menu recolhido: só os ícones, então o conteúdo ocupa quase toda a largura. */
+  body:has(.app-sidebar--collapsed) #root {
+    padding-left: 4.5rem;
+  }
+
+  body:has(.app-sidebar--collapsed) .app-alert {
+    left: calc(50% + 2.25rem);
+  }
+}
+
+/* O Tailwind v4 deixa botões com cursor padrão; aqui todos ganham a mãozinha,
+   exceto quando desabilitados. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  select:disabled,
+  input:disabled {
+    cursor: not-allowed;
+  }
+}
+
 .modal-open input[type="text"][placeholder*="Pesquisar"] {
   pointer-events: none;   /* bloqueia clique e digitação */
   user-select: none;      /* não permite selecionar texto */

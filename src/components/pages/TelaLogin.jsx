@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logoFire from "../../assets/logo2.png";
 import emailIcon from "../../assets/email.png";
 import lockIcon from "../../assets/lock.png";
@@ -12,6 +12,11 @@ import AlertMessage from "../utils/AlertMessage";
 import api from "../../provider/api";
 
 export async function login(email, senha) {
+    // Limpar qualquer token existente antes do login
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("cargo");
+    sessionStorage.removeItem("usuario");
+
     const response = await api.post("/usuarios/login", { email, senha });
     const data = response.data;
 
@@ -29,7 +34,9 @@ export function TelaLogin() {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
-    async function handleLogin() {
+    async function handleLogin(event) {
+        event?.preventDefault();
+        if (loading) return;
         setErro("");
         setLoading(true);
         try {
@@ -50,7 +57,7 @@ export function TelaLogin() {
     return (
         <main className="min-h-screen font-[Montserrat,sans-serif]">
             <section className="grid min-h-screen md:grid-cols-[34%_66%]">
-                <aside className="flex items-center justify-center bg-white px-8 py-16 md:px-8 md:py-12">
+                <aside className="hidden items-center justify-center bg-white px-8 py-16 md:flex md:px-8 md:py-12">
                     <img
                         className="h-auto w-[min(470px,80%)] object-contain md:w-[min(540px,84%)]"
                         src={logoFire}
@@ -59,7 +66,10 @@ export function TelaLogin() {
                 </aside>
 
                 <section className="flex items-center justify-center bg-[#ec7200] px-9 py-12 md:px-10 md:py-14">
-                    <div className="w-full max-w-125 rounded-2xl bg-[#242525] p-8 shadow-[0_16px_35px_rgba(0,0,0,0.16)] md:p-10">
+                    <form
+                        onSubmit={handleLogin}
+                        className="w-full max-w-125 rounded-2xl bg-[#242525] p-8 shadow-[0_16px_35px_rgba(0,0,0,0.16)] md:p-10"
+                    >
                         <h1 className="mb-6 text-[clamp(2rem,2.8vw,3rem)] leading-[1.08] font-extrabold text-white">
                             Olá,
                             <br />
@@ -104,6 +114,12 @@ export function TelaLogin() {
                             inputClassName="w-full rounded-[9px] border-0 bg-[#e6e7ed] py-[0.88rem] pl-11 pr-12 text-base text-[#1f1f1f] outline-none focus:ring-3 focus:ring-white/25"
                         />
 
+                        <div className="mt-2 text-right">
+                            <Link to="/recuperar-senha" className="text-sm font-medium text-white underline underline-offset-2 hover:text-white/80">
+                                Esqueceu sua senha?
+                            </Link>
+                        </div>
+
                         <AlertMessage variant="error" message={erro} className="mt-2 mb-0" />
 
                         <BtnGreen
@@ -113,11 +129,12 @@ export function TelaLogin() {
                                     <p>{loading ? "Entrando..." : "Entrar"}</p>
                                 </span>
                             )}
-                            onClick={handleLogin}
-                            type="button"
+                            type="submit"
+                            disabled={loading}
+                            ariaBusy={loading}
                             className="mt-[1.35rem] w-full py-2 text-base font-semibold transition hover:brightness-95"
                         />
-                    </div>
+                    </form>
                 </section>
             </section>
         </main>

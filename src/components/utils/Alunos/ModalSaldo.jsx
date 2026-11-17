@@ -1,6 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useRef, useEffect, useMemo, useState } from "react";
 import api from "../../../provider/api";
 import AlertMessage from "../AlertMessage";
+import closeWhiteIcon from "../../../assets/close_white.png";
+import returnWhiteIcon from "../../../assets/return_white.png";
+import { modalBackButton, modalButton, modalCloseButton, modalIcon, modalIconWhite } from "../Buttons/modalButtonStyles";
+import doneGreenIcon from "../../../assets/done_green.png";
+import useModalKeyboard from "../../../hooks/useModalKeyboard";
 
 const saldoServicesOrder = ["Tênis", "Beach Tennis", "Funcional"];
 
@@ -18,7 +23,10 @@ function Field({ label, children }) {
   );
 }
 
-export default function ModalSaldo({ aluno = null, onClose }) {
+export default function ModalSaldo({ aluno = null, onClose, onCreated, onBack }) {
+  const confirmButtonRef = useRef(null);
+  useModalKeyboard({ onClose, confirmButtonRef });
+
   const [servicos, setServicos] = useState([]);
   const [form, setForm] = useState({
     servico: "",
@@ -27,6 +35,7 @@ export default function ModalSaldo({ aluno = null, onClose }) {
   const [loadingServicos, setLoadingServicos] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [submitSuccess, setSubmitSuccess] = useState("");
 
   const alunoId = useMemo(() => aluno?.id ?? "", [aluno]);
 
@@ -74,6 +83,7 @@ export default function ModalSaldo({ aluno = null, onClose }) {
     const { name, value } = event.target;
 
     setSubmitError("");
+    setSubmitSuccess("");
     setForm((current) => ({
       ...current,
       [name]: value,
@@ -91,6 +101,7 @@ export default function ModalSaldo({ aluno = null, onClose }) {
     try {
       setIsSaving(true);
       setSubmitError("");
+      setSubmitSuccess("");
 
       await api.post("/saldos", {
         aluno: Number(alunoId),
@@ -98,7 +109,14 @@ export default function ModalSaldo({ aluno = null, onClose }) {
         servico: Number(form.servico),
       });
 
-      onClose();
+      setSubmitSuccess("Saldo adicionado com sucesso!");
+
+      setTimeout(() => {
+        if (onCreated) {
+          onCreated();
+        }
+        onClose();
+      }, 1500);
     } catch (error) {
       console.error("Erro ao criar saldo:", error);
       setSubmitError(
@@ -114,16 +132,30 @@ export default function ModalSaldo({ aluno = null, onClose }) {
   };
 
   return (
-    <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
-      <div className="bg-linear-to-r from-[#F8821E] to-[#EA580C] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
-        <h2 className="text-lg font-bold text-white">Adicionar saldo</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl flex flex-col transform transition-all duration-300">
+      <div className="bg-[#F8821E] px-5 py-3 flex items-center justify-between shrink-0 shadow-md rounded-t-2xl">
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className={modalBackButton}
+              aria-label="Voltar"
+            >
+              <img src={returnWhiteIcon} alt="" className="h-5 w-5 -translate-x-px" />
+            </button>
+          )}
+          <h2 className="text-lg font-bold text-white">Adicionar saldo</h2>
+        </div>
 
         <button
           type="button"
           onClick={onClose}
-          className="text-white hover:text-red-200 transition rounded-full p-1 bg-black/20"
+          className={modalCloseButton}
+          aria-label="Fechar"
         >
-          ✕
+          <img src={closeWhiteIcon} alt="" className="h-5 w-5" />
         </button>
       </div>
 
@@ -167,25 +199,30 @@ export default function ModalSaldo({ aluno = null, onClose }) {
           </Field>
 
           <AlertMessage variant="error" message={submitError} />
+          <AlertMessage variant="success" message={submitSuccess} />
 
           <div className="flex justify-end gap-2 mt-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+              className={modalButton("danger", { icon: true })}
             >
+              <img src={closeWhiteIcon} alt="" className={modalIcon} />
               Cancelar
             </button>
             <button
               type="submit"
+              ref={confirmButtonRef}
               disabled={isSaving || loadingServicos}
-              className="px-4 py-2 bg-linear-to-r from-[#F8821E] to-[#EA580C] hover:from-[#EA580C] hover:to-[#F8821E] text-white font-semibold rounded-md shadow-md transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={modalButton("success", { icon: true })}
             >
+              <img src={doneGreenIcon} alt="" className={modalIconWhite} />
               {isSaving ? "Salvando..." : "Adicionar saldo"}
             </button>
           </div>
         </form>
       </div>
+    </div>
     </div>
   );
 }

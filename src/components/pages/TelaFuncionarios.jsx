@@ -1,11 +1,16 @@
 import { useState, useEffect } from "react";
 import PageLayout from "../utils/PageLayout";
+import personAddWhiteIcon from "../../assets/person_add_white.png";
 import SearchFilter from "../utils/SearchFilter";
 import TabelaFuncionarios from "../utils/Funcionarios/TabelaFuncionarios";
 import ModalCadastroFuncionario from "../utils/Funcionarios/ModalCadastroFuncionario";
-import ConfirmationModal from "../utils/ConfirmationModal";
+import ModalFuncionarioDetalhes from "../utils/Funcionarios/ModalFuncionarioDetalhes";
 import AlertMessage from "../utils/AlertMessage";
+import StatusUsuarioFilter from "../utils/Usuarios/StatusUsuarioFilter";
+import ConfirmacaoAcaoUsuario from "../utils/Usuarios/ConfirmacaoAcaoUsuario";
+import { ACOES_USUARIO, podeFiltrarStatusUsuario } from "../utils/Usuarios/acoesUsuario";
 import api from "../../provider/api";
+import { formatarValor, exibirSucesso, getMensagemErro } from "../../utils/helpers";
 
 const search_columns = [
   { label: "ID", value: "id" },
@@ -22,15 +27,21 @@ export default function TelaFuncionarios() {
 
   const [funcionarios, setFuncionarios] =
     useState([]);
-
-  const [funcionariosOriginais,
-    setFuncionariosOriginais] = useState([]);
+  const [tipoUsuarioCargos, setTipoUsuarioCargos] = useState([]);
+  const [paginaAtual, setPaginaAtual] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const [totalFuncionarios, setTotalFuncionarios] = useState(0);
+  const [filtroAtual, setFiltroAtual] = useState(null);
+  const [statusAtual, setStatusAtual] = useState("ATIVO");
 
   const [selectedEmployee,
     setSelectedEmployee] = useState(null);
 
-  const [funcionarioParaExcluir,
-    setFuncionarioParaExcluir] = useState(null);
+  const [acaoUsuario, setAcaoUsuario] = useState(null);
+  const [executandoAcao, setExecutandoAcao] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState("");
+
+  const [funcionarioDetalhes, setFuncionarioDetalhes] = useState(null);
 
   const [sucessoCadastro,
     setSucessoCadastro] = useState("");
@@ -42,37 +53,59 @@ export default function TelaFuncionarios() {
     setIsLoading] = useState(false);
 
   useEffect(() => {
-    buscarDados();
+    async function carregarCargosEBuscarFuncionarios() {
+      try {
+        const response = await api.get("/tipo-usuarios");
+        const cargos = (response.data || [])
+          .map((tipo) => String(tipo.cargo || "").trim())
+          .filter((cargo) => cargo && cargo.toLowerCase() !== "aluno" && cargo.toLowerCase() !== "root");
+
+        setTipoUsuarioCargos(cargos);
+        await buscarDados(0, null, cargos);
+      } catch (error) {
+        console.error("Erro ao carregar tipos de funcionário:", error);
+      }
+    }
+
+    carregarCargosEBuscarFuncionarios();
   }, []);
 
-  async function buscarDados() {
+  async function buscarDados(pagina = paginaAtual, filtro = filtroAtual, cargos = tipoUsuarioCargos, status = statusAtual) {
 
     try {
 
       setIsLoading(true);
 
-      const resp = await api.get("/usuarios");
+      if (cargos.length === 0) {
+        setFuncionarios([]);
+        setPaginaAtual(0);
+        setTotalPaginas(0);
+        setTotalFuncionarios(0);
+        return;
+      }
 
-      const usuarios = resp.data || [];
+      const params = new URLSearchParams({ page: String(pagina), size: "10", status });
+      cargos.forEach((cargo) => params.append("tipoUsuarioCargo", cargo));
 
-      const funcionariosFiltrados =
-        usuarios.filter((usuario) => {
+      if (filtro?.value) {
+        params.set("campo", filtro.field);
+        params.set("busca", filtro.value);
+      }
 
-          const cargo =
-            (usuario.tipoUsuario?.cargo || "")
-              .toString()
-              .trim()
-              .toLowerCase();
+      const response = await api.get("/usuarios", { params });
+      const paginaResponse = response.data;
+      const totalPaginasResposta = Number(paginaResponse?.totalPages) || 0;
+      const ultimaPagina = Math.max(0, totalPaginasResposta - 1);
 
-          return (
-            cargo !== "aluno" &&
-            cargo !== "root" &&
-            cargo !== ""
-          );
-        });
+      if (pagina > ultimaPagina) {
+        await buscarDados(ultimaPagina, filtro, cargos, status);
+        return;
+      }
 
-      setFuncionarios(funcionariosFiltrados);
-      setFuncionariosOriginais(funcionariosFiltrados);
+      setFuncionarios(paginaResponse?.content || []);
+      setPaginaAtual(Number(paginaResponse?.page) || 0);
+      setTotalPaginas(totalPaginasResposta);
+      setTotalFuncionarios(Number(paginaResponse?.totalElements) || 0);
     } catch (err) {
 
       console.error(
@@ -87,77 +120,15 @@ export default function TelaFuncionarios() {
     }
   }
 
-  async function filtrarFuncionarios({
-    field,
-    value,
-  }) {
+  function filtrarFuncionarios({ field, value }) {
+    const filtro = value.trim() ? { field, value: value.trim() } : null;
+    setFiltroAtual(filtro);
+    return buscarDados(0, filtro);
+  }
 
-    try {
-
-      setIsLoading(true);
-
-      if (!value.trim()) {
-        setFuncionarios(funcionariosOriginais);
-        return;
-      }
-
-      function getFieldValue(obj, path) {
-        if (!path) return undefined;
-        const parts = path.split(".");
-        let cur = obj;
-        for (const p of parts) {
-          if (cur == null) return undefined;
-          cur = cur[p];
-        }
-        return cur;
-      }
-
-      const filtrados =
-        funcionariosOriginais.filter((funcionario) => {
-          const fieldValue = getFieldValue(funcionario, field);
-
-          const compareValue = value.toLowerCase().trim();
-
-          let fieldString = "";
-
-          if (typeof fieldValue === "object" && fieldValue !== null) {
-            if (fieldValue.nome) {
-              fieldString = String(fieldValue.nome).toLowerCase();
-            } else if (fieldValue.cargo) {
-              fieldString = String(fieldValue.cargo).toLowerCase();
-            } else if (fieldValue.perfil) {
-              fieldString = String(fieldValue.perfil).toLowerCase();
-            } else {
-              fieldString = Object.values(fieldValue)
-                .filter((v) => v != null)
-                .join(" ")
-                .toLowerCase();
-            }
-          } else if (typeof fieldValue === "string") {
-            fieldString = fieldValue.toLowerCase();
-          } else if (typeof fieldValue === "number") {
-            fieldString = fieldValue.toString().toLowerCase();
-          } else if (fieldValue instanceof Date) {
-            fieldString = fieldValue.toLocaleDateString("pt-BR").toLowerCase();
-          }
-
-          return fieldString.includes(compareValue);
-        });
-
-      setFuncionarios(filtrados);
-
-    } catch (error) {
-
-      console.error(
-        "Erro ao filtrar funcionários:",
-        error
-      );
-
-    } finally {
-
-      setIsLoading(false);
-
-    }
+  function filtrarPorStatus(status) {
+    setStatusAtual(status);
+    return buscarDados(0, filtroAtual, tipoUsuarioCargos, status);
   }
 
   function handleAdd() {
@@ -199,85 +170,79 @@ export default function TelaFuncionarios() {
     setSelectedEmployee(null);
   }
 
-  function solicitarExclusao(employee) {
-
-    setFuncionarioParaExcluir(employee);
+  function handleDetalhes(funcionario) {
+    setFuncionarioDetalhes(funcionario);
   }
 
-  function cancelarExclusao() {
-
-    setFuncionarioParaExcluir(null);
+  function handleCloseDetalhesModal() {
+    setFuncionarioDetalhes(null);
   }
 
-  async function confirmarExclusao() {
+  function onBackFromEdit() {
+    const funcionarioAtual = selectedEmployee;
+    setSelectedEmployee(null);
+    setIsModalOpen(false);
+    setFuncionarioDetalhes(funcionarioAtual);
+  }
 
-    if (!funcionarioParaExcluir?.id) {
+  function solicitarAcao(tipo, employee) {
+
+    setAcaoUsuario({ tipo, usuario: employee });
+  }
+
+  function cancelarAcao() {
+
+    setAcaoUsuario(null);
+  }
+
+  async function confirmarAcao() {
+
+    if (!acaoUsuario?.usuario?.id) {
       return;
     }
 
+    const config = ACOES_USUARIO[acaoUsuario.tipo];
+
     try {
 
-      await api.delete(
-        `/usuarios/${funcionarioParaExcluir.id}`
-      );
+      setExecutandoAcao(true);
+      setMensagemErro("");
 
-      setFuncionarioParaExcluir(null);
+      await config.executar(acaoUsuario.usuario.id);
 
-      await buscarDados();
+      exibirSucesso(setSucessoCadastro, setSucessoVisivel)(config.sucesso);
+
+      await buscarDados(paginaAtual, filtroAtual);
 
     } catch (error) {
 
       console.error(
-        "Erro ao excluir funcionário:",
+        `Erro ao ${acaoUsuario.tipo} funcionário:`,
         error
       );
 
-      window.alert(
-        "Não foi possível excluir o funcionário."
+      setMensagemErro(
+        getMensagemErro(error, `Não foi possível ${acaoUsuario.tipo} o funcionário.`)
       );
+
+    } finally {
+
+      setExecutandoAcao(false);
+      setAcaoUsuario(null);
     }
-  }
-
-  function formatarValor(valor) {
-
-    if (
-      valor &&
-      typeof valor === "object"
-    ) {
-
-      return valor.nome ?? "-";
-    }
-
-    return valor ?? "-";
   }
 
   function handleSuccess(acao = "created") {
+    const exibirSucessoLocal = exibirSucesso(setSucessoCadastro, setSucessoVisivel);
 
     setIsModalOpen(false);
-
-    setSucessoCadastro(
+    exibirSucessoLocal(
       acao === "updated"
         ? "Funcionário atualizado com sucesso"
         : "Funcionário cadastrado com sucesso"
     );
-
-    setSucessoVisivel(true);
-
-    buscarDados();
-
+    buscarDados(0, filtroAtual);
     setSelectedEmployee(null);
-
-    window.clearTimeout(
-      handleSuccess.timeoutId
-    );
-
-    handleSuccess.timeoutId =
-      window.setTimeout(() => {
-
-        setSucessoCadastro("");
-        setSucessoVisivel(false);
-
-      }, 7000);
   }
 
   return (
@@ -288,27 +253,44 @@ export default function TelaFuncionarios() {
         searchPlaceholder="Pesquisar funcionário"
         onAdd={handleAdd}
         addLabel="Cadastrar funcionário"
+        addIcon={personAddWhiteIcon}
         customControls={
-          <SearchFilter
-            columns={search_columns}
-            onSearch={filtrarFuncionarios}
-            isLoading={isLoading}
-          />
+          <div className="flex w-full flex-wrap items-center gap-3">
+            {podeFiltrarStatusUsuario() && (
+              <StatusUsuarioFilter
+                value={statusAtual}
+                onChange={filtrarPorStatus}
+                isLoading={isLoading}
+              />
+            )}
+            <div className="w-full min-w-0 lg:w-auto lg:flex-1">
+              <SearchFilter
+                columns={search_columns}
+                onSearch={filtrarFuncionarios}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
         }
       >
 
         <AlertMessage
           variant="success"
           message={sucessoVisivel ? sucessoCadastro : ""}
-          className="fixed right-4 top-30 z-60 w-[min(420px,calc(100vw-2rem))] shadow-lg"
         />
 
-        <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+        <AlertMessage variant="error" message={mensagemErro} />
+
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
 
           <TabelaFuncionarios
             funcionarios={funcionarios}
-            onEdit={handleEdit}
-            onDelete={solicitarExclusao}
+            onDetails={handleDetalhes}
+            currentPage={paginaAtual}
+            totalPages={totalPaginas}
+            totalItems={totalFuncionarios}
+            isLoading={isLoading}
+            onPageChange={(pagina) => buscarDados(pagina)}
           />
 
         </div>
@@ -316,64 +298,74 @@ export default function TelaFuncionarios() {
       </PageLayout>
 
       {isModalOpen && (
-
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <ModalCadastroFuncionario
             isOpen={isModalOpen}
             onClose={handleModalClose}
             onSuccess={handleSuccess}
             usuario={selectedEmployee}
+            onBack={selectedEmployee ? onBackFromEdit : undefined}
           />
-
         </div>
       )}
 
-      <ConfirmationModal
-        isOpen={!!funcionarioParaExcluir}
-        title="Confirmar exclusão"
-        message="Deseja realmente excluir este funcionário?"
+      {funcionarioDetalhes && (
+        <ModalFuncionarioDetalhes
+          funcionario={funcionarioDetalhes}
+          onClose={handleCloseDetalhesModal}
+          onEdit={() => {
+            handleCloseDetalhesModal();
+            handleEdit(funcionarioDetalhes);
+          }}
+          onArquivar={() => {
+            handleCloseDetalhesModal();
+            solicitarAcao("arquivar", funcionarioDetalhes);
+          }}
+          onDesarquivar={() => {
+            handleCloseDetalhesModal();
+            solicitarAcao("desarquivar", funcionarioDetalhes);
+          }}
+          onExcluir={() => {
+            handleCloseDetalhesModal();
+            solicitarAcao("excluir", funcionarioDetalhes);
+          }}
+        />
+      )}
+
+      <ConfirmacaoAcaoUsuario
+        acao={acaoUsuario}
+        isLoading={executandoAcao}
         items={
-          funcionarioParaExcluir
+          acaoUsuario?.usuario
             ? [
                 {
                   label: "ID",
-                  value:
-                    funcionarioParaExcluir.id,
+                  value: acaoUsuario.usuario.id,
                 },
                 {
                   label: "Nome",
-                  value: formatarValor(
-                    funcionarioParaExcluir.nome
-                  ),
+                  value: formatarValor(acaoUsuario.usuario.nome),
                 },
                 {
                   label: "Email",
-                  value: formatarValor(
-                    funcionarioParaExcluir.email
-                  ),
+                  value: formatarValor(acaoUsuario.usuario.email),
                 },
                 {
                   label: "Telefone",
-                  value: formatarValor(
-                    funcionarioParaExcluir.telefone
-                  ),
+                  value: formatarValor(acaoUsuario.usuario.telefone),
                 },
                 {
                   label: "Tipo",
                   value: formatarValor(
-                    funcionarioParaExcluir
-                      .tipoUsuario?.cargo ||
-                    funcionarioParaExcluir.perfil
+                    acaoUsuario.usuario.tipoUsuario?.cargo ||
+                    acaoUsuario.usuario.perfil
                   ),
                 },
               ]
             : []
         }
-        confirmLabel="Sim, excluir"
-        cancelLabel="Não, cancelar"
-        onCancel={cancelarExclusao}
-        onConfirm={confirmarExclusao}
+        onCancel={cancelarAcao}
+        onConfirm={confirmarAcao}
       />
 
     </div>
